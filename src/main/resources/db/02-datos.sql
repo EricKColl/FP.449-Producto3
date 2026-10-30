@@ -41,13 +41,15 @@ INSERT INTO libro_autor (libro_id, autor_id) VALUES
     (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (5, 6), (6, 7), (7, 7),
     (8, 8), (8, 9), (9, 10), (10, 10), (11, 11), (12, 2), (13, 6), (14, 4);
 
-INSERT INTO usuario (id, dni, nombre, apellidos, email, telefono, fecha_alta) VALUES
-    (1, '12345678Z', 'Laura',  'Martínez Soler',  'laura.martinez@example.com', '612345678', CURRENT_DATE - INTERVAL '400' DAY),
-    (2, '23456781R', 'Javier', 'López Ferrer',    'javier.lopez@example.com',   '623456789', CURRENT_DATE - INTERVAL '300' DAY),
-    (3, '34567812P', 'Marta',  'Sánchez Vidal',   'marta.sanchez@example.com',  '634567890', CURRENT_DATE - INTERVAL '200' DAY),
-    (4, '45678123P', 'Pablo',  'Gómez Ruiz',      'pablo.gomez@example.com',    '645678901', CURRENT_DATE - INTERVAL '150' DAY),
-    (5, '56781234F', 'Lucía',  'Fernández Torres','lucia.fernandez@example.com', NULL,       CURRENT_DATE - INTERVAL '90' DAY),
-    (6, '67812345L', 'Daniel', 'Navarro Pons',    'daniel.navarro@example.com', '667890123', CURRENT_DATE - INTERVAL '30' DAY);
+-- Cuentas de prueba: admin@example.com / Admin1234 (ADMIN) y los socios con Usuario1234 (USER)
+INSERT INTO usuario (id, dni, nombre, apellidos, email, telefono, fecha_alta, password, rol) VALUES
+    (1, '12345678Z', 'Laura',  'Martínez Soler',  'laura.martinez@example.com', '612345678', CURRENT_DATE - INTERVAL '400' DAY, '$2a$10$N9jbciwfU.zbT0LIjURgv.c5DF8hhlNjKZIL8aKNihDDqVD8pHWWC', 'USER'),
+    (2, '23456781R', 'Javier', 'López Ferrer',    'javier.lopez@example.com',   '623456789', CURRENT_DATE - INTERVAL '300' DAY, '$2a$10$N9jbciwfU.zbT0LIjURgv.c5DF8hhlNjKZIL8aKNihDDqVD8pHWWC', 'USER'),
+    (3, '34567812P', 'Marta',  'Sánchez Vidal',   'marta.sanchez@example.com',  '634567890', CURRENT_DATE - INTERVAL '200' DAY, '$2a$10$N9jbciwfU.zbT0LIjURgv.c5DF8hhlNjKZIL8aKNihDDqVD8pHWWC', 'USER'),
+    (4, '45678123P', 'Pablo',  'Gómez Ruiz',      'pablo.gomez@example.com',    '645678901', CURRENT_DATE - INTERVAL '150' DAY, '$2a$10$N9jbciwfU.zbT0LIjURgv.c5DF8hhlNjKZIL8aKNihDDqVD8pHWWC', 'USER'),
+    (5, '56781234F', 'Lucía',  'Fernández Torres','lucia.fernandez@example.com', NULL,       CURRENT_DATE - INTERVAL '90' DAY, '$2a$10$N9jbciwfU.zbT0LIjURgv.c5DF8hhlNjKZIL8aKNihDDqVD8pHWWC', 'USER'),
+    (6, '67812345L', 'Daniel', 'Navarro Pons',    'daniel.navarro@example.com', '667890123', CURRENT_DATE - INTERVAL '30' DAY, '$2a$10$N9jbciwfU.zbT0LIjURgv.c5DF8hhlNjKZIL8aKNihDDqVD8pHWWC', 'USER'),
+    (7, '00000000T', 'Admin',  'Biblioteca',      'admin@example.com',          NULL,        CURRENT_DATE - INTERVAL '400' DAY, '$2a$10$J2L4zCXTzv0DVowOMThXmuejzDSDMVI6r8QnkGA/l4W1Ft.tAiQeC', 'ADMIN');
 
 INSERT INTO prestamo (id, usuario_id, libro_id, fecha_prestamo, fecha_devolucion_prevista, fecha_devolucion) VALUES
     -- Devueltos

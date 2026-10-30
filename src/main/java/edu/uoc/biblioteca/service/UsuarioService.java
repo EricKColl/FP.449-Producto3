@@ -1,9 +1,11 @@
 package edu.uoc.biblioteca.service;
 
+import edu.uoc.biblioteca.model.Rol;
 import edu.uoc.biblioteca.model.Usuario;
 import edu.uoc.biblioteca.repository.PrestamoRepository;
 import edu.uoc.biblioteca.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,10 +20,13 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PrestamoRepository prestamoRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PrestamoRepository prestamoRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PrestamoRepository prestamoRepository,
+                          PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.prestamoRepository = prestamoRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Usuario> listar() {
@@ -42,10 +47,16 @@ public class UsuarioService {
         return otroUsuario(usuarioRepository.findByEmail(normalizarEmail(usuario.getEmail())), usuario);
     }
 
+    /** Quitarle el rol al único administrador dejaría la aplicación sin nadie que pueda gestionarla. */
+    public boolean esUltimoAdmin(Long id) {
+        return buscarPorId(id).getRol() == Rol.ADMIN && usuarioRepository.countByRol(Rol.ADMIN) == 1;
+    }
+
     @Transactional
     public Usuario crear(Usuario usuario) {
         usuario.setId(null);
         normalizar(usuario);
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         return usuarioRepository.save(usuario);
     }
 
@@ -58,14 +69,22 @@ public class UsuarioService {
         usuario.setEmail(datos.getEmail());
         usuario.setTelefono(datos.getTelefono());
         usuario.setFechaAlta(datos.getFechaAlta());
+        usuario.setRol(datos.getRol());
+        // Si la contraseña se deja en blanco al editar, se conserva la que tenía
+        if (datos.getPassword() != null && !datos.getPassword().isBlank()) {
+            usuario.setPassword(passwordEncoder.encode(datos.getPassword()));
+        }
         normalizar(usuario);
         return usuario;
     }
 
     /** Un usuario con préstamos no se borra, para conservar el historial (la clave ajena es ON DELETE RESTRICT). */
     @Transactional
-    public Usuario eliminar(Long id) {
+    public Usuario eliminar(Long id, String emailSesion) {
         Usuario usuario = buscarPorId(id);
+        if (usuario.getEmail().equals(emailSesion)) {
+            throw new IllegalStateException("No puedes eliminar la cuenta con la que has iniciado sesión");
+        }
         if (prestamoRepository.existsByUsuarioId(id)) {
             throw new IllegalStateException("No se puede eliminar a " + usuario.getNombreCompleto()
                     + " porque tiene préstamos registrados");

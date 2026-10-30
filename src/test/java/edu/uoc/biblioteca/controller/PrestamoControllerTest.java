@@ -10,11 +10,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("h2")
 @Transactional
+@WithMockUser(roles = "ADMIN")
 class PrestamoControllerTest {
 
     @Autowired
@@ -58,7 +61,7 @@ class PrestamoControllerTest {
 
     @Test
     void registraUnaDevolucion() throws Exception {
-        mockMvc.perform(post("/prestamos/7/devolver"))
+        mockMvc.perform(post("/prestamos/7/devolver").with(csrf()))
                 .andExpect(redirectedUrl("/prestamos"))
                 .andExpect(flash().attributeExists("mensajeExito"));
         assertThat(prestamoRepository.findById(7L)).get()
@@ -67,7 +70,7 @@ class PrestamoControllerTest {
 
     @Test
     void noDevuelveDosVecesElMismoPrestamo() throws Exception {
-        mockMvc.perform(post("/prestamos/1/devolver"))
+        mockMvc.perform(post("/prestamos/1/devolver").with(csrf()))
                 .andExpect(redirectedUrl("/prestamos"))
                 .andExpect(flash().attributeExists("mensajeError"));
     }
@@ -85,7 +88,7 @@ class PrestamoControllerTest {
     void creaUnPrestamoDeUnLibroDisponible() throws Exception {
         long antes = prestamoRepository.count();
 
-        mockMvc.perform(post("/prestamos")
+        mockMvc.perform(post("/prestamos").with(csrf())
                         .param("usuarioId", "1")
                         .param("libroId", "14"))
                 .andExpect(redirectedUrl("/prestamos"))
@@ -99,7 +102,7 @@ class PrestamoControllerTest {
         long antes = prestamoRepository.count();
 
         // Libro 3: 1 ejemplar, ya prestado (préstamo 5)
-        mockMvc.perform(post("/prestamos")
+        mockMvc.perform(post("/prestamos").with(csrf())
                         .param("usuarioId", "1")
                         .param("libroId", "3"))
                 .andExpect(redirectedUrl("/prestamos/nuevo"))
@@ -113,7 +116,7 @@ class PrestamoControllerTest {
         long antes = prestamoRepository.count();
 
         // Javier (usuario 2) tiene sin devolver el préstamo 6, ya vencido
-        mockMvc.perform(post("/prestamos")
+        mockMvc.perform(post("/prestamos").with(csrf())
                         .param("usuarioId", "2")
                         .param("libroId", "14"))
                 .andExpect(redirectedUrl("/prestamos/nuevo"))
@@ -126,12 +129,12 @@ class PrestamoControllerTest {
     void noPasaDelMaximoDePrestamosAbiertos() throws Exception {
         // Marta (usuario 3) tiene 1 préstamo abierto: llega a 3 con dos más y el cuarto se rechaza
         for (String libro : new String[] {"6", "11"}) {
-            mockMvc.perform(post("/prestamos").param("usuarioId", "3").param("libroId", libro))
+            mockMvc.perform(post("/prestamos").with(csrf()).param("usuarioId", "3").param("libroId", libro))
                     .andExpect(flash().attributeExists("mensajeExito"));
         }
         long antes = prestamoRepository.count();
 
-        mockMvc.perform(post("/prestamos")
+        mockMvc.perform(post("/prestamos").with(csrf())
                         .param("usuarioId", "3")
                         .param("libroId", "14"))
                 .andExpect(redirectedUrl("/prestamos/nuevo"))

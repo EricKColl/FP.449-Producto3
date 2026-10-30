@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head(${libro.titulo})}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('libros')}"></nav>
@@ -55,7 +56,7 @@
       </div>
     </div>
 
-    <div class="col-lg-7 col-xl-8">
+    <div class="col-lg-7 col-xl-8" sec:authorize="hasRole('ADMIN')">
       <div class="card">
         <div class="card-header fw-semibold">Historial de préstamos</div>
         <div class="table-responsive">

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("h2")
 @Transactional
+@WithMockUser(roles = "ADMIN")
 class LibroControllerTest {
 
     @Autowired
@@ -77,7 +80,7 @@ class LibroControllerTest {
 
     @Test
     void creaUnLibroValido() throws Exception {
-        mockMvc.perform(post("/libros")
+        mockMvc.perform(post("/libros").with(csrf())
                         .param("isbn", "978-84-376-0494-7")
                         .param("titulo", "Libro de prueba")
                         .param("ejemplares", "2")
@@ -92,7 +95,7 @@ class LibroControllerTest {
 
     @Test
     void noCreaUnLibroConErrores() throws Exception {
-        mockMvc.perform(post("/libros")
+        mockMvc.perform(post("/libros").with(csrf())
                         .param("isbn", "")
                         .param("titulo", "")
                         .param("ejemplares", "1"))
@@ -103,7 +106,7 @@ class LibroControllerTest {
 
     @Test
     void noAdmiteUnIsbnRepetido() throws Exception {
-        mockMvc.perform(post("/libros")
+        mockMvc.perform(post("/libros").with(csrf())
                         .param("isbn", "978-84-376-2405-1")
                         .param("titulo", "Otro Quijote")
                         .param("ejemplares", "1")
@@ -114,7 +117,7 @@ class LibroControllerTest {
 
     @Test
     void editaUnLibro() throws Exception {
-        mockMvc.perform(post("/libros/14")
+        mockMvc.perform(post("/libros/14").with(csrf())
                         .param("isbn", "978-84-08-08236-1")
                         .param("titulo", "El juego del ángel (edición revisada)")
                         .param("ejemplares", "3")
@@ -132,7 +135,7 @@ class LibroControllerTest {
 
     @Test
     void eliminaUnLibroSinPrestamos() throws Exception {
-        mockMvc.perform(post("/libros/14/eliminar"))
+        mockMvc.perform(post("/libros/14/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/libros"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
@@ -142,7 +145,7 @@ class LibroControllerTest {
 
     @Test
     void noEliminaUnLibroConPrestamos() throws Exception {
-        mockMvc.perform(post("/libros/1/eliminar"))
+        mockMvc.perform(post("/libros/1/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/libros"))
                 .andExpect(flash().attributeExists("mensajeError"));
 
@@ -195,7 +198,7 @@ class LibroControllerTest {
 
     @Test
     void rechazaEdicionConIsbnDeOtroLibroSinCambiarDatos() throws Exception {
-        mockMvc.perform(post("/libros/14")
+        mockMvc.perform(post("/libros/14").with(csrf())
                         .param("isbn", "978-84-376-2405-1")
                         .param("titulo", "Cambio inválido")
                         .param("ejemplares", "1").param("autores", "1"))
@@ -209,7 +212,7 @@ class LibroControllerTest {
 
     @Test
     void rechazaCamposInvalidos() throws Exception {
-        mockMvc.perform(post("/libros")
+        mockMvc.perform(post("/libros").with(csrf())
                         .param("isbn", "x".repeat(18)).param("titulo", "x".repeat(201))
                         .param("editorial", "x".repeat(101)).param("genero", "x".repeat(51))
                         .param("anioPublicacion", "-1").param("ejemplares", "0")
@@ -222,12 +225,12 @@ class LibroControllerTest {
 
     @Test
     void rechazaNumerosYAutoresNoValidos() throws Exception {
-        mockMvc.perform(post("/libros")
+        mockMvc.perform(post("/libros").with(csrf())
                         .param("isbn", "nuevo").param("titulo", "Libro")
                         .param("ejemplares", "texto").param("autores", "texto"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasFieldErrors("libro", "ejemplares", "autores"));
-        mockMvc.perform(post("/libros")
+        mockMvc.perform(post("/libros").with(csrf())
                         .param("isbn", "nuevo").param("titulo", "Libro")
                         .param("ejemplares", "1").param("autores", "999"))
                 .andExpect(status().isOk())
@@ -237,7 +240,7 @@ class LibroControllerTest {
 
     @Test
     void noEliminaUnLibroConPrestamosYaDevueltos() throws Exception {
-        mockMvc.perform(post("/libros/5/eliminar"))
+        mockMvc.perform(post("/libros/5/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/libros"))
                 .andExpect(flash().attributeExists("mensajeError"));
         recargarDatos();
@@ -247,10 +250,10 @@ class LibroControllerTest {
     @Test
     void rutasDeEdicionYBorradoInexistentesDevuelven404() throws Exception {
         mockMvc.perform(get("/libros/999/editar")).andExpect(status().isNotFound());
-        mockMvc.perform(post("/libros/999")
+        mockMvc.perform(post("/libros/999").with(csrf())
                         .param("isbn", "nuevo").param("titulo", "Libro")
                         .param("ejemplares", "1").param("autores", "1"))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(post("/libros/999/eliminar")).andExpect(status().isNotFound());
+        mockMvc.perform(post("/libros/999/eliminar").with(csrf())).andExpect(status().isNotFound());
     }
 }

@@ -43,6 +43,20 @@
         <input type="date" class="form-control" th:field="*{fechaAlta}" th:errorclass="is-invalid">
         <div class="invalid-feedback" th:errors="*{fechaAlta}">Error</div>
       </div>
+      <div class="col-md-4">
+        <label for="rol" class="form-label">Rol *</label>
+        <select class="form-select" th:field="*{rol}" th:errorclass="is-invalid">
+          <option th:each="opcion : ${roles}" th:value="${opcion}" th:text="${opcion.etiqueta}">Usuario</option>
+        </select>
+        <div class="invalid-feedback" th:errors="*{rol}">Error</div>
+      </div>
+      <div class="col-md-8">
+        <label for="password" class="form-label" th:text="${usuario.id == null} ? 'Contraseña *' : 'Nueva contraseña'">Contraseña *</label>
+        <input type="password" class="form-control" th:field="*{password}" th:errorclass="is-invalid"
+           autocomplete="new-password" minlength="8" maxlength="72">
+        <div class="form-text" th:if="${usuario.id != null}">Déjala en blanco para conservar la actual.</div>
+        <div class="invalid-feedback" th:errors="*{password}">Error</div>
+      </div>
     </div>
 
     <div class="d-flex gap-2 mt-4">

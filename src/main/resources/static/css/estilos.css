@@ -180,6 +180,46 @@ a {
     box-shadow: inset 3px 0 0 var(--oro);
 }
 
+.menu-grupo {
+    margin: 1rem 0 0.35rem;
+    padding: 0 0.85rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gris-tenue);
+}
+
+.barra-lateral-sesion {
+    padding: 0.9rem 1.25rem;
+    border-top: 1px solid var(--borde);
+}
+
+.sesion-email {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--marfil);
+    overflow-wrap: anywhere;
+}
+
+.sesion-rol {
+    margin: 0 0 0.6rem;
+    font-size: 0.75rem;
+    color: var(--oro-claro);
+}
+
+.caja-acceso {
+    width: 100%;
+    max-width: 26rem;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.caja-acceso .card {
+    margin-top: 1rem;
+    text-align: left;
+}
+
 .barra-lateral-pie {
     padding: 1rem 1.25rem;
     border-top: 1px solid var(--borde);
