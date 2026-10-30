@@ -1,10 +1,10 @@
-# Biblioteca · Producto 2
+# Biblioteca · Producto 3
 
 Aplicación web de gestión de una biblioteca: catálogo de libros y autores, usuarios y préstamos.
 Proyecto en equipo de la asignatura FP065 *Aplicación backend con tecnología Java en servidores de aplicaciones* (UOC).
 
-Este producto parte del [Producto 1](https://github.com/EricKColl/FP.449-Producto1) y añade el primer MVC completo:
-base de datos MariaDB, modelos con Spring Data JPA, controladores y vistas Thymeleaf.
+Este producto parte del [Producto 2](https://github.com/EricKColl/FP.449-Producto2), el primer MVC completo, y añade la seguridad:
+usuarios con cuenta, Spring Security, login y registro, y control de acceso por roles con las rutas `/admin/*` y `/user/*`.
 
 - 📄 [Enunciado y rúbrica](docs/enunciado.md)
 - 👥 [Reparto de tareas y calendario](docs/reparto-tareas.md)
@@ -98,7 +98,7 @@ La BD se publica en el **3307** del equipo para no chocar con un MySQL o XAMPP l
 
 | Síntoma | Causa y solución |
 |---|---|
-| `Port 8080 was already in use` al arrancar desde el IDE, o en http://localhost:8080 sale la página del Producto 1 | Sigue en marcha el contenedor del Producto 1 (se llama `biblioteca` y se arranca solo con Docker Desktop). Borrarlo: `docker rm -f biblioteca` |
+| `Port 8080 was already in use` al arrancar desde el IDE, o en http://localhost:8080 sale la aplicación de otro producto | Sigue en marcha el contenedor de un producto anterior, que se arranca solo con Docker Desktop. Pararlo desde la carpeta de ese producto con `docker compose down`, o con `docker rm -f biblioteca` en el caso del Producto 1 |
 | `Port 8080 was already in use` y el contenedor `biblioteca-app` está en marcha | La app ya corre en Docker. Usar una de las dos formas: o Docker (`docker compose up -d`), o el IDE (`docker compose stop app` y ▶ en IntelliJ) |
 | `port is already allocated` en el 3307 | Otro MariaDB/MySQL usa ese puerto. Cambiar `DB_PORT` en un fichero `.env` (ver `.env.example`) |
 | `Schema-validation: missing column` o `missing table` | La BD de Docker se creó con un esquema anterior. Recrearla: `docker compose down -v && docker compose up -d db adminer` |
@@ -130,8 +130,8 @@ docs/               # enunciado, reparto, modelo de datos y diagramas
 
 ## Flujo de trabajo con Git
 
-- `main`: versión estable. Protegida; solo recibe cambios mediante pull request revisada.
-- `develop`: rama de integración. También protegida.
+- `main`: versión estable. Se iguala con `develop` tras cada integración.
+- `develop`: rama de integración. Recibe los cambios mediante pull request revisada.
 - `feature/<tarea>`: una rama por tarea, creada desde `develop`.
 
 ```bash
