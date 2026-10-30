@@ -19,10 +19,9 @@ Erick revisa e integra cada pull request, monta el vídeo y la memoria y prepara
 
 ## Decisión de modelo
 
-**Propuesta, a falta de confirmarla en el grupo.**
-
 - **Usuario** deja de ser solo un socio y pasa a ser también la cuenta de acceso: se le añaden `password` (cifrada con BCrypt) y `rol` (`ADMIN` o `USER`). Ya tiene más de 5 atributos.
 - **Nueva relación: Usuario reserva Libro.** La rúbrica pide una relación *nueva* con las entidades anteriores, y Usuario–Préstamo ya existía en el Producto 2. La entidad `Reserva` (usuario, libro, fecha y estado) permite reservar los libros sin ejemplares disponibles, una de las propuestas de mejora de la memoria del Producto 2.
+- **Nueva relación: Usuario marca como favorito Libro (N:M).** Tabla intermedia `usuario_favorito`, sin atributos propios y con `@ManyToMany`. Completa a `Reserva`, que es una relación con atributos.
 
 ## Turno 1 · Base de seguridad (Erick)
 
@@ -43,9 +42,10 @@ Rama `feature/erick-base-seguridad` · **Del 30 de octubre al martes 3 de noviem
 
 Rama `feature/jacobo-er-registro` · **Del miércoles 4 al domingo 8 de noviembre**
 
-- [ ] Diagrama E/R con los atributos nuevos de Usuario y la relación Usuario–Reserva–Libro.
+- [ ] Diagrama E/R con los atributos nuevos de Usuario y las relaciones Usuario–Reserva–Libro y Usuario–Favorito–Libro.
 - [ ] Modelo relacional actualizado y `docs/modelo-datos.md`.
 - [ ] Tabla `reserva`, entidad `Reserva` y repositorio, con las relaciones en `Usuario` y `Libro`.
+- [ ] Tabla `usuario_favorito` y `@ManyToMany` entre `Usuario` y `Libro`.
 - [ ] Formulario de registro público (`/registro`): validación, DNI y email únicos, contraseña cifrada y rol `USER` siempre.
 - [ ] Abrir `/registro` en `SecurityConfig` y añadir el enlace «Crear cuenta» en el login y en el menú sin sesión.
 - [ ] Tests del registro y de los repositorios.
@@ -66,16 +66,17 @@ Rama `feature/antonio-rutas-user` · **Del sábado 14 al miércoles 18 de noviem
 
 - [ ] `/user/prestamos`: los préstamos del usuario con sesión iniciada y pedir un libro. El usuario sale de la sesión, nunca del formulario.
 - [ ] `/user/reservas`: reservar un libro sin ejemplares, ver las reservas propias y cancelarlas.
+- [ ] `/user/favoritos`: marcar y desmarcar libros desde su ficha y ver la lista propia.
 - [ ] `/admin/prestamos`: la gestión de todos los préstamos y el registro de devoluciones.
-- [ ] Añadir «Mis préstamos» y «Mis reservas» al menú para quien tenga la sesión iniciada.
-- [ ] Tests: un usuario no puede ver ni tocar los préstamos o las reservas de otro.
+- [ ] Añadir «Mis préstamos», «Mis reservas» y «Mis favoritos» al menú para quien tenga la sesión iniciada.
+- [ ] Tests: un usuario no puede ver ni tocar los préstamos, las reservas o los favoritos de otro.
 
 ## Calendario por turnos
 
 | Fechas | Qué | Quién |
 |---|---|---|
 | 30 oct – 3 nov | Base de seguridad | Erick |
-| 4 – 8 nov | Diagramas, `Reserva` y registro | Jacobo |
+| 4 – 8 nov | Diagramas, `Reserva`, favoritos en el modelo y registro | Jacobo |
 | 9 – 13 nov | Rutas `/admin/*` | Carles |
 | 14 – 18 nov | Rutas `/user/*` | Antonio |
 | 19 nov | Congelación del código | Todos |
