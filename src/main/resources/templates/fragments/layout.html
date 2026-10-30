@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <!--
   Fragmentos comunes a todas las páginas. Plantilla mínima de una vista nueva:
 
@@ -16,7 +16,8 @@
   </body>
   </html>
 
-  navbar(seccion) pinta el menú lateral y marca como activa la opción: inicio | libros | autores | usuarios | prestamos
+  navbar(seccion) pinta el menú lateral según el rol y marca como activa la opción:
+  inicio | libros | autores | cuenta | usuarios | prestamos | login
   data-bs-theme="dark" activa el modo oscuro de Bootstrap; los colores de BackLord están en css/estilos.css.
 -->
 
@@ -74,15 +75,37 @@
                th:aria-current="${seccion == 'autores'} ? 'page'" th:href="@{/autores}">
                 <i class="ti ti-feather"></i> Autores
             </a>
-            <a class="menu-enlace" th:classappend="${seccion == 'usuarios'} ? 'active'"
-               th:aria-current="${seccion == 'usuarios'} ? 'page'" th:href="@{/usuarios}">
-                <i class="ti ti-users-group"></i> Usuarios
+            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'cuenta'} ? 'active'"
+               th:aria-current="${seccion == 'cuenta'} ? 'page'" th:href="@{/user/cuenta}">
+                <i class="ti ti-user-circle"></i> Mi cuenta
             </a>
-            <a class="menu-enlace" th:classappend="${seccion == 'prestamos'} ? 'active'"
-               th:aria-current="${seccion == 'prestamos'} ? 'page'" th:href="@{/prestamos}">
-                <i class="ti ti-arrows-exchange"></i> Préstamos
-            </a>
+            <th:block sec:authorize="hasRole('ADMIN')">
+                <p class="menu-grupo">Administración</p>
+                <a class="menu-enlace" th:classappend="${seccion == 'usuarios'} ? 'active'"
+                   th:aria-current="${seccion == 'usuarios'} ? 'page'" th:href="@{/usuarios}">
+                    <i class="ti ti-users-group"></i> Usuarios
+                </a>
+                <a class="menu-enlace" th:classappend="${seccion == 'prestamos'} ? 'active'"
+                   th:aria-current="${seccion == 'prestamos'} ? 'page'" th:href="@{/prestamos}">
+                    <i class="ti ti-arrows-exchange"></i> Préstamos
+                </a>
+            </th:block>
         </nav>
+        <div class="barra-lateral-sesion">
+            <th:block sec:authorize="isAuthenticated()">
+                <p class="sesion-email" sec:authentication="name">usuario@example.com</p>
+                <p class="sesion-rol" sec:authorize="hasRole('ADMIN')">Administrador</p>
+                <p class="sesion-rol" sec:authorize="!hasRole('ADMIN')">Usuario</p>
+                <form method="post" th:action="@{/logout}">
+                    <button class="btn btn-outline-secondary btn-sm w-100" type="submit">
+                        <i class="ti ti-logout-2"></i> Cerrar sesión
+                    </button>
+                </form>
+            </th:block>
+            <a class="btn btn-primary btn-sm w-100" sec:authorize="!isAuthenticated()" th:href="@{/login}">
+                <i class="ti ti-login-2"></i> Iniciar sesión
+            </a>
+        </div>
         <div class="barra-lateral-pie">FP065 · UOC</div>
     </aside>
 </th:block>

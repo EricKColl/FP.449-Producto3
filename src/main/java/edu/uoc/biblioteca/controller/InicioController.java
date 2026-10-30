@@ -1,6 +1,7 @@
 package edu.uoc.biblioteca.controller;
 
 import edu.uoc.biblioteca.service.PanelService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,12 @@ public class InicioController {
     }
 
     @GetMapping("/")
-    public String inicio(Model model) {
+    public String inicio(Model model, HttpServletRequest peticion) {
         model.addAttribute("resumen", panelService.obtenerResumen());
-        model.addAttribute("ultimos", panelService.ultimosPrestamos());
+        // Los préstamos llevan nombres de usuarios: solo se cargan para quien los puede ver
+        if (peticion.isUserInRole("ADMIN")) {
+            model.addAttribute("ultimos", panelService.ultimosPrestamos());
+        }
         return "index";
     }
 }

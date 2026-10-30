@@ -14,7 +14,7 @@
 services:
   db:
     image: mariadb:11.8
-    container_name: biblioteca-db
+    container_name: biblioteca-p3-db
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MARIADB_DATABASE: biblioteca
@@ -39,8 +39,8 @@ services:
 
   app:
     build: .
-    image: biblioteca-app:latest
-    container_name: biblioteca-app
+    image: biblioteca-p3-app:latest
+    container_name: biblioteca-p3-app
     depends_on:
       db:
         condition: service_healthy
@@ -55,7 +55,7 @@ services:
 
   adminer:
     image: adminer:5
-    container_name: biblioteca-adminer
+    container_name: biblioteca-p3-adminer
     # Por defecto escucha solo en IPv6 ([::]) y falla en equipos sin IPv6
     command: ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
     depends_on:

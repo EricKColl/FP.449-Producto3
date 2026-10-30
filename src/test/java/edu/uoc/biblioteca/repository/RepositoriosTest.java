@@ -43,7 +43,7 @@ class RepositoriosTest {
     void cargaLosDatosDePrueba() {
         assertThat(libroRepository.count()).isEqualTo(14);
         assertThat(autorRepository.count()).isEqualTo(11);
-        assertThat(usuarioRepository.count()).isEqualTo(6);
+        assertThat(usuarioRepository.count()).isEqualTo(7);
         assertThat(prestamoRepository.count()).isEqualTo(11);
     }
 

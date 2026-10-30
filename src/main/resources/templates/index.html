@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Inicio')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('inicio')}"></nav>
@@ -26,14 +27,14 @@
                 <p class="etiqueta">Autores</p>
             </a>
         </div>
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-xl-3" sec:authorize="hasRole('ADMIN')">
             <a class="tarjeta-resumen" th:href="@{/usuarios}">
                 <span class="placa joya-zafiro"><i class="ti ti-users-group"></i></span>
                 <p class="cifra" th:text="${resumen.usuarios}">6</p>
                 <p class="etiqueta">Usuarios registrados</p>
             </a>
         </div>
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-xl-3" sec:authorize="hasRole('ADMIN')">
             <a class="tarjeta-resumen" th:href="@{/prestamos}">
                 <span class="placa" th:classappend="${resumen.prestamosVencidos > 0} ? 'placa-alerta' : 'joya-esmeralda'">
                     <i class="ti ti-arrows-exchange"></i>
@@ -46,7 +47,18 @@
         </div>
     </div>
 
-    <div class="row g-3">
+    <section class="panel" sec:authorize="!hasRole('ADMIN')">
+        <div class="panel-titulo"><span>Bienvenido a la biblioteca</span></div>
+        <p class="mb-3 text-body-secondary">Consulta el catálogo de libros y autores.</p>
+        <a class="btn btn-primary" sec:authorize="!isAuthenticated()" th:href="@{/login}">
+            <i class="ti ti-login-2"></i> Iniciar sesión
+        </a>
+        <a class="btn btn-outline-primary" sec:authorize="isAuthenticated()" th:href="@{/user/cuenta}">
+            <i class="ti ti-user-circle"></i> Mi cuenta
+        </a>
+    </section>
+
+    <div class="row g-3" sec:authorize="hasRole('ADMIN')">
         <div class="col-lg-8">
             <section class="panel">
                 <div class="panel-titulo">

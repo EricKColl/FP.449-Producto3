@@ -2,6 +2,8 @@ package edu.uoc.biblioteca.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +16,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -62,6 +66,17 @@ public class Usuario {
     @PastOrPresent(message = "La fecha de alta no puede ser futura")
     @Column(nullable = false)
     private LocalDate fechaAlta = LocalDate.now();
+
+    /** Contraseña cifrada con BCrypt. La cifra UsuarioService: nunca se guarda en claro. */
+    @Column(nullable = false, length = 60)
+    private String password;
+
+    // Sin @JdbcTypeCode, Hibernate esperaría una columna ENUM en MariaDB y fallaría al validar el esquema
+    @NotNull(message = "El rol es obligatorio")
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 10)
+    private Rol rol = Rol.USER;
 
     @OneToMany(mappedBy = "usuario")
     @OrderBy("fechaPrestamo DESC")
@@ -127,6 +142,22 @@ public class Usuario {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Rol getRol() {
+        return rol;
+    }
+
+    public void setRol(Rol rol) {
+        this.rol = rol;
     }
 
     public LocalDate getFechaAlta() {

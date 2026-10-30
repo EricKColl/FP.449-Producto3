@@ -11,8 +11,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("h2")
 @Transactional
+@WithMockUser(roles = "ADMIN")
 class AutorAdminControllerTest {
 
     @Autowired
@@ -42,7 +45,7 @@ class AutorAdminControllerTest {
     void creaUnAutorValido() throws Exception {
         long antes = autorRepository.count();
 
-        mockMvc.perform(post("/autores")
+        mockMvc.perform(post("/autores").with(csrf())
                         .param("nombre", "Ursula K.")
                         .param("apellidos", "Le Guin")
                         .param("nacionalidad", "Estadounidense")
@@ -61,7 +64,7 @@ class AutorAdminControllerTest {
     void noCreaUnAutorConErrores() throws Exception {
         long antes = autorRepository.count();
 
-        mockMvc.perform(post("/autores")
+        mockMvc.perform(post("/autores").with(csrf())
                         .param("nombre", "")
                         .param("apellidos", "")
                         .param("fechaNacimiento", LocalDate.now().plusDays(1).toString()))
@@ -78,7 +81,7 @@ class AutorAdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("autores/formulario"));
 
-        mockMvc.perform(post("/autores/10")
+        mockMvc.perform(post("/autores/10").with(csrf())
                         .param("id", "999")
                         .param("nombre", "John Ronald Reuel")
                         .param("apellidos", "Tolkien")
@@ -96,7 +99,7 @@ class AutorAdminControllerTest {
     void eliminaUnAutorSinLibros() throws Exception {
         Autor autor = autorRepository.save(new Autor("Mary", "Shelley"));
 
-        mockMvc.perform(post("/autores/" + autor.getId() + "/eliminar"))
+        mockMvc.perform(post("/autores/" + autor.getId() + "/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/autores"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
@@ -105,7 +108,7 @@ class AutorAdminControllerTest {
 
     @Test
     void noEliminaUnAutorConLibros() throws Exception {
-        mockMvc.perform(post("/autores/10/eliminar"))
+        mockMvc.perform(post("/autores/10/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/autores"))
                 .andExpect(flash().attributeExists("mensajeError"));
 
@@ -115,8 +118,8 @@ class AutorAdminControllerTest {
     @Test
     void rutasDeEdicionYBorradoInexistentesDevuelven404() throws Exception {
         mockMvc.perform(get("/autores/999/editar")).andExpect(status().isNotFound());
-        mockMvc.perform(post("/autores/999").param("nombre", "A").param("apellidos", "B"))
+        mockMvc.perform(post("/autores/999").with(csrf()).param("nombre", "A").param("apellidos", "B"))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(post("/autores/999/eliminar")).andExpect(status().isNotFound());
+        mockMvc.perform(post("/autores/999/eliminar").with(csrf())).andExpect(status().isNotFound());
     }
 }
