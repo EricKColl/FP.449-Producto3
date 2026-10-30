@@ -11,8 +11,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("h2")
 @Transactional
+@WithMockUser(roles = "ADMIN")
 class UsuarioAdminControllerTest {
 
     @Autowired
@@ -42,13 +45,14 @@ class UsuarioAdminControllerTest {
     void daDeAltaUnUsuarioValidoYNormalizaDniYEmail() throws Exception {
         long antes = usuarioRepository.count();
 
-        mockMvc.perform(post("/usuarios")
+        mockMvc.perform(post("/usuarios").with(csrf())
                         .param("nombre", "Clara")
                         .param("apellidos", "Ruiz Martín")
                         .param("dni", "11223344b")
                         .param("email", "Clara.Ruiz@Example.com")
                         .param("telefono", "")
-                        .param("fechaAlta", LocalDate.now().toString()))
+                        .param("fechaAlta", LocalDate.now().toString())
+                        .param("password", "Clave1234"))
                 .andExpect(redirectedUrlPattern("/usuarios/*"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
@@ -62,7 +66,7 @@ class UsuarioAdminControllerTest {
     void noDaDeAltaUnUsuarioConErrores() throws Exception {
         long antes = usuarioRepository.count();
 
-        mockMvc.perform(post("/usuarios")
+        mockMvc.perform(post("/usuarios").with(csrf())
                         .param("nombre", "")
                         .param("apellidos", "Sin Nombre")
                         .param("dni", "123")
@@ -80,12 +84,13 @@ class UsuarioAdminControllerTest {
         long antes = usuarioRepository.count();
 
         // DNI de Laura en minúsculas y email de Javier con mayúsculas: se detectan igualmente
-        mockMvc.perform(post("/usuarios")
+        mockMvc.perform(post("/usuarios").with(csrf())
                         .param("nombre", "Copia")
                         .param("apellidos", "Repetida")
                         .param("dni", "12345678z")
                         .param("email", "JAVIER.LOPEZ@example.com")
-                        .param("fechaAlta", LocalDate.now().toString()))
+                        .param("fechaAlta", LocalDate.now().toString())
+                        .param("password", "Clave1234"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasFieldErrorCode("usuario", "dni", "dni.repetido"))
                 .andExpect(model().attributeHasFieldErrorCode("usuario", "email", "email.repetido"));
@@ -99,7 +104,7 @@ class UsuarioAdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuarios/formulario"));
 
-        mockMvc.perform(post("/usuarios/5")
+        mockMvc.perform(post("/usuarios/5").with(csrf())
                         .param("nombre", "Lucía")
                         .param("apellidos", "Fernández Torres")
                         .param("dni", "56781234F")
@@ -116,9 +121,9 @@ class UsuarioAdminControllerTest {
     @Test
     void eliminaUnUsuarioSinPrestamos() throws Exception {
         Usuario usuario = usuarioRepository.save(
-                new Usuario("99887766K", "Temporal", "De Prueba", "temporal@example.com"));
+                conPassword(new Usuario("99887766K", "Temporal", "De Prueba", "temporal@example.com")));
 
-        mockMvc.perform(post("/usuarios/" + usuario.getId() + "/eliminar"))
+        mockMvc.perform(post("/usuarios/" + usuario.getId() + "/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/usuarios"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
@@ -127,10 +132,15 @@ class UsuarioAdminControllerTest {
 
     @Test
     void noEliminaUnUsuarioConPrestamos() throws Exception {
-        mockMvc.perform(post("/usuarios/1/eliminar"))
+        mockMvc.perform(post("/usuarios/1/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/usuarios"))
                 .andExpect(flash().attributeExists("mensajeError"));
 
         assertThat(usuarioRepository.findById(1L)).isPresent();
+    }
+
+    private static Usuario conPassword(Usuario usuario) {
+        usuario.setPassword("sin-uso-en-este-test");
+        return usuario;
     }
 }

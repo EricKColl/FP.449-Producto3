@@ -1,5 +1,6 @@
 package edu.uoc.biblioteca.controller;
 
+import edu.uoc.biblioteca.model.Rol;
 import edu.uoc.biblioteca.model.Usuario;
 import edu.uoc.biblioteca.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -14,6 +15,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 
 /**
  * Alta, edición y borrado de usuarios. Las consultas están en {@link UsuarioController}.
@@ -32,7 +36,12 @@ public class UsuarioAdminController {
     @InitBinder("usuario")
     void configurarFormulario(WebDataBinder binder) {
         // El identificador procede de la ruta; el formulario solo modifica estos campos.
-        binder.setAllowedFields("dni", "nombre", "apellidos", "email", "telefono", "fechaAlta");
+        binder.setAllowedFields("dni", "nombre", "apellidos", "email", "telefono", "fechaAlta", "password", "rol");
+    }
+
+    @ModelAttribute("roles")
+    Rol[] roles() {
+        return Rol.values();
     }
 
     @GetMapping("/nuevo")
@@ -45,6 +54,9 @@ public class UsuarioAdminController {
     public String crear(@Valid @ModelAttribute("usuario") Usuario usuario, BindingResult resultado,
                         RedirectAttributes redirectAttributes) {
         comprobarReglas(usuario, resultado);
+        if (usuario.getPassword() == null || usuario.getPassword().isBlank()) {
+            resultado.rejectValue("password", "password.vacia", "La contraseña es obligatoria");
+        }
         if (resultado.hasErrors()) {
             return "usuarios/formulario";
         }
@@ -67,6 +79,9 @@ public class UsuarioAdminController {
         usuarioService.buscarPorId(id);
         usuario.setId(id);
         comprobarReglas(usuario, resultado);
+        if (usuario.getRol() != Rol.ADMIN && usuarioService.esUltimoAdmin(id)) {
+            resultado.rejectValue("rol", "rol.ultimoAdmin", "Tiene que quedar al menos un administrador");
+        }
         if (resultado.hasErrors()) {
             return "usuarios/formulario";
         }
@@ -77,9 +92,9 @@ public class UsuarioAdminController {
     }
 
     @PostMapping("/{id}/eliminar")
-    public String eliminar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String eliminar(@PathVariable Long id, Principal sesion, RedirectAttributes redirectAttributes) {
         try {
-            Usuario eliminado = usuarioService.eliminar(id);
+            Usuario eliminado = usuarioService.eliminar(id, sesion.getName());
             redirectAttributes.addFlashAttribute("mensajeExito",
                     "Usuario «" + eliminado.getNombreCompleto() + "» eliminado correctamente");
         } catch (IllegalStateException e) {
@@ -95,6 +110,12 @@ public class UsuarioAdminController {
         }
         if (!resultado.hasFieldErrors("email") && usuarioService.emailRepetido(usuario)) {
             resultado.rejectValue("email", "email.repetido", "Ya existe otro usuario con este email");
+        }
+        // Límite de BCrypt: solo usa los 72 primeros bytes de la contraseña
+        String password = usuario.getPassword();
+        if (password != null && !password.isBlank()
+                && (password.length() < 8 || password.getBytes(StandardCharsets.UTF_8).length > 72)) {
+            resultado.rejectValue("password", "password.longitud", "La contraseña debe tener entre 8 y 72 caracteres");
         }
     }
 }

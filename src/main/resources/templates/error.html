@@ -8,6 +8,7 @@
     <p class="display-3 fw-bold text-body-tertiary mb-2" th:text="${status}">404</p>
     <th:block th:switch="${status}">
         <h1 class="h4" th:case="404">Esta página no existe o todavía no está implementada</h1>
+        <h1 class="h4" th:case="403">No tienes permiso para acceder a esta página</h1>
         <h1 class="h4" th:case="*">Se ha producido un error inesperado</h1>
     </th:block>
     <p class="text-body-secondary" th:text="${path}">/ruta</p>

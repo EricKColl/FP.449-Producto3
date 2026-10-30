@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi cuenta')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('cuenta')}"></nav>
+
+<main class="container py-4">
+  <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
+  <h1 class="h3 mb-3" th:text="${usuario.nombreCompleto}">Nombre</h1>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Rol</dt>
+            <dd class="col-sm-8" th:text="${usuario.rol.etiqueta}">Usuario</dd>
+            <dt class="col-sm-4">DNI</dt>
+            <dd class="col-sm-8" th:text="${usuario.dni}">DNI</dd>
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8 text-break" th:text="${usuario.email}">Email</dd>
+            <dt class="col-sm-4">Teléfono</dt>
+            <dd class="col-sm-8" th:text="${usuario.telefono} ?: '—'">Teléfono</dd>
+            <dt class="col-sm-4">Alta</dt>
+            <dd class="col-sm-8 mb-0"
+                th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

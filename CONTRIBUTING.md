@@ -21,6 +21,15 @@ Spring Boot 4 tiene paquetes de test distintos a los de la versión 3:
 `org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase`,
 `org.springframework.test.context.bean.override.mockito.MockitoBean` (en lugar de `@MockBean`).
 
+## Seguridad
+
+- **Reglas de acceso:** están todas en `security/SecurityConfig.java`. Lo que no se abra ahí expresamente queda reservado a ADMIN: una ruta pública nueva, como `/registro`, hay que añadirla a las reglas.
+- **Cuenta de la sesión:** en las rutas `/user/*` se usa `@AuthenticationPrincipal CuentaUsuario cuenta` y `cuenta.getId()`. El usuario nunca se recibe por parámetro ni por formulario, para que nadie actúe en nombre de otro.
+- **Formularios:** todo POST necesita `th:action`, que añade el token CSRF. Con un `action` normal, Spring Security responde 403.
+- **Contraseñas:** las cifra `UsuarioService`. Nunca se guardan en claro ni se muestran. Los campos que puede rellenar un formulario se limitan con `@InitBinder`.
+- **Vistas según el rol:** `sec:authorize="hasRole('ADMIN')"` o `sec:authorize="isAuthenticated()"`, con `xmlns:sec="http://www.thymeleaf.org/extras/spring-security"` en la etiqueta `html`.
+- **Tests:** `@WithMockUser(roles = "ADMIN")` para simular el rol y `.with(csrf())` en cada `post(...)`. Hay ejemplos en `SeguridadTest`.
+
 ## Comandos
 
 ```bash

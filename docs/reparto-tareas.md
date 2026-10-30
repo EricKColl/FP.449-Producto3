@@ -28,15 +28,16 @@ Erick revisa e integra cada pull request, monta el vídeo y la memoria y prepara
 
 Rama `feature/erick-base-seguridad` · **Del 30 de octubre al martes 3 de noviembre**
 
-- [ ] Dependencias: Spring Security e integración con Thymeleaf.
-- [ ] `usuario` con `password` y `rol` en `01-esquema.sql`, `02-datos.sql` y la entidad. Cuentas de prueba: un ADMIN y un USER.
-- [ ] `SecurityConfig`, `UserDetailsService` y BCrypt.
-- [ ] Formulario de login propio con el diseño BackLord, cierre de sesión y página de acceso denegado (403).
-- [ ] Reglas de acceso: `/admin/**` solo ADMIN, `/user/**` con sesión iniciada. Se dejan listas para los turnos siguientes.
-- [ ] Menú lateral según el rol en `fragments/layout.html`.
-- [ ] Protección CSRF activa en todos los formularios.
-- [ ] Adaptar los tests existentes a la seguridad y añadir los de login y acceso por rol.
-- [ ] Docker: nombres de contenedores propios del Producto 3, para que no choquen con los del Producto 2.
+- [x] Dependencias: Spring Security e integración con Thymeleaf.
+- [x] `usuario` con `password` y `rol` en `01-esquema.sql`, `02-datos.sql` y la entidad. Cuentas de prueba en el README.
+- [x] `SecurityConfig`, `UserDetailsService` y BCrypt.
+- [x] Formulario de login propio con el diseño BackLord, cierre de sesión y página de acceso denegado (403).
+- [x] Reglas de acceso: `/admin/**` solo ADMIN, `/user/**` con sesión iniciada y el resto reservado a ADMIN.
+- [x] Menú lateral, inicio y ficha de libro según el rol. Primera ruta de usuario: `/user/cuenta`.
+- [x] Alta y edición de usuarios con contraseña y rol. Nadie elimina su propia cuenta ni deja la aplicación sin administradores.
+- [x] Protección CSRF activa en todos los formularios.
+- [x] Tests existentes adaptados y 23 nuevos de login, cuentas y acceso por rol: `./mvnw verify` da **89 tests**.
+- [x] Docker: nombres de contenedores propios del Producto 3, para que no choquen con los del Producto 2.
 
 ## Turno 2 · Diagramas y registro (Jacobo)
 
@@ -46,6 +47,7 @@ Rama `feature/jacobo-er-registro` · **Del miércoles 4 al domingo 8 de noviembr
 - [ ] Modelo relacional actualizado y `docs/modelo-datos.md`.
 - [ ] Tabla `reserva`, entidad `Reserva` y repositorio, con las relaciones en `Usuario` y `Libro`.
 - [ ] Formulario de registro público (`/registro`): validación, DNI y email únicos, contraseña cifrada y rol `USER` siempre.
+- [ ] Abrir `/registro` en `SecurityConfig` y añadir el enlace «Crear cuenta» en el login y en el menú sin sesión.
 - [ ] Tests del registro y de los repositorios.
 
 ## Turno 3 · Rutas de administración (Carles)
@@ -55,6 +57,7 @@ Rama `feature/carles-rutas-admin` · **Del lunes 9 al viernes 13 de noviembre**
 - [ ] Mover a `/admin/*` todas las rutas de libros, autores y usuarios que crean, modifican o borran filas.
 - [ ] Separar la escritura de libros en `LibroAdminController`, como ya están `AutorAdminController` y `UsuarioAdminController`.
 - [ ] Actualizar enlaces y formularios: los botones de crear, editar y eliminar solo se ven con rol ADMIN.
+- [ ] Quitar de `SecurityConfig` las reglas temporales de `/libros/nuevo`, `/libros/*/editar`, `/autores/nuevo` y `/autores/*/editar`.
 - [ ] Tests: un USER o una visita sin sesión no pueden crear, editar ni borrar.
 
 ## Turno 4 · Rutas de usuario (Antonio)
@@ -64,6 +67,7 @@ Rama `feature/antonio-rutas-user` · **Del sábado 14 al miércoles 18 de noviem
 - [ ] `/user/prestamos`: los préstamos del usuario con sesión iniciada y pedir un libro. El usuario sale de la sesión, nunca del formulario.
 - [ ] `/user/reservas`: reservar un libro sin ejemplares, ver las reservas propias y cancelarlas.
 - [ ] `/admin/prestamos`: la gestión de todos los préstamos y el registro de devoluciones.
+- [ ] Añadir «Mis préstamos» y «Mis reservas» al menú para quien tenga la sesión iniciada.
 - [ ] Tests: un usuario no puede ver ni tocar los préstamos o las reservas de otro.
 
 ## Calendario por turnos

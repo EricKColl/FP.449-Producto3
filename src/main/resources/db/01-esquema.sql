@@ -60,9 +60,13 @@ CREATE TABLE usuario (
     email      VARCHAR(120) NOT NULL,
     telefono   VARCHAR(20),
     fecha_alta DATE         NOT NULL,
+    -- Cuenta de acceso: la contraseña se guarda cifrada con BCrypt (60 caracteres)
+    password   VARCHAR(60)  NOT NULL,
+    rol        VARCHAR(10)  NOT NULL DEFAULT 'USER',
     CONSTRAINT pk_usuario PRIMARY KEY (id),
     CONSTRAINT uk_usuario_dni UNIQUE (dni),
-    CONSTRAINT uk_usuario_email UNIQUE (email)
+    CONSTRAINT uk_usuario_email UNIQUE (email),
+    CONSTRAINT ck_usuario_rol CHECK (rol IN ('ADMIN', 'USER'))
 );
 
 -- Un préstamo está pendiente mientras fecha_devolucion sea NULL.

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("h2")
 @Transactional
+@WithMockUser(roles = "ADMIN")
 class UsuarioControllerTest {
 
     @Autowired
@@ -31,7 +33,7 @@ class UsuarioControllerTest {
         mockMvc.perform(get("/usuarios"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuarios/lista"))
-                .andExpect(model().attribute("usuarios", hasSize(6)))
+                .andExpect(model().attribute("usuarios", hasSize(7)))
                 .andExpect(content().string(containsString("Laura Martínez Soler")));
     }
 

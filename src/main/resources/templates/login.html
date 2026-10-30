@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Iniciar sesión')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('login')}"></nav>
+
+<main class="container py-5">
+  <div class="caja-acceso">
+    <img class="marca-icono" th:src="@{/img/corona-backlord.webp}" alt="" width="72" height="72">
+    <h1 class="titulo-panel titulo-oro">Iniciar sesión</h1>
+
+    <div th:if="${param.error}" class="alert alert-danger" role="alert">
+      <i class="ti ti-alert-triangle me-1"></i> El email o la contraseña no son correctos.
+    </div>
+    <div th:if="${param.salida}" class="alert alert-success" role="alert">
+      <i class="ti ti-circle-check me-1"></i> Has cerrado la sesión.
+    </div>
+
+    <form class="card card-body" method="post" th:action="@{/login}">
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" autocomplete="username" required autofocus>
+      </div>
+      <div class="mb-4">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="password" name="password"
+               autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="ti ti-login-2"></i> Entrar
+      </button>
+    </form>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
