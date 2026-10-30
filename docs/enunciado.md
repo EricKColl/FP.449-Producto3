@@ -1,61 +1,73 @@
-# Producto 2 · Primer MVC (FP065)
+# Producto 3 · Seguridad y usuarios (FP065)
 
 > Copia del enunciado y de la rúbrica del aula virtual, para tenerlos siempre junto al código.
-> Fecha de entrega: **domingo 1 de noviembre de 2026, 23:59** · 1 intento.
+> Fecha de entrega: **lunes 23 de noviembre de 2026**.
 
 ## Descripción
 
-En este producto comenzaremos con el desarrollo de un PROYECTO PROPIO y en EQUIPO que seguirá las indicaciones de un proyecto de gestión de una Biblioteca.
+En cualquier aplicación son esenciales los usuarios, tanto para la securización de la aplicación como para la administración y gestión de las acciones que se pueden realizar.
 
-En este producto diseñaremos las primeras pantallas, y para ello deberemos completar el primer MVC con al menos tres tablas con información, por ejemplo usuarios, libros y préstamos, y que se reflejarán en nuestra aplicación mediante sus respectivos modelos, controladores y vistas.
+Mediante Spring.io podemos recubrir nuestro primer desarrollo con esa gestión de usuarios, clientes y roles.
 
 ## Objetivos
 
-- Realizar el mockup de la aplicación a partir del cual implementaremos en nuestra aplicación.
-- Usar Spring JPA para representar los modelos de nuestra base de datos.
-- Conocer y usar los controladores y las vistas dentro de Spring para mostrar la información de la base de datos.
+- Modificar nuestra base de datos para la gestión con usuarios.
+- Utilizar, configurar e implementar Spring Security para poder gestionar los diferentes usuarios.
 
 ## Pasos a seguir
 
 1. Leer detenidamente estas instrucciones e identificar los requerimientos de la actividad.
 2. Revisar detenidamente la rúbrica de evaluación.
 3. Consultar los recursos necesarios facilitados en el aula.
-4. Realizar un diagrama E/R en el que aparezcan al menos tres entidades, por ejemplo, Libros, Usuarios y Préstamos.
-5. Diseñar la interfaz mediante un mockup de la ventana/s que se vayan a desarrollar.
-6. Preparar la aplicación para el uso de base de datos. Se propone el uso de MariaDB/MySQL pero se puede implementar con H2, PostgreSQL o bien NoSQL como MongoDB:
-   - crear la base de datos y tablas a partir del diagrama E/R
-   - configurar `application.properties`
-7. Desarrollar las interfaces mediante Spring Boot. Para ello se deberán realizar los siguientes pasos, aunque no siempre en el mismo orden:
-   1. Crear el "Model"
-   2. Crear el "Repository"
-   3. Crear el "Controller"
-   4. Crear la vista usando Thymeleaf
-   5. Repetir desde "a" tantas veces como sea necesario para todos los modelos y vistas que se hayan implementado en el mockup
-8. Al menos se deberá crear el CRUD (Create, Read, Update y Delete) de una de las entidades y sus interfaces.
-9. Realizar las modificaciones oportunas del contenedor Docker.
+4. Modificar nuestro diagrama E/R para la incorporación de usuarios a nuestra aplicación tanto desde el punto de vista de la securización como desde el punto de vista de la lógica de la misma.
+5. Incorporar Spring Security dentro de la aplicación. Para ello:
+   - Se modificarán las configuraciones del proyecto para incorporar Spring Security.
+   - Incorporar el formulario de login y registro de usuario.
+6. Se modifican las relaciones en al menos una de las entidades propuestas, ya que los usuarios interactúan con el resto de entidades. En el caso de la aplicación de Alquiler de vehículos, los usuarios no sólo sirven para el login, sino que pueden realizar Alquiler de vehículos. Por lo tanto se realizarán los siguientes cambios en la aplicación:
+   - Se añadirán los modelos necesarios nuevos.
+   - Se modificarán los modelos con las anotaciones necesarias.
+   - Se modificarán las vistas y controladores.
+7. Se añade una gestión por roles de las diferentes partes de la aplicación. Se añaden las siguientes rutas:
+   - Una ruta `/admin/*` en la que únicamente tendrá acceso el rol ADMIN. Aquí se moverán todas las rutas que creen, modifiquen o borren filas de los diferentes modelos.
+   - Una ruta `/user/*`, donde el usuario con acceso podrá interactuar con partes de la aplicación.
+8. Realizad las modificaciones oportunas del contenedor Docker.
 
 ## Requisitos
 
-- Partir de la descripción del programa que se ha descrito en el Producto 1 (repositorio `EricKColl/FP.449-Producto1`).
-- Instalar la herramienta de diseño de diagrama de clases.
-- Instalar la herramienta de diseño de diagrama modelo-relacional.
-- Instalar la base de datos MariaDB o MySQL.
-- Instalar el framework de programación Spring o Java EE.
+- Partir del diseño MVC del Producto 2.
+- Disponer del framework de programación en Spring o Java EE.
 
 ## Entrega
 
 - Por el canal indicado en el aula virtual.
 - Formato: ZIP o RAR.
-- Nombre del archivo: `producto3(FP065)_Apellido1Apellido2_Nombre` (así aparece en el enunciado, aunque sea el Producto 2).
 - Memoria del trabajo: trabajo realizado, dificultades, puntos no realizados, propuestas de mejora, autoevaluación, webgrafía.
+- Nombre del archivo: `producto3(FP065)_Apellido1Apellido2_Nombre`.
 - Vídeo o enlace de YouTube mostrando el funcionamiento de la aplicación.
 
 ## Rúbrica (máximo 25 puntos, aprobado con 12,5)
 
-| Criterio | 5 puntos (máximo) | 3,75 | 2,5 | 1,25 |
-|---|---|---|---|---|
-| **Diagrama E/R** | ≥ 3 entidades, todos sus atributos (≥ 2 por entidad) y las relaciones, **una de ellas N:M** | ≥ 3 entidades con atributos y relaciones | ≥ 2 entidades con atributos y relaciones | ≥ 2 entidades con atributos |
-| **Mockup** | ≥ 2 interfaces detalladas que presenten **las 3 entidades**, con **menú de navegación y botones de navegación** | ≥ 2 interfaces con 2 entidades, menú y botones | ≥ 1 interfaz con 2 entidades, menú y botones | ≥ 1 interfaz con 2 entidades |
-| **Modelos con Spring Data** | ≥ 3 modelos **y sus relaciones** | ≥ 3 modelos | ≥ 2 modelos | ≥ 1 modelo |
-| **CRUD con Spring** | Controladores y vistas de **1 CRUD completo** + listado de los demás modelos | READ, CREATE y UPDATE de 1 modelo + listado de los demás | READ y CREATE de 1 modelo + listado de los demás | READ de todos los modelos |
-| **Docker** | Modificaciones (nuevas librerías y binarios) para que el proyecto **funcione correctamente** | El proyecto se ejecuta parcialmente y funciona correctamente | Se ejecuta parcialmente, pero su funcionamiento es mejorable | — |
+### Modificación del diagrama E/R y modelos dentro de la aplicación (8 puntos)
+
+| Puntos | Nivel |
+|---|---|
+| **8** | Se han realizado las modificaciones en el diagrama E/R para incluir a los usuarios con al menos 5 atributos, y al menos una nueva relación con entidades anteriores. Se han reflejado estas modificaciones dentro de los modelos de Spring. |
+| 6 | Igual, con al menos 4 atributos y al menos una nueva relación con entidades anteriores. |
+| 4 | Igual, con al menos 3 atributos y al menos una nueva relación con entidades anteriores. |
+| 2 | Usuarios con al menos 5 atributos, reflejados en los modelos de Spring. |
+
+### Configuración e implementación de Spring Security (9 puntos)
+
+| Puntos | Nivel |
+|---|---|
+| **9** | Se ha configurado y añadido a la aplicación Spring Security con un formulario de login y otro de registro, modificando o añadiendo los controllers necesarios. |
+| 6,75 | Spring Security con un formulario de login, modificando o añadiendo los controllers necesarios. |
+| 2,25 | Spring Security con un formulario de login. |
+
+### Gestión por roles (8 puntos)
+
+| Puntos | Nivel |
+|---|---|
+| **8** | Se añaden al menos 2 grupos de rutas, admin y user, con las que se implementa el control de acceso por roles a determinadas partes de la app. Se modifica el menú y las vistas de forma dinámica de acuerdo al rol del usuario. |
+| 6 | Al menos 2 grupos de rutas, admin y user, con control de acceso por roles. |
+| 2 | 1 grupo de rutas, user, con control de acceso por roles. |

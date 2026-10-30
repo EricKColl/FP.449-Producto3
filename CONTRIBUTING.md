@@ -1,13 +1,13 @@
-# Guía de contribución · Biblioteca (FP065 Producto 2)
+# Guía de contribución · Biblioteca (FP065 Producto 3)
 
 Proyecto en equipo de la asignatura FP065 (UOC): aplicación web de gestión de una biblioteca con Spring Boot,
 Thymeleaf, Spring Data JPA y MariaDB, ejecutable con Docker. Aquí están las normas comunes del equipo:
 léelas antes de empezar tu parte para que todas las pantallas se vean y funcionen igual.
 
-- Enunciado completo y rúbrica: `docs/enunciado.md` · Entrega: **1 nov 2026, 23:59**
+- Enunciado completo y rúbrica: `docs/enunciado.md` · Entrega: **23 nov 2026**
 - Reparto de tareas, calendario y "definición de hecho": `docs/reparto-tareas.md`
 - Modelo de datos (E/R, relacional, reglas): `docs/modelo-datos.md`
-- Base de partida: Producto 1 → https://github.com/EricKColl/FP.449-Producto1
+- Base de partida: Producto 2 → https://github.com/EricKColl/FP.449-Producto2
 - Equipo: Erick Coll Rodríguez (coordinador), Carles Miguel Millán, Jacobo Barrera Toba, Antonio Charneco Alcalá
 
 ## Stack
