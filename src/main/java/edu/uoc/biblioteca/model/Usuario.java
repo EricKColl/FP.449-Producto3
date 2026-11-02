@@ -41,7 +41,8 @@ public class Usuario {
     private Long id;
 
     @NotBlank(message = "El DNI es obligatorio")
-    @Pattern(regexp = "[0-9XYZxyz][0-9]{7}[A-Za-z]", message = "El DNI/NIE debe tener 8 caracteres y una letra")
+    // El vacío lo avisa @NotBlank: así el formulario no muestra dos errores en el mismo campo
+    @Pattern(regexp = "|[0-9XYZxyz][0-9]{7}[A-Za-z]", message = "El DNI/NIE debe tener 8 caracteres y una letra")
     @Column(nullable = false, unique = true, length = 9)
     private String dni;
 

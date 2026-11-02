@@ -3,9 +3,6 @@
 Este documento es la referencia técnica del modelo: los dos diagramas de la entrega y las reglas que siguen la base
 de datos y las entidades JPA.
 
-**Estado de la actualización del Producto 3:** los dos diagramas, el modelo editable y las reglas descritas aquí
-corresponden al código y al SQL actuales. El modelo relacional refleja las siete tablas de la base de datos.
-
 ## Diagrama E/R
 
 El diagrama utiliza notación de Chen. Junto a cada entidad, el par (mín,máx) indica su participación mínima y máxima
@@ -13,7 +10,7 @@ en la relación; la clave primaria va subrayada y (U) marca los valores únicos.
 
 ![Diagrama E/R de la biblioteca del Producto 3](diagramas/er.png)
 
-La actualización conserva `Autor`, `Libro`, `Usuario` y `Prestamo`, e incorpora la entidad `Reserva` y la relación
+El Producto 3 conserva `Autor`, `Libro`, `Usuario` y `Préstamo`, e incorpora la entidad `Reserva` y la relación
 **marca como favorito** entre Usuario y Libro:
 
 - **Usuario** añade `password` (hash BCrypt) y `rol` (`ADMIN` o `USER`) a sus atributos anteriores.
@@ -33,8 +30,8 @@ Los pares de participación se indican junto a cada entidad, como en el diagrama
 | Relación | Cardinalidad y participación | En la base de datos | En JPA |
 |---|---|---|---|
 | Autor **escribe** Libro | N:M; Autor (0,N), Libro (1,N) | Tabla intermedia `libro_autor` | `Libro.autores` `@ManyToMany` + `@JoinTable` (lado propietario) · `Autor.libros` `@ManyToMany(mappedBy)` |
-| Usuario **realiza** Prestamo | 1:N; Usuario (0,N), Prestamo (1,1) | `prestamo.usuario_id` | `Prestamo.usuario` `@ManyToOne` · `Usuario.prestamos` `@OneToMany(mappedBy)` |
-| Prestamo **corresponde a** Libro | 1:N desde Libro; Prestamo (1,1), Libro (0,N) | `prestamo.libro_id` | `Prestamo.libro` `@ManyToOne` · `Libro.prestamos` `@OneToMany(mappedBy)` |
+| Usuario **realiza** Préstamo | 1:N; Usuario (0,N), Préstamo (1,1) | `prestamo.usuario_id` | `Prestamo.usuario` `@ManyToOne` · `Usuario.prestamos` `@OneToMany(mappedBy)` |
+| Préstamo **corresponde a** Libro | 1:N desde Libro; Préstamo (1,1), Libro (0,N) | `prestamo.libro_id` | `Prestamo.libro` `@ManyToOne` · `Libro.prestamos` `@OneToMany(mappedBy)` |
 | Usuario **hace** Reserva | 1:N; Usuario (0,N), Reserva (1,1) | `reserva.usuario_id` | `Reserva.usuario` `@ManyToOne` · `Usuario.reservas` `@OneToMany(mappedBy)` |
 | Reserva **es de** Libro | 1:N desde Libro; Reserva (1,1), Libro (0,N) | `reserva.libro_id` | `Reserva.libro` `@ManyToOne` · `Libro.reservas` `@OneToMany(mappedBy)` |
 | Usuario **marca como favorito** Libro | N:M; Usuario (0,N), Libro (0,N) | Tabla intermedia `usuario_favorito` | `Usuario.favoritos` `@ManyToMany` + `@JoinTable` (lado propietario) · `Libro.marcadoPor` `@ManyToMany(mappedBy)` |
@@ -89,8 +86,7 @@ y los datos de prueba en [`02-datos.sql`](../src/main/resources/db/02-datos.sql)
 - **Plazo por defecto del préstamo**: 15 días (`Prestamo.DIAS_PRESTAMO`).
 - **Ejemplares**: un libro puede tener varias copias. Los disponibles son `ejemplares − préstamos sin devolver`
   (`PrestamoRepository.countByLibroIdAndFechaDevolucionIsNull`). Las reservas no son préstamos y no descuentan ejemplares.
-  El servicio de reservas del turno de Antonio comprobará que no haya ejemplares disponibles y evitará que un usuario
-  mantenga dos reservas activas del mismo libro.
+  Solo se reserva un libro sin ejemplares disponibles, y un usuario no puede tener dos reservas activas del mismo libro.
 - **Favoritos**: marcar un libro no genera un préstamo ni una reserva. La clave compuesta de `usuario_favorito`
   impide repetir el mismo favorito; la colección Java utiliza `Set<Libro>`.
 - **Borrados**: no se puede borrar un libro ni un usuario con préstamos (`ON DELETE RESTRICT`); hay que comprobarlo
@@ -109,10 +105,5 @@ Para añadir o cambiar tablas o columnas:
 2. Modificar las entidades y sus relaciones Java.
 3. Actualizar este documento, los dos diagramas y el modelo editable, y avisar al equipo.
 4. `./mvnw verify` → los tests ejecutan los scripts en H2 y validan las entidades.
-5. Aplicar el cambio al MariaDB local y comprobar el arranque de la aplicación. Si se conservan los datos existentes,
-   guardar una copia de seguridad y aplicar solo el SQL necesario. Los scripts de inicialización de Docker se ejecutan
-   únicamente cuando el volumen está vacío; reiniciar el contenedor no vuelve a ejecutarlos.
-
-Para empezar de cero con datos de prueba se puede recrear el volumen con `docker compose down -v` y después
-`docker compose up -d db adminer`. Esta opción borra todos los datos de la base local y solo debe utilizarse cuando
-se haya decidido descartarlos o se disponga de una copia de seguridad.
+5. Recrear la base de datos de Docker: `docker compose down -v && docker compose up -d`. Los scripts solo se ejecutan
+   con el volumen vacío: reiniciar el contenedor no aplica los cambios.

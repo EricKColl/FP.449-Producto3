@@ -109,6 +109,11 @@ class RegistroControllerTest {
                 .andExpect(model().attributeHasFieldErrors("usuario", "nombre", "apellidos", "dni", "email", "telefono"))
                 .andExpect(content().string(containsString("El nombre es obligatorio")));
 
+        // Un DNI vacío solo muestra un aviso, no también el del formato
+        mockMvc.perform(registro("", "clara.ruiz@example.com", "Clave1234", "Clave1234").with(csrf()))
+                .andExpect(model().attributeErrorCount("usuario", 1))
+                .andExpect(content().string(containsString("El DNI es obligatorio")));
+
         assertThat(usuarioRepository.count()).isEqualTo(antes);
     }
 

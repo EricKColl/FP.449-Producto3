@@ -22,6 +22,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(rutas -> rutas
                         .requestMatchers("/css/**", "/img/**", "/webjars/**", "/error", "/actuator/health").permitAll()
+                        // formLogin().permitAll() solo abre /login exacto, no /login?registrado
                         .requestMatchers("/login", "/registro").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").authenticated()

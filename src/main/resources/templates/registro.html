@@ -7,7 +7,9 @@
 <main class="container py-4">
   <div class="row justify-content-center">
     <div class="col-lg-9 col-xl-8">
-      <h1 class="h3 titulo-oro mb-3">Crear cuenta</h1>
+      <div class="cabecera-panel">
+        <h1 class="titulo-panel titulo-oro">Crear cuenta</h1>
+      </div>
       <p class="text-body-secondary">Regístrate como socio de la biblioteca. Los campos con * son obligatorios.</p>
 
       <form class="card card-body" method="post" novalidate th:action="@{/registro}" th:object="${usuario}">

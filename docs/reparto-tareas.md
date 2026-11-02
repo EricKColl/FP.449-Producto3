@@ -40,7 +40,7 @@ Rama `feature/erick-base-seguridad` · **Del 30 de octubre al martes 3 de noviem
 
 ## Turno 2 · Diagramas y registro (Jacobo)
 
-Rama `feature/jacobo-er-registro` · **Del miércoles 4 al domingo 8 de noviembre**
+Rama `feature/jacobo-er-registro` · **Del miércoles 4 al domingo 8 de noviembre** · Terminado el 2 de noviembre
 
 - [x] Diagrama E/R con los atributos nuevos de Usuario y las relaciones Usuario–Reserva–Libro y Usuario–Favorito–Libro.
 - [x] Modelo relacional actualizado y `docs/modelo-datos.md`.
@@ -48,8 +48,7 @@ Rama `feature/jacobo-er-registro` · **Del miércoles 4 al domingo 8 de noviembr
 - [x] Tabla `usuario_favorito` y `@ManyToMany` entre `Usuario` y `Libro`.
 - [x] Formulario de registro público (`/registro`): validación, DNI y email únicos, contraseña cifrada y rol `USER` siempre.
 - [x] Abrir `/registro` en `SecurityConfig` y añadir el enlace «Crear cuenta» en el login y en el menú sin sesión.
-- [x] Tests del registro y de los repositorios.
-
+- [x] Tests del registro y de los repositorios: `./mvnw verify` da **100 tests**.
 
 ## Turno 3 · Rutas de administración (Carles)
 
