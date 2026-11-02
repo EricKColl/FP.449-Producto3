@@ -9,6 +9,7 @@ usuarios con cuenta, Spring Security, login y registro, y control de acceso por 
 - 📄 [Enunciado y rúbrica](docs/enunciado.md)
 - 👥 [Reparto de tareas y calendario](docs/reparto-tareas.md)
 - 🗂️ [Modelo de datos (E/R y relacional)](docs/modelo-datos.md)
+- 📝 [Parte de Jacobo: implementación y pruebas](docs/parte-jacobo.md)
 - 🎨 [Mockup en Figma (wireframe, pantallas y guía de estilo)](https://www.figma.com/design/iGemzWYavhu4GhgD3aQQ0q)
 - 📐 [Guía de contribución y convenciones](CONTRIBUTING.md)
 
