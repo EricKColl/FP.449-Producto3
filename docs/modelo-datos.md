@@ -3,63 +3,116 @@
 Este documento es la referencia técnica del modelo: los dos diagramas de la entrega y las reglas que siguen la base
 de datos y las entidades JPA.
 
+**Estado de la actualización del Producto 3:** los dos diagramas, el modelo editable y las reglas descritas aquí
+corresponden al código y al SQL actuales. El modelo relacional refleja las siete tablas de la base de datos.
+
 ## Diagrama E/R
 
-Notación de Chen, hecho en Lucidchart. Junto a cada entidad, el par (mín,máx) indica su participación mínima y máxima en
-la relación; la clave primaria va subrayada y (U) marca los valores únicos.
+El diagrama utiliza notación de Chen. Junto a cada entidad, el par (mín,máx) indica su participación mínima y máxima
+en la relación; la clave primaria va subrayada y (U) marca los valores únicos.
 
-![Diagrama E/R de la biblioteca](diagramas/er.png)
+![Diagrama E/R de la biblioteca del Producto 3](diagramas/er.png)
+
+La actualización conserva `Autor`, `Libro`, `Usuario` y `Prestamo`, e incorpora la entidad `Reserva` y la relación
+**marca como favorito** entre Usuario y Libro:
+
+- **Usuario** añade `password` (hash BCrypt) y `rol` (`ADMIN` o `USER`) a sus atributos anteriores.
+- **Reserva** tiene identificador propio, fecha de reserva y estado (`ACTIVA` o `CANCELADA`). Cada reserva corresponde
+  exactamente a un usuario y a un libro. Un usuario o un libro pueden no tener reservas o tener varias.
+- **Favoritos** es una relación N:M sin atributos propios: un usuario puede marcar varios libros y un libro puede ser
+  favorito de varios usuarios. La participación mínima de ambos es cero. En Chen se representa como una relación,
+  no como una nueva entidad de dominio.
+
+Así, el E/R tiene **cinco entidades**, mientras que el modelo relacional tiene **siete tablas**, incluidas las dos
+intermedias `libro_autor` y `usuario_favorito`.
 
 ## Relaciones
 
-| Relación | Cardinalidad | En la base de datos | En JPA |
-|---|---|---|---|
-| Autor **escribe** Libro | **N:M** (un libro tiene uno o varios autores; un autor, varios libros) | Tabla intermedia `libro_autor` | `Libro.autores` `@ManyToMany` + `@JoinTable` (lado propietario) · `Autor.libros` `@ManyToMany(mappedBy)` |
-| Usuario **realiza** Préstamo | 1:N | `prestamo.usuario_id` | `Prestamo.usuario` `@ManyToOne` · `Usuario.prestamos` `@OneToMany(mappedBy)` |
-| Préstamo **corresponde a** Libro | 1:N | `prestamo.libro_id` | `Prestamo.libro` `@ManyToOne` · `Libro.prestamos` `@OneToMany(mappedBy)` |
+Los pares de participación se indican junto a cada entidad, como en el diagrama de Chen.
 
-Visto desde el E/R, **Usuario–Libro también es N:M**: un usuario toma prestados muchos libros y un libro lo toman
-prestado muchos usuarios a lo largo del tiempo. Como esa relación tiene atributos propios (las fechas), se
-convierte en la entidad `Prestamo`. Así el modelo tiene dos N:M: una "pura" (`libro_autor`) y otra con atributos (`prestamo`).
+| Relación | Cardinalidad y participación | En la base de datos | En JPA |
+|---|---|---|---|
+| Autor **escribe** Libro | N:M; Autor (0,N), Libro (1,N) | Tabla intermedia `libro_autor` | `Libro.autores` `@ManyToMany` + `@JoinTable` (lado propietario) · `Autor.libros` `@ManyToMany(mappedBy)` |
+| Usuario **realiza** Prestamo | 1:N; Usuario (0,N), Prestamo (1,1) | `prestamo.usuario_id` | `Prestamo.usuario` `@ManyToOne` · `Usuario.prestamos` `@OneToMany(mappedBy)` |
+| Prestamo **corresponde a** Libro | 1:N desde Libro; Prestamo (1,1), Libro (0,N) | `prestamo.libro_id` | `Prestamo.libro` `@ManyToOne` · `Libro.prestamos` `@OneToMany(mappedBy)` |
+| Usuario **hace** Reserva | 1:N; Usuario (0,N), Reserva (1,1) | `reserva.usuario_id` | `Reserva.usuario` `@ManyToOne` · `Usuario.reservas` `@OneToMany(mappedBy)` |
+| Reserva **es de** Libro | 1:N desde Libro; Reserva (1,1), Libro (0,N) | `reserva.libro_id` | `Reserva.libro` `@ManyToOne` · `Libro.reservas` `@OneToMany(mappedBy)` |
+| Usuario **marca como favorito** Libro | N:M; Usuario (0,N), Libro (0,N) | Tabla intermedia `usuario_favorito` | `Usuario.favoritos` `@ManyToMany` + `@JoinTable` (lado propietario) · `Libro.marcadoPor` `@ManyToMany(mappedBy)` |
+
+Visto desde el E/R, **Usuario–Libro también es N:M a través de los préstamos**: un usuario toma prestados muchos libros
+y un libro lo toman prestado muchos usuarios a lo largo del tiempo. Como esa relación tiene atributos propios
+(las fechas), se convierte en la entidad `Prestamo`. `Reserva` también relaciona Usuario y Libro con atributos propios,
+pero representa una operación distinta. Las dos relaciones N:M sin atributos propios son Autor–Libro y los favoritos.
 
 ## Modelo relacional
 
-Obtenido por ingeniería inversa de la base de datos real con MySQL Workbench (*Database → Reverse Engineer*). Las líneas
-continuas son relaciones identificativas (las claves ajenas de `libro_autor` forman parte de su clave primaria) y las
-discontinuas, no identificativas. Modelo editable: [`diagramas/relacional.mwb`](diagramas/relacional.mwb).
+El modelo se ha actualizado por ingeniería inversa de la base de datos MariaDB del Producto 3 con MySQL Workbench
+(*Database → Reverse Engineer*) e incluye las siete tablas actuales. Las líneas continuas
+representan relaciones identificativas: las claves ajenas de `libro_autor` y `usuario_favorito` forman parte de su
+clave primaria. Las relaciones de `prestamo` y `reserva` son no identificativas y se representan con líneas discontinuas,
+porque ambas tablas tienen un identificador propio.
 
-![Modelo relacional de la biblioteca](diagramas/relacional.png)
+Modelo editable: [`diagramas/relacional.mwb`](diagramas/relacional.mwb).
+
+![Modelo relacional de la biblioteca del Producto 3](diagramas/relacional.png)
+
+En la siguiente lista, el identificador subrayado es la clave primaria, *UK* indica una clave única y las flechas
+indican claves ajenas:
 
 - **autor** (<u>id</u>, nombre, apellidos, nacionalidad, fecha_nacimiento)
 - **libro** (<u>id</u>, isbn *UK*, titulo, editorial, anio_publicacion, genero, ejemplares)
 - **libro_autor** (<u>libro_id</u> → libro, <u>autor_id</u> → autor)
-- **usuario** (<u>id</u>, dni *UK*, nombre, apellidos, email *UK*, telefono, fecha_alta)
+- **usuario** (<u>id</u>, dni *UK*, nombre, apellidos, email *UK*, telefono, fecha_alta, password, rol)
 - **prestamo** (<u>id</u>, usuario_id → usuario, libro_id → libro, fecha_prestamo, fecha_devolucion_prevista, fecha_devolucion)
+- **reserva** (<u>id</u>, usuario_id → usuario, libro_id → libro, fecha_reserva, estado)
+- **usuario_favorito** (<u>usuario_id</u> → usuario, <u>libro_id</u> → libro)
+
+En las dos tablas intermedias la clave primaria es compuesta: la pareja de identificadores no puede repetirse.
+En `reserva`, en cambio, no hay una restricción única sobre la pareja usuario–libro: el modelo permite conservar
+reservas distintas de un mismo usuario para un libro a lo largo del tiempo.
 
 El script completo está en [`src/main/resources/db/01-esquema.sql`](../src/main/resources/db/01-esquema.sql)
-y los datos de prueba en [`02-datos.sql`](../src/main/resources/db/02-datos.sql).
+y los datos de prueba en [`02-datos.sql`](../src/main/resources/db/02-datos.sql). Incluyen dos reservas de ejemplo
+(una activa y otra cancelada) y tres relaciones de favoritos, además de los datos anteriores.
 
 ## Reglas y decisiones
 
+- **Cuenta de acceso**: `Usuario` representa al socio y a su cuenta. El email sirve para iniciar sesión. `password`
+  contiene el hash BCrypt de 60 caracteres; el rol se almacena como `VARCHAR(10)` y admite `ADMIN` o `USER`.
+  El registro público fija siempre el rol `USER` y la fecha de alta de hoy.
 - **Estado del préstamo** (`ACTIVO`, `VENCIDO`, `DEVUELTO`): no se guarda, se calcula con `Prestamo.getEstado()` a partir de las fechas. Así nunca queda desactualizado.
   - `fecha_devolucion` con valor → **devuelto**
   - sin devolver y hoy > `fecha_devolucion_prevista` → **vencido**
   - sin devolver y dentro de plazo → **activo**
-- **Plazo por defecto**: 15 días (`Prestamo.DIAS_PRESTAMO`).
+- **Estado de la reserva**: se guarda como `VARCHAR(10)` con los valores `ACTIVA` o `CANCELADA`, restringidos por SQL.
+  Una reserva nueva se inicia como activa y `Reserva.cancelar()` cambia su estado a cancelada.
+- **Plazo por defecto del préstamo**: 15 días (`Prestamo.DIAS_PRESTAMO`).
 - **Ejemplares**: un libro puede tener varias copias. Los disponibles son `ejemplares − préstamos sin devolver`
-  (`PrestamoRepository.countByLibroIdAndFechaDevolucionIsNull`).
+  (`PrestamoRepository.countByLibroIdAndFechaDevolucionIsNull`). Las reservas no son préstamos y no descuentan ejemplares.
+  El servicio de reservas del turno de Antonio comprobará que no haya ejemplares disponibles y evitará que un usuario
+  mantenga dos reservas activas del mismo libro.
+- **Favoritos**: marcar un libro no genera un préstamo ni una reserva. La clave compuesta de `usuario_favorito`
+  impide repetir el mismo favorito; la colección Java utiliza `Set<Libro>`.
 - **Borrados**: no se puede borrar un libro ni un usuario con préstamos (`ON DELETE RESTRICT`); hay que comprobarlo
-  en el servicio (`existsByLibroId` / `existsByUsuarioId`) y mostrar un mensaje. Al borrar un libro o un autor, sus filas
-  de `libro_autor` se borran solas (`ON DELETE CASCADE`).
+  en el servicio (`existsByLibroId` / `existsByUsuarioId`) y mostrar un mensaje. Las reservas y los favoritos de un
+  usuario o libro se eliminan con él (`ON DELETE CASCADE`). Al borrar un libro o un autor, sus filas de `libro_autor`
+  también se borran por cascada.
 - **Restricciones**: ISBN, DNI y email únicos; `ejemplares ≥ 1`; las fechas de devolución no pueden ser anteriores a la de préstamo.
+  Toda reserva tiene usuario, libro, fecha y estado obligatorios; todo favorito tiene usuario y libro obligatorios.
 
 ## Cómo cambiar el modelo
 
 Hibernate está en modo `validate`: **no crea ni modifica tablas**, solo comprueba que las entidades coinciden con ellas.
-Para añadir o cambiar una columna:
+Para añadir o cambiar tablas o columnas:
 
 1. Modificar `01-esquema.sql` (y `02-datos.sql` si hace falta).
-2. Modificar la entidad Java.
-3. Actualizar este documento y avisar al equipo (el diagrama E/R también cambia).
+2. Modificar las entidades y sus relaciones Java.
+3. Actualizar este documento, los dos diagramas y el modelo editable, y avisar al equipo.
 4. `./mvnw verify` → los tests ejecutan los scripts en H2 y validan las entidades.
-5. Recrear la base de datos de Docker: `docker compose down -v && docker compose up -d`.
+5. Aplicar el cambio al MariaDB local y comprobar el arranque de la aplicación. Si se conservan los datos existentes,
+   guardar una copia de seguridad y aplicar solo el SQL necesario. Los scripts de inicialización de Docker se ejecutan
+   únicamente cuando el volumen está vacío; reiniciar el contenedor no vuelve a ejecutarlos.
+
+Para empezar de cero con datos de prueba se puede recrear el volumen con `docker compose down -v` y después
+`docker compose up -d db adminer`. Esta opción borra todos los datos de la base local y solo debe utilizarse cuando
+se haya decidido descartarlos o se disponga de una copia de seguridad.
