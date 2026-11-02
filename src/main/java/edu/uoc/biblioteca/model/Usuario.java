@@ -7,6 +7,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
@@ -22,7 +25,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Socio de la biblioteca que puede tomar libros en préstamo.
@@ -81,6 +86,18 @@ public class Usuario {
     @OneToMany(mappedBy = "usuario")
     @OrderBy("fechaPrestamo DESC")
     private List<Prestamo> prestamos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario")
+    @OrderBy("fechaReserva DESC")
+    private List<Reserva> reservas = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "usuario_favorito",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "libro_id"))
+    @OrderBy("titulo ASC")
+    private Set<Libro> favoritos = new LinkedHashSet<>();
 
     public Usuario() {
     }
@@ -166,6 +183,14 @@ public class Usuario {
 
     public void setFechaAlta(LocalDate fechaAlta) {
         this.fechaAlta = fechaAlta;
+    }
+
+    public List<Reserva> getReservas() {
+        return reservas;
+    }
+
+    public Set<Libro> getFavoritos() {
+        return favoritos;
     }
 
     public List<Prestamo> getPrestamos() {

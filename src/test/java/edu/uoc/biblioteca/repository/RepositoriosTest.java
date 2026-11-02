@@ -1,8 +1,10 @@
 package edu.uoc.biblioteca.repository;
 
 import edu.uoc.biblioteca.model.Autor;
+import edu.uoc.biblioteca.model.EstadoReserva;
 import edu.uoc.biblioteca.model.Libro;
 import edu.uoc.biblioteca.model.Prestamo;
+import edu.uoc.biblioteca.model.Reserva;
 import edu.uoc.biblioteca.model.Usuario;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +40,76 @@ class RepositoriosTest {
     private PrestamoRepository prestamoRepository;
 
     @Autowired
+    private ReservaRepository reservaRepository;
+
+    @Autowired
     private EntityManager entityManager;
+
+    @Test
+    void lasReservasRelacionanUsuariosYLibros() {
+        assertThat(reservaRepository.count()).isEqualTo(2);
+        List<Reserva> deLaura = reservaRepository.findByUsuarioIdOrderByFechaReservaDescIdDesc(1L);
+        assertThat(deLaura).hasSize(1);
+        assertThat(deLaura.getFirst().getLibro().getTitulo()).isEqualTo("El capitán Alatriste");
+        assertThat(deLaura.getFirst().isActiva()).isTrue();
+        assertThat(usuarioRepository.findById(1L).orElseThrow().getReservas())
+                .extracting(Reserva::getId).containsExactly(1L);
+        assertThat(libroRepository.findById(8L).orElseThrow().getReservas())
+                .extracting(Reserva::getId).containsExactly(1L, 2L);
+        // La búsqueda comprueba la pertenencia: Daniel no encuentra la reserva de Laura.
+        assertThat(reservaRepository.findByIdAndUsuarioId(1L, 6L)).isEmpty();
+        assertThat(reservaRepository.existsByUsuarioIdAndLibroIdAndEstado(6L, 8L, EstadoReserva.ACTIVA))
+                .isFalse();
+
+        Usuario daniel = usuarioRepository.findById(6L).orElseThrow();
+        Libro alatriste = libroRepository.findById(8L).orElseThrow();
+        Long nuevaId = reservaRepository.saveAndFlush(new Reserva(daniel, alatriste)).getId();
+        entityManager.clear();
+
+        List<Reserva> deDaniel = reservaRepository.findByUsuarioIdOrderByFechaReservaDescIdDesc(6L);
+        assertThat(deDaniel).extracting(Reserva::getId).containsExactly(nuevaId, 2L);
+        assertThat(reservaRepository.existsByUsuarioIdAndLibroIdAndEstado(6L, 8L, EstadoReserva.ACTIVA))
+                .isTrue();
+        Reserva guardada = reservaRepository.findByIdAndUsuarioId(nuevaId, 6L).orElseThrow();
+        assertThat(guardada.getUsuario().getId()).isEqualTo(6L);
+        assertThat(guardada.getLibro().getId()).isEqualTo(8L);
+        assertThat(guardada.getFechaReserva()).isEqualTo(LocalDate.now());
+        guardada.cancelar();
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(reservaRepository.findById(nuevaId).orElseThrow().getEstado())
+                .isEqualTo(EstadoReserva.CANCELADA);
+        assertThat(reservaRepository.existsByUsuarioIdAndLibroIdAndEstado(6L, 8L, EstadoReserva.ACTIVA))
+                .isFalse();
+    }
+
+    @Test
+    void losFavoritosSonUnaRelacionNaMEntreUsuariosYLibros() {
+        Usuario laura = usuarioRepository.findById(1L).orElseThrow();
+        assertThat(laura.getFavoritos()).extracting(Libro::getTitulo).containsExactly("1984", "El hobbit");
+        assertThat(libroRepository.findById(2L).orElseThrow().getMarcadoPor())
+                .extracting(Usuario::getId).containsExactly(4L);
+
+        Libro juegoDelAngel = libroRepository.findById(14L).orElseThrow();
+        laura.getFavoritos().add(juegoDelAngel);
+        laura.getFavoritos().add(juegoDelAngel);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Volvemos a consultar para comprobar lo guardado, sin duplicar el favorito.
+        Usuario recargada = usuarioRepository.findById(1L).orElseThrow();
+        assertThat(recargada.getFavoritos()).extracting(Libro::getId).containsExactly(6L, 9L, 14L);
+        assertThat(libroRepository.findById(14L).orElseThrow().getMarcadoPor())
+                .extracting(Usuario::getId).containsExactly(1L);
+        recargada.getFavoritos().remove(libroRepository.findById(14L).orElseThrow());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(usuarioRepository.findById(1L).orElseThrow().getFavoritos())
+                .extracting(Libro::getId).containsExactly(6L, 9L);
+        assertThat(libroRepository.findById(14L).orElseThrow().getMarcadoPor()).isEmpty();
+    }
 
     @Test
     void cargaLosDatosDePrueba() {
