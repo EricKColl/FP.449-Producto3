@@ -73,6 +73,13 @@ public class Libro {
     @OrderBy("fechaPrestamo DESC")
     private List<Prestamo> prestamos = new ArrayList<>();
 
+    @OneToMany(mappedBy = "libro")
+    @OrderBy("fechaReserva DESC")
+    private List<Reserva> reservas = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "favoritos")
+    private Set<Usuario> marcadoPor = new LinkedHashSet<>();
+
     public Libro() {
     }
 
@@ -161,6 +168,14 @@ public class Libro {
 
     public void setAutores(Set<Autor> autores) {
         this.autores = autores;
+    }
+
+    public List<Reserva> getReservas() {
+        return reservas;
+    }
+
+    public Set<Usuario> getMarcadoPor() {
+        return marcadoPor;
     }
 
     public List<Prestamo> getPrestamos() {

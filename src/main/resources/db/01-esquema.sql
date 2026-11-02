@@ -2,12 +2,15 @@
 --  Biblioteca · Esquema de la base de datos (modelo relacional)
 --  Derivado del diagrama E/R: docs/modelo-datos.md
 --
---  Entidades: autor, libro, usuario, prestamo
+--  Entidades: autor, libro, usuario, prestamo, reserva
 --  Relaciones:
 --    autor   N:M libro    -> tabla intermedia libro_autor
 --    usuario 1:N prestamo -> prestamo.usuario_id
 --    libro   1:N prestamo -> prestamo.libro_id
 --    (usuario N:M libro a través de prestamo, con atributos propios)
+--    usuario 1:N reserva  -> reserva.usuario_id
+--    libro   1:N reserva  -> reserva.libro_id
+--    usuario N:M libro    -> tabla intermedia usuario_favorito
 --
 --  MariaDB lo ejecuta automáticamente al crear el contenedor por primera
 --  vez (docker-entrypoint-initdb.d). Para ejecutarlo a mano en otro
@@ -15,6 +18,8 @@
 --  El perfil "h2" de Spring también lo usa (tests y ejecución sin Docker).
 -- =====================================================================
 
+DROP TABLE IF EXISTS usuario_favorito;
+DROP TABLE IF EXISTS reserva;
 DROP TABLE IF EXISTS prestamo;
 DROP TABLE IF EXISTS libro_autor;
 DROP TABLE IF EXISTS libro;
@@ -83,4 +88,27 @@ CREATE TABLE prestamo (
     CONSTRAINT fk_prestamo_libro FOREIGN KEY (libro_id) REFERENCES libro (id) ON DELETE RESTRICT,
     CONSTRAINT ck_prestamo_fechas CHECK (fecha_devolucion_prevista >= fecha_prestamo),
     CONSTRAINT ck_prestamo_devolucion CHECK (fecha_devolucion IS NULL OR fecha_devolucion >= fecha_prestamo)
+);
+
+-- Un usuario reserva un libro que no tiene ejemplares disponibles.
+-- Si se borra el usuario o el libro, sus reservas se borran con él.
+CREATE TABLE reserva (
+    id            BIGINT      NOT NULL AUTO_INCREMENT,
+    usuario_id    BIGINT      NOT NULL,
+    libro_id      BIGINT      NOT NULL,
+    fecha_reserva DATE        NOT NULL,
+    estado        VARCHAR(10) NOT NULL DEFAULT 'ACTIVA',
+    CONSTRAINT pk_reserva PRIMARY KEY (id),
+    CONSTRAINT fk_reserva_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id) ON DELETE CASCADE,
+    CONSTRAINT fk_reserva_libro FOREIGN KEY (libro_id) REFERENCES libro (id) ON DELETE CASCADE,
+    CONSTRAINT ck_reserva_estado CHECK (estado IN ('ACTIVA', 'CANCELADA'))
+);
+
+-- Relación N:M entre usuario y libro: los libros que cada usuario marca como favoritos
+CREATE TABLE usuario_favorito (
+    usuario_id BIGINT NOT NULL,
+    libro_id   BIGINT NOT NULL,
+    CONSTRAINT pk_usuario_favorito PRIMARY KEY (usuario_id, libro_id),
+    CONSTRAINT fk_favorito_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id) ON DELETE CASCADE,
+    CONSTRAINT fk_favorito_libro FOREIGN KEY (libro_id) REFERENCES libro (id) ON DELETE CASCADE
 );

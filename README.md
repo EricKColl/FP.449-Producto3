@@ -84,7 +84,7 @@ Las crea `02-datos.sql` y solo sirven para desarrollar y hacer la demostración.
 
 | Rutas | Quién entra |
 |---|---|
-| `/`, `/login`, consulta de `/libros` y `/autores` | Cualquiera, sin cuenta |
+| `/`, `/login`, `/registro`, consulta de `/libros` y `/autores` | Cualquiera, sin cuenta |
 | `/user/*` | Cualquier usuario con la sesión iniciada |
 | `/admin/*` y todo lo demás | Solo el rol ADMIN |
 

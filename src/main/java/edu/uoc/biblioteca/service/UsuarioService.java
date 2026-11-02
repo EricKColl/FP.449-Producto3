@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -50,6 +52,21 @@ public class UsuarioService {
     /** Quitarle el rol al único administrador dejaría la aplicación sin nadie que pueda gestionarla. */
     public boolean esUltimoAdmin(Long id) {
         return buscarPorId(id).getRol() == Rol.ADMIN && usuarioRepository.countByRol(Rol.ADMIN) == 1;
+    }
+
+    /** Regla común para las contraseñas nuevas: mínimo de 8 caracteres y límite de BCrypt en bytes. */
+    public static boolean passwordValida(String password) {
+        return password != null && !password.isBlank()
+                && password.length() >= 8
+                && password.getBytes(StandardCharsets.UTF_8).length <= 72;
+    }
+
+    /** El registro público siempre crea un socio con rol USER y fecha de alta de hoy. */
+    @Transactional
+    public Usuario registrar(Usuario usuario) {
+        usuario.setRol(Rol.USER);
+        usuario.setFechaAlta(LocalDate.now());
+        return crear(usuario);
     }
 
     @Transactional

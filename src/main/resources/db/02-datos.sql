@@ -66,3 +66,13 @@ INSERT INTO prestamo (id, usuario_id, libro_id, fecha_prestamo, fecha_devolucion
     (9,  5, 8,  CURRENT_DATE - INTERVAL '2' DAY,   CURRENT_DATE + INTERVAL '13' DAY,  NULL),
     (10, 6, 9,  CURRENT_DATE - INTERVAL '1' DAY,   CURRENT_DATE + INTERVAL '14' DAY,  NULL),
     (11, 2, 1,  CURRENT_DATE,                      CURRENT_DATE + INTERVAL '15' DAY,  NULL);
+
+-- "El capitán Alatriste" (libro 8) no tiene ejemplares libres: lo reservan dos usuarios
+INSERT INTO reserva (id, usuario_id, libro_id, fecha_reserva, estado) VALUES
+    (1, 1, 8, CURRENT_DATE - INTERVAL '1' DAY, 'ACTIVA'),
+    (2, 6, 8, CURRENT_DATE - INTERVAL '3' DAY, 'CANCELADA');
+
+INSERT INTO usuario_favorito (usuario_id, libro_id) VALUES
+    (1, 6),
+    (1, 9),
+    (4, 2);
