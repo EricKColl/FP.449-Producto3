@@ -1,8 +1,11 @@
 # Parte de Jacobo · Producto 3
 
-**Autor:** Jacobo Barrera Toba  
-**Proyecto:** Biblioteca · FP.449 / FP065 · Equipo BackLord  
-**Rama:** `feature/jacobo-er-registro`  
+**Autor:** Jacobo Barrera Toba
+
+**Proyecto:** Biblioteca · FP.449 / FP065 · Equipo BackLord
+
+**Rama:** `feature/jacobo-er-registro`
+
 **Fecha de la revisión:** 2 de noviembre de 2026
 
 ## Resumen de la aportación
