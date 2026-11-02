@@ -17,7 +17,7 @@
   </html>
 
   navbar(seccion) pinta el menú lateral según el rol y marca como activa la opción:
-  inicio | libros | autores | cuenta | usuarios | prestamos | login
+  inicio | libros | autores | cuenta | usuarios | prestamos | login | registro
   data-bs-theme="dark" activa el modo oscuro de Bootstrap; los colores de BackLord están en css/estilos.css.
 -->
 
@@ -102,9 +102,14 @@
                     </button>
                 </form>
             </th:block>
-            <a class="btn btn-primary btn-sm w-100" sec:authorize="!isAuthenticated()" th:href="@{/login}">
-                <i class="ti ti-login-2"></i> Iniciar sesión
-            </a>
+            <th:block sec:authorize="!isAuthenticated()">
+                <a class="btn btn-primary btn-sm w-100" th:href="@{/login}">
+                    <i class="ti ti-login-2"></i> Iniciar sesión
+                </a>
+                <a class="btn btn-outline-secondary btn-sm w-100 mt-2" th:href="@{/registro}">
+                    <i class="ti ti-user-plus"></i> Crear cuenta
+                </a>
+            </th:block>
         </div>
         <div class="barra-lateral-pie">FP065 · UOC</div>
     </aside>

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 
 /**
@@ -111,11 +110,11 @@ public class UsuarioAdminController {
         if (!resultado.hasFieldErrors("email") && usuarioService.emailRepetido(usuario)) {
             resultado.rejectValue("email", "email.repetido", "Ya existe otro usuario con este email");
         }
-        // Límite de BCrypt: solo usa los 72 primeros bytes de la contraseña
+        // Al editar, una contraseña en blanco conserva la anterior.
         String password = usuario.getPassword();
-        if (password != null && !password.isBlank()
-                && (password.length() < 8 || password.getBytes(StandardCharsets.UTF_8).length > 72)) {
-            resultado.rejectValue("password", "password.longitud", "La contraseña debe tener entre 8 y 72 caracteres");
+        if (password != null && !password.isBlank() && !UsuarioService.passwordValida(password)) {
+            resultado.rejectValue("password", "password.longitud",
+                    "La contraseña debe tener al menos 8 caracteres y no superar 72 bytes en UTF-8");
         }
     }
 }

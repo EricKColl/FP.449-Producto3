@@ -22,6 +22,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(rutas -> rutas
                         .requestMatchers("/css/**", "/img/**", "/webjars/**", "/error", "/actuator/health").permitAll()
+                        .requestMatchers("/login", "/registro").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").authenticated()
                         // Formularios de escritura que aún no están en /admin (se mueven en el turno 3)
