@@ -26,9 +26,6 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/registro").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").authenticated()
-                        // Formularios de escritura que aún no están en /admin (se mueven en el turno 3)
-                        .requestMatchers(HttpMethod.GET, "/libros/nuevo", "/libros/*/editar",
-                                "/autores/nuevo", "/autores/*/editar").hasRole("ADMIN")
                         // El catálogo se puede consultar sin cuenta
                         .requestMatchers(HttpMethod.GET, "/", "/libros", "/libros/*", "/autores", "/autores/*").permitAll()
                         .anyRequest().hasRole("ADMIN"))

@@ -30,7 +30,7 @@ class UsuarioControllerTest {
 
     @Test
     void listaLosUsuarios() throws Exception {
-        mockMvc.perform(get("/usuarios"))
+        mockMvc.perform(get("/admin/usuarios"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuarios/lista"))
                 .andExpect(model().attribute("usuarios", hasSize(7)))
@@ -39,7 +39,7 @@ class UsuarioControllerTest {
 
     @Test
     void elDetalleMuestraSuHistorialDePrestamos() throws Exception {
-        mockMvc.perform(get("/usuarios/1"))
+        mockMvc.perform(get("/admin/usuarios/1"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuarios/detalle"))
                 .andExpect(model().attribute("usuario", hasProperty("prestamos", hasSize(3))))
@@ -51,7 +51,7 @@ class UsuarioControllerTest {
 
     @Test
     void unUsuarioQueNoExisteDevuelve404() throws Exception {
-        mockMvc.perform(get("/usuarios/999"))
+        mockMvc.perform(get("/admin/usuarios/999"))
                 .andExpect(status().isNotFound());
     }
 }

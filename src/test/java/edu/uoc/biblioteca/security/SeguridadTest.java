@@ -121,7 +121,7 @@ class SeguridadTest {
 
     @Test
     void sinSesionLasDemasRutasPidenIniciarSesion() throws Exception {
-        for (String ruta : new String[] {"/admin/libros", "/user/cuenta", "/usuarios", "/prestamos", "/libros/nuevo", "/libros/1/editar"}) {
+        for (String ruta : new String[] {"/admin/libros", "/user/cuenta", "/admin/usuarios", "/prestamos", "/admin/libros/nuevo", "/admin/libros/1/editar"}) {
             mockMvc.perform(get(ruta)).andExpect(redirectedUrl("/login"));
         }
     }
@@ -140,7 +140,7 @@ class SeguridadTest {
     @Test
     @WithMockUser(roles = "USER")
     void unUsuarioNoEntraEnLasRutasDeAdministracion() throws Exception {
-        for (String ruta : new String[] {"/admin/libros", "/usuarios", "/usuarios/1", "/prestamos", "/libros/nuevo", "/autores/1/editar"}) {
+        for (String ruta : new String[] {"/admin/libros", "/admin/usuarios", "/admin/usuarios/1", "/prestamos", "/admin/libros/nuevo", "/admin/autores/1/editar"}) {
             mockMvc.perform(get(ruta)).andExpect(status().isForbidden());
         }
     }
@@ -149,8 +149,8 @@ class SeguridadTest {
     @WithMockUser(roles = "USER")
     void unUsuarioNoModificaDatos() throws Exception {
         long antes = usuarioRepository.count();
-        mockMvc.perform(post("/libros/1/eliminar").with(csrf())).andExpect(status().isForbidden());
-        mockMvc.perform(post("/usuarios/1/eliminar").with(csrf())).andExpect(status().isForbidden());
+        mockMvc.perform(post("/admin/libros/1/eliminar").with(csrf())).andExpect(status().isForbidden());
+        mockMvc.perform(post("/admin/usuarios/1/eliminar").with(csrf())).andExpect(status().isForbidden());
         mockMvc.perform(post("/prestamos").with(csrf()).param("usuarioId", "1").param("libroId", "1"))
                 .andExpect(status().isForbidden());
         assertThat(usuarioRepository.count()).isEqualTo(antes);
@@ -172,7 +172,7 @@ class SeguridadTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void unAdministradorPasaElControlDeAcceso() throws Exception {
-        mockMvc.perform(get("/usuarios")).andExpect(status().isOk());
+        mockMvc.perform(get("/admin/usuarios")).andExpect(status().isOk());
         mockMvc.perform(get("/prestamos")).andExpect(status().isOk());
         // Pasa el filtro: la ruta todavía no existe, de ahí el 404 y no un 403
         mockMvc.perform(get("/admin/no-existe")).andExpect(status().isNotFound());
@@ -192,7 +192,7 @@ class SeguridadTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void sinTokenCsrfNoSeModificaNada() throws Exception {
-        mockMvc.perform(post("/libros/1/eliminar")).andExpect(status().isForbidden());
+        mockMvc.perform(post("/admin/libros/1/eliminar")).andExpect(status().isForbidden());
     }
 
     // --- Cuentas ---
@@ -208,7 +208,7 @@ class SeguridadTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void elAltaCifraLaContrasenaYAsignaElRol() throws Exception {
-        altaDeClara("Clave1234", "USER").andExpect(redirectedUrlPattern("/usuarios/*"));
+        altaDeClara("Clave1234", "USER").andExpect(redirectedUrlPattern("/admin/usuarios/*"));
 
         Usuario clara = usuarioRepository.findByEmail("clara@example.com").orElseThrow();
         assertThat(clara.getRol()).isEqualTo(Rol.USER);
@@ -228,7 +228,7 @@ class SeguridadTest {
     @WithMockUser(roles = "ADMIN")
     void elFormularioNuncaMuestraLaContrasena() throws Exception {
         Usuario laura = usuarioRepository.findByEmail(SOCIA).orElseThrow();
-        mockMvc.perform(get("/usuarios/" + laura.getId() + "/editar"))
+        mockMvc.perform(get("/admin/usuarios/" + laura.getId() + "/editar"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString(laura.getPassword()))));
     }
@@ -239,7 +239,7 @@ class SeguridadTest {
         Usuario laura = usuarioRepository.findByEmail(SOCIA).orElseThrow();
         String anterior = laura.getPassword();
 
-        editar(laura, "", "USER").andExpect(redirectedUrl("/usuarios/" + laura.getId()));
+        editar(laura, "", "USER").andExpect(redirectedUrl("/admin/usuarios/" + laura.getId()));
 
         assertThat(usuarioRepository.findByEmail(SOCIA).orElseThrow().getPassword()).isEqualTo(anterior);
     }
@@ -249,7 +249,7 @@ class SeguridadTest {
     void editarConContrasenaLaCambiaCifrada() throws Exception {
         Usuario laura = usuarioRepository.findByEmail(SOCIA).orElseThrow();
 
-        editar(laura, "NuevaClave99", "USER").andExpect(redirectedUrl("/usuarios/" + laura.getId()));
+        editar(laura, "NuevaClave99", "USER").andExpect(redirectedUrl("/admin/usuarios/" + laura.getId()));
 
         assertThat(passwordEncoder.matches("NuevaClave99", usuarioRepository.findByEmail(SOCIA).orElseThrow().getPassword())).isTrue();
     }
@@ -269,14 +269,14 @@ class SeguridadTest {
     void nadieEliminaLaCuentaConLaQueHaEntrado() throws Exception {
         Usuario admin = usuarioRepository.findByEmail(ADMIN).orElseThrow();
 
-        mockMvc.perform(post("/usuarios/" + admin.getId() + "/eliminar").with(csrf()))
+        mockMvc.perform(post("/admin/usuarios/" + admin.getId() + "/eliminar").with(csrf()))
                 .andExpect(flash().attributeExists("mensajeError"));
 
         assertThat(usuarioRepository.findByEmail(ADMIN)).isPresent();
     }
 
     private ResultActions altaDeClara(String password, String rol) throws Exception {
-        return mockMvc.perform(post("/usuarios").with(csrf())
+        return mockMvc.perform(post("/admin/usuarios").with(csrf())
                 .param("nombre", "Clara")
                 .param("apellidos", "Ruiz Martín")
                 .param("dni", "11223344B")
@@ -287,7 +287,7 @@ class SeguridadTest {
     }
 
     private ResultActions editar(Usuario usuario, String password, String rol) throws Exception {
-        return mockMvc.perform(post("/usuarios/" + usuario.getId()).with(csrf())
+        return mockMvc.perform(post("/admin/usuarios/" + usuario.getId()).with(csrf())
                 .param("nombre", usuario.getNombre())
                 .param("apellidos", usuario.getApellidos())
                 .param("dni", usuario.getDni())

@@ -17,10 +17,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Alta, edición y borrado de autores. Las consultas están en {@link AutorController}.
- * Se separan para que en el Producto 3 baste con mover este controlador a /admin/autores.
+ * Solo para el rol ADMIN.
  */
 @Controller
-@RequestMapping("/autores")
+@RequestMapping("/admin/autores")
 public class AutorAdminController {
 
     private final AutorService autorService;

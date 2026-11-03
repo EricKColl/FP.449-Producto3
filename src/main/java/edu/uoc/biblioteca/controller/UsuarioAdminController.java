@@ -20,10 +20,10 @@ import java.security.Principal;
 
 /**
  * Alta, edición y borrado de usuarios. Las consultas están en {@link UsuarioController}.
- * Se separan para que en el Producto 3 baste con mover este controlador a /admin/usuarios.
+ * Solo para el rol ADMIN.
  */
 @Controller
-@RequestMapping("/usuarios")
+@RequestMapping("/admin/usuarios")
 public class UsuarioAdminController {
 
     private final UsuarioService usuarioService;
@@ -62,7 +62,7 @@ public class UsuarioAdminController {
         Usuario guardado = usuarioService.crear(usuario);
         redirectAttributes.addFlashAttribute("mensajeExito",
                 "Usuario «" + guardado.getNombreCompleto() + "» dado de alta correctamente");
-        return "redirect:/usuarios/" + guardado.getId();
+        return "redirect:/admin/usuarios/" + guardado.getId();
     }
 
     @GetMapping("/{id}/editar")
@@ -87,7 +87,7 @@ public class UsuarioAdminController {
         Usuario actualizado = usuarioService.actualizar(id, usuario);
         redirectAttributes.addFlashAttribute("mensajeExito",
                 "Usuario «" + actualizado.getNombreCompleto() + "» actualizado correctamente");
-        return "redirect:/usuarios/" + id;
+        return "redirect:/admin/usuarios/" + id;
     }
 
     @PostMapping("/{id}/eliminar")
@@ -99,7 +99,7 @@ public class UsuarioAdminController {
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
         }
-        return "redirect:/usuarios";
+        return "redirect:/admin/usuarios";
     }
 
     /** DNI y email únicos: se comprueban aquí para mostrar el error junto al campo. */

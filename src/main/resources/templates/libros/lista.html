@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Libros')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('libros')}"></nav>
@@ -9,7 +10,7 @@
 
   <div class="cabecera-panel">
     <h1 class="titulo-panel">Libros</h1>
-    <a class="btn btn-primary" th:href="@{/libros/nuevo}">
+    <a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/libros/nuevo}">
       <i class="ti ti-plus"></i> Nuevo libro
     </a>
   </div>
@@ -33,7 +34,7 @@
           <th>Autores</th>
           <th>ISBN</th>
           <th>Año</th>
-          <th class="text-end">Acciones</th>
+          <th class="text-end" sec:authorize="hasRole('ADMIN')">Acciones</th>
         </tr>
         </thead>
         <tbody>
@@ -44,13 +45,13 @@
           <td th:text="${libro.autoresTexto}">Autores</td>
           <td class="text-nowrap" th:text="${libro.isbn}">ISBN</td>
           <td th:text="${libro.anioPublicacion}">Año</td>
-          <td class="text-end text-nowrap">
+          <td class="text-end text-nowrap" sec:authorize="hasRole('ADMIN')">
             <a class="btn btn-sm btn-outline-primary" title="Editar"
-             th:href="@{/libros/{id}/editar(id=${libro.id})}">
+             th:href="@{/admin/libros/{id}/editar(id=${libro.id})}">
               <i class="ti ti-pencil"></i>
             </a>
             <form class="d-inline" method="post"
-               th:action="@{/libros/{id}/eliminar(id=${libro.id})}"
+               th:action="@{/admin/libros/{id}/eliminar(id=${libro.id})}"
                th:data-titulo="${libro.titulo}"
                onsubmit="return confirm('¿Eliminar «' + this.dataset.titulo + '»?')">
               <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">

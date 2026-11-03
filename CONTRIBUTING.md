@@ -72,15 +72,21 @@ de clase y `@Transactional` en los métodos que escriben. No se usa Lombok.
 |---|---|
 | `GET /libros` | listado → `libros/lista` |
 | `GET /libros/{id}` | detalle → `libros/detalle` |
-| `GET /libros/nuevo` · `GET /libros/{id}/editar` | formulario → `libros/formulario` |
-| `POST /libros` · `POST /libros/{id}` | crear · actualizar → redirige al listado o al detalle |
-| `POST /libros/{id}/eliminar` | eliminar → redirige al listado |
+| `GET /admin/libros/nuevo` · `GET /admin/libros/{id}/editar` | formulario → `libros/formulario` |
+| `POST /admin/libros` · `POST /admin/libros/{id}` | crear · actualizar → redirige al detalle |
+| `POST /admin/libros/{id}/eliminar` | eliminar → redirige al listado |
 
 Id inexistente → `throw new ResponseStatusException(HttpStatus.NOT_FOUND, "...")` (se muestra `error.html`).
 
-**Escritura separada**: en autores y usuarios, las rutas que crean, modifican o borran están en su propio controlador
-(`AutorAdminController`, `UsuarioAdminController`) y las consultas en el de siempre. En el Producto 3 (Spring Security)
-esos controladores pasarán a `/admin/...`, que es donde la rúbrica pide todas las operaciones de escritura.
+**Escritura separada**: las rutas que crean, modifican o borran están en su propio controlador
+(`LibroAdminController`, `AutorAdminController`, `UsuarioAdminController`), bajo `/admin/...`, y las
+consultas de libros y autores en el de siempre. Todas las rutas de usuarios, incluidas las consultas,
+están bajo `/admin/usuarios`, porque contienen datos personales.
+
+Las altas, ediciones y bajas de autores usan `/admin/autores`; tras guardar se vuelve al catálogo público
+`/autores` o `/autores/{id}`. Las consultas públicas de libros siguen en `/libros` y `/libros/{id}`.
+Los botones y la columna de acciones de los catálogos solo se renderizan para ADMIN; el acceso directo
+se protege en `SecurityConfig` mediante `/admin/**`. La gestión de préstamos corresponde al turno de Antonio.
 
 **Vistas**: cada página usa los fragmentos de `fragments/layout.html` (hay una plantilla mínima en su comentario):
 `head('Título')`, `navbar('libros'|'autores'|'usuarios'|'prestamos'|'inicio')`, `alertas` y `footer`.

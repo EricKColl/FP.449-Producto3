@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head(${autor.nombreCompleto})}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('autores')}"></nav>
@@ -12,11 +13,11 @@
   </a>
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <h1 class="h3 mb-0" th:text="${autor.nombreCompleto}">Autor</h1>
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-primary" th:href="@{/autores/{id}/editar(id=${autor.id})}">
+    <div class="d-flex gap-2" sec:authorize="hasRole('ADMIN')">
+      <a class="btn btn-outline-primary" th:href="@{/admin/autores/{id}/editar(id=${autor.id})}">
         <i class="ti ti-pencil"></i> Editar
       </a>
-      <form method="post" th:action="@{/autores/{id}/eliminar(id=${autor.id})}"
+      <form method="post" th:action="@{/admin/autores/{id}/eliminar(id=${autor.id})}"
          th:data-nombre="${autor.nombreCompleto}"
          onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
         <button class="btn btn-outline-danger" type="submit">

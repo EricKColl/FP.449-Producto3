@@ -42,7 +42,7 @@
                            th:text="${prestamo.libro.titulo}">Libro</a>
                     </td>
                     <td>
-                        <a th:href="@{/usuarios/{id}(id=${prestamo.usuario.id})}"
+                        <a th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}"
                            th:text="${prestamo.usuario.nombreCompleto}">Usuario</a>
                     </td>
                     <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>

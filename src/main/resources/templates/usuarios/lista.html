@@ -9,7 +9,7 @@
 
   <div class="cabecera-panel">
     <h1 class="titulo-panel">Usuarios</h1>
-    <a class="btn btn-primary" th:href="@{/usuarios/nuevo}">
+    <a class="btn btn-primary" th:href="@{/admin/usuarios/nuevo}">
       <i class="ti ti-plus"></i> Nuevo usuario
     </a>
   </div>
@@ -31,7 +31,7 @@
         <tbody>
         <tr th:each="usuario : ${usuarios}">
           <td>
-            <a th:href="@{/usuarios/{id}(id=${usuario.id})}" th:text="${usuario.nombreCompleto}">Nombre</a>
+            <a th:href="@{/admin/usuarios/{id}(id=${usuario.id})}" th:text="${usuario.nombreCompleto}">Nombre</a>
           </td>
           <td th:text="${usuario.dni}">DNI</td>
           <td th:text="${usuario.email}">Email</td>
@@ -42,11 +42,11 @@
           </td>
           <td class="text-end text-nowrap">
             <a class="btn btn-sm btn-outline-primary" title="Editar"
-             th:href="@{/usuarios/{id}/editar(id=${usuario.id})}">
+             th:href="@{/admin/usuarios/{id}/editar(id=${usuario.id})}">
               <i class="ti ti-pencil"></i>
             </a>
             <form class="d-inline" method="post"
-               th:action="@{/usuarios/{id}/eliminar(id=${usuario.id})}"
+               th:action="@{/admin/usuarios/{id}/eliminar(id=${usuario.id})}"
                th:data-nombre="${usuario.nombreCompleto}"
                onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
               <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">
