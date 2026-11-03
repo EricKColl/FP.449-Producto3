@@ -28,7 +28,7 @@
             </a>
         </div>
         <div class="col-6 col-xl-3" sec:authorize="hasRole('ADMIN')">
-            <a class="tarjeta-resumen" th:href="@{/usuarios}">
+            <a class="tarjeta-resumen" th:href="@{/admin/usuarios}">
                 <span class="placa joya-zafiro"><i class="ti ti-users-group"></i></span>
                 <p class="cifra" th:text="${resumen.usuarios}">6</p>
                 <p class="etiqueta">Usuarios registrados</p>
@@ -94,7 +94,7 @@
                         <tbody>
                         <tr th:each="prestamo : ${ultimos}">
                             <td><a th:href="@{/libros/{id}(id=${prestamo.libro.id})}" th:text="${prestamo.libro.titulo}">Libro</a></td>
-                            <td><a th:href="@{/usuarios/{id}(id=${prestamo.usuario.id})}" th:text="${prestamo.usuario.nombreCompleto}">Usuario</a></td>
+                            <td><a th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}" th:text="${prestamo.usuario.nombreCompleto}">Usuario</a></td>
                             <td class="text-nowrap" th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
                             <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
                         </tr>
@@ -114,15 +114,15 @@
                     <span class="placa joya-esmeralda"><i class="ti ti-arrows-exchange"></i></span>
                     <span>Nuevo préstamo<small>Libro y usuario, con plazo de 15 días</small></span>
                 </a>
-                <a class="acceso" th:href="@{/libros/nuevo}">
+                <a class="acceso" th:href="@{/admin/libros/nuevo}">
                     <span class="placa joya-ambar"><i class="ti ti-library-plus"></i></span>
                     <span>Nuevo libro<small>Alta en el catálogo con sus autores</small></span>
                 </a>
-                <a class="acceso" th:href="@{/usuarios/nuevo}">
+                <a class="acceso" th:href="@{/admin/usuarios/nuevo}">
                     <span class="placa joya-zafiro"><i class="ti ti-user-plus"></i></span>
                     <span>Nuevo usuario<small>Alta de un socio de la biblioteca</small></span>
                 </a>
-                <a class="acceso" th:href="@{/autores/nuevo}">
+                <a class="acceso" th:href="@{/admin/autores/nuevo}">
                     <span class="placa joya-amatista"><i class="ti ti-feather"></i></span>
                     <span>Nuevo autor<small>Para asignarlo después a sus libros</small></span>
                 </a>

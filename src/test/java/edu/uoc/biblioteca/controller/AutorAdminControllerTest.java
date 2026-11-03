@@ -45,7 +45,7 @@ class AutorAdminControllerTest {
     void creaUnAutorValido() throws Exception {
         long antes = autorRepository.count();
 
-        mockMvc.perform(post("/autores").with(csrf())
+        mockMvc.perform(post("/admin/autores").with(csrf())
                         .param("nombre", "Ursula K.")
                         .param("apellidos", "Le Guin")
                         .param("nacionalidad", "Estadounidense")
@@ -64,7 +64,7 @@ class AutorAdminControllerTest {
     void noCreaUnAutorConErrores() throws Exception {
         long antes = autorRepository.count();
 
-        mockMvc.perform(post("/autores").with(csrf())
+        mockMvc.perform(post("/admin/autores").with(csrf())
                         .param("nombre", "")
                         .param("apellidos", "")
                         .param("fechaNacimiento", LocalDate.now().plusDays(1).toString()))
@@ -77,11 +77,11 @@ class AutorAdminControllerTest {
 
     @Test
     void editaUnAutorSinCambiarSuId() throws Exception {
-        mockMvc.perform(get("/autores/10/editar"))
+        mockMvc.perform(get("/admin/autores/10/editar"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("autores/formulario"));
 
-        mockMvc.perform(post("/autores/10").with(csrf())
+        mockMvc.perform(post("/admin/autores/10").with(csrf())
                         .param("id", "999")
                         .param("nombre", "John Ronald Reuel")
                         .param("apellidos", "Tolkien")
@@ -99,7 +99,7 @@ class AutorAdminControllerTest {
     void eliminaUnAutorSinLibros() throws Exception {
         Autor autor = autorRepository.save(new Autor("Mary", "Shelley"));
 
-        mockMvc.perform(post("/autores/" + autor.getId() + "/eliminar").with(csrf()))
+        mockMvc.perform(post("/admin/autores/" + autor.getId() + "/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/autores"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
@@ -108,7 +108,7 @@ class AutorAdminControllerTest {
 
     @Test
     void noEliminaUnAutorConLibros() throws Exception {
-        mockMvc.perform(post("/autores/10/eliminar").with(csrf()))
+        mockMvc.perform(post("/admin/autores/10/eliminar").with(csrf()))
                 .andExpect(redirectedUrl("/autores"))
                 .andExpect(flash().attributeExists("mensajeError"));
 
@@ -117,9 +117,9 @@ class AutorAdminControllerTest {
 
     @Test
     void rutasDeEdicionYBorradoInexistentesDevuelven404() throws Exception {
-        mockMvc.perform(get("/autores/999/editar")).andExpect(status().isNotFound());
-        mockMvc.perform(post("/autores/999").with(csrf()).param("nombre", "A").param("apellidos", "B"))
+        mockMvc.perform(get("/admin/autores/999/editar")).andExpect(status().isNotFound());
+        mockMvc.perform(post("/admin/autores/999").with(csrf()).param("nombre", "A").param("apellidos", "B"))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(post("/autores/999/eliminar").with(csrf())).andExpect(status().isNotFound());
+        mockMvc.perform(post("/admin/autores/999/eliminar").with(csrf())).andExpect(status().isNotFound());
     }
 }

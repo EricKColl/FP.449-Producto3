@@ -9,7 +9,7 @@
   <h1 class="h3 mb-3" th:text="${libro.id == null} ? 'Nuevo libro' : 'Editar libro'">Nuevo libro</h1>
 
   <form class="card card-body" method="post" novalidate th:object="${libro}"
-     th:action="${libro.id == null} ? @{/libros} : @{/libros/{id}(id=${libro.id})}">
+     th:action="${libro.id == null} ? @{/admin/libros} : @{/admin/libros/{id}(id=${libro.id})}">
     <div class="row g-3">
       <div class="col-md-8">
         <label for="titulo" class="form-label">Título *</label>

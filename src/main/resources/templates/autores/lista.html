@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Autores')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('autores')}"></nav>
@@ -9,7 +10,7 @@
 
   <div class="cabecera-panel">
     <h1 class="titulo-panel">Autores</h1>
-    <a class="btn btn-primary" th:href="@{/autores/nuevo}">
+    <a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/autores/nuevo}">
       <i class="ti ti-plus"></i> Nuevo autor
     </a>
   </div>
@@ -23,7 +24,7 @@
           <th>Nacionalidad</th>
           <th>Fecha de nacimiento</th>
           <th class="text-end">Libros</th>
-          <th class="text-end">Acciones</th>
+          <th class="text-end" sec:authorize="hasRole('ADMIN')">Acciones</th>
         </tr>
         </thead>
         <tbody>
@@ -37,13 +38,13 @@
           <td class="text-end">
             <span class="badge text-bg-secondary" th:text="${#sets.size(autor.libros)}">1</span>
           </td>
-          <td class="text-end text-nowrap">
+          <td class="text-end text-nowrap" sec:authorize="hasRole('ADMIN')">
             <a class="btn btn-sm btn-outline-primary" title="Editar"
-             th:href="@{/autores/{id}/editar(id=${autor.id})}">
+             th:href="@{/admin/autores/{id}/editar(id=${autor.id})}">
               <i class="ti ti-pencil"></i>
             </a>
             <form class="d-inline" method="post"
-               th:action="@{/autores/{id}/eliminar(id=${autor.id})}"
+               th:action="@{/admin/autores/{id}/eliminar(id=${autor.id})}"
                th:data-nombre="${autor.nombreCompleto}"
                onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
               <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">

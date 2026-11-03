@@ -9,7 +9,7 @@
   <h1 class="h3 mb-3" th:text="${usuario.id == null} ? 'Nuevo usuario' : 'Editar usuario'">Nuevo usuario</h1>
 
   <form class="card card-body" method="post" novalidate th:object="${usuario}"
-     th:action="${usuario.id == null} ? @{/usuarios} : @{/usuarios/{id}(id=${usuario.id})}">
+     th:action="${usuario.id == null} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${usuario.id})}">
     <div class="row g-3">
       <div class="col-md-4">
         <label for="nombre" class="form-label">Nombre *</label>
@@ -64,7 +64,7 @@
         <i class="ti ti-check"></i> Guardar
       </button>
       <a class="btn btn-outline-secondary"
-       th:href="${usuario.id == null} ? @{/usuarios} : @{/usuarios/{id}(id=${usuario.id})}">Cancelar</a>
+       th:href="${usuario.id == null} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${usuario.id})}">Cancelar</a>
     </div>
   </form>
 </main>

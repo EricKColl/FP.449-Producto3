@@ -17,11 +17,11 @@
       <h1 class="h3 mb-1" th:text="${libro.titulo}">Título</h1>
       <p class="text-body-secondary mb-0" th:text="${libro.autoresTexto}">Autores</p>
     </div>
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-primary" th:href="@{/libros/{id}/editar(id=${libro.id})}">
+    <div class="d-flex gap-2" sec:authorize="hasRole('ADMIN')">
+      <a class="btn btn-outline-primary" th:href="@{/admin/libros/{id}/editar(id=${libro.id})}">
         <i class="ti ti-pencil"></i> Editar
       </a>
-      <form method="post" th:action="@{/libros/{id}/eliminar(id=${libro.id})}"
+      <form method="post" th:action="@{/admin/libros/{id}/eliminar(id=${libro.id})}"
          th:data-titulo="${libro.titulo}"
          onsubmit="return confirm('¿Eliminar «' + this.dataset.titulo + '»?')">
         <button class="btn btn-outline-danger" type="submit">
@@ -72,7 +72,7 @@
             <tbody>
             <tr th:each="prestamo : ${libro.prestamos}">
               <td>
-                <a th:href="@{/usuarios/{id}(id=${prestamo.usuario.id})}"
+                <a th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}"
                  th:text="${prestamo.usuario.nombreCompleto}">Usuario</a>
               </td>
               <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
