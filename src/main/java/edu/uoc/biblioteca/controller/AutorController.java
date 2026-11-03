@@ -23,7 +23,8 @@ public class AutorController {
         return "autores/lista";
     }
 
-    @GetMapping("/{id}")
+    // Solo números: así una ruta antigua como /autores/nuevo responde 404 en lugar de 400
+    @GetMapping("/{id:\\d+}")
     public String detalle(@PathVariable Long id, Model model) {
         model.addAttribute("autor", autorService.buscarPorId(id));
         return "autores/detalle";

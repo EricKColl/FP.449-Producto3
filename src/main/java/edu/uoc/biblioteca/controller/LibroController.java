@@ -27,12 +27,12 @@ public class LibroController {
         return "libros/lista";
     }
 
-    @GetMapping("/{id}")
+    // Solo números: así una ruta antigua como /libros/nuevo responde 404 en lugar de 400
+    @GetMapping("/{id:\\d+}")
     public String detalle(@PathVariable Long id, Model model) {
         Libro libro = libroService.buscarPorId(id);
         model.addAttribute("libro", libro);
         model.addAttribute("disponibles", libroService.ejemplaresDisponibles(libro));
         return "libros/detalle";
     }
-
 }

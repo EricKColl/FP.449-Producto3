@@ -87,6 +87,10 @@ class RutasAdminTest {
         for (String ruta : new String[] {"/libros/14/eliminar", "/autores/1/eliminar", "/usuarios/1/eliminar"}) {
             mockMvc.perform(post(ruta).with(csrf())).andExpect(status().isNotFound());
         }
+        // Los formularios antiguos tampoco existen: «nuevo» no se confunde con el id de una ficha
+        for (String ruta : new String[] {"/libros/nuevo", "/autores/nuevo", "/libros/1/editar", "/autores/1/editar"}) {
+            mockMvc.perform(get(ruta)).andExpect(status().isNotFound());
+        }
         assertThat(libroRepository.existsById(14L)).isTrue();
     }
 

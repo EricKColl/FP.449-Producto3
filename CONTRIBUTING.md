@@ -86,7 +86,7 @@ están bajo `/admin/usuarios`, porque contienen datos personales.
 Las altas, ediciones y bajas de autores usan `/admin/autores`; tras guardar se vuelve al catálogo público
 `/autores` o `/autores/{id}`. Las consultas públicas de libros siguen en `/libros` y `/libros/{id}`.
 Los botones y la columna de acciones de los catálogos solo se renderizan para ADMIN; el acceso directo
-se protege en `SecurityConfig` mediante `/admin/**`. La gestión de préstamos corresponde al turno de Antonio.
+se protege en `SecurityConfig` mediante `/admin/**`.
 
 **Vistas**: cada página usa los fragmentos de `fragments/layout.html` (hay una plantilla mínima en su comentario):
 `head('Título')`, `navbar('libros'|'autores'|'usuarios'|'prestamos'|'inicio')`, `alertas` y `footer`.

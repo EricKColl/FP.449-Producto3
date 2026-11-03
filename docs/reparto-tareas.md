@@ -52,13 +52,13 @@ Rama `feature/jacobo-er-registro` · **Del miércoles 4 al domingo 8 de noviembr
 
 ## Turno 3 · Rutas de administración (Carles)
 
-Rama `feature/carles-rutas-admin` · **Del lunes 9 al viernes 13 de noviembre**
+Rama `feature/carles-rutas-admin` · **Del lunes 9 al viernes 13 de noviembre** · Terminado el 3 de noviembre
 
-- [ ] Mover a `/admin/*` todas las rutas de libros, autores y usuarios que crean, modifican o borran filas.
-- [ ] Separar la escritura de libros en `LibroAdminController`, como ya están `AutorAdminController` y `UsuarioAdminController`.
-- [ ] Actualizar enlaces y formularios: los botones de crear, editar y eliminar solo se ven con rol ADMIN.
-- [ ] Quitar de `SecurityConfig` las reglas temporales de `/libros/nuevo`, `/libros/*/editar`, `/autores/nuevo` y `/autores/*/editar`.
-- [ ] Tests: un USER o una visita sin sesión no pueden crear, editar ni borrar.
+- [x] Mover a `/admin/*` todas las rutas de libros, autores y usuarios que crean, modifican o borran filas.
+- [x] Separar la escritura de libros en `LibroAdminController`, como ya están `AutorAdminController` y `UsuarioAdminController`.
+- [x] Actualizar enlaces y formularios: los botones de crear, editar y eliminar solo se ven con rol ADMIN.
+- [x] Quitar de `SecurityConfig` las reglas temporales de `/libros/nuevo`, `/libros/*/editar`, `/autores/nuevo` y `/autores/*/editar`.
+- [x] Tests: un USER o una visita sin sesión no pueden crear, editar ni borrar: `./mvnw verify` da **108 tests**.
 
 ## Turno 4 · Rutas de usuario (Antonio)
 
