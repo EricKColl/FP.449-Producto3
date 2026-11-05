@@ -121,7 +121,7 @@ class SeguridadTest {
 
     @Test
     void sinSesionLasDemasRutasPidenIniciarSesion() throws Exception {
-        for (String ruta : new String[] {"/admin/libros", "/user/cuenta", "/admin/usuarios", "/prestamos", "/admin/libros/nuevo", "/admin/libros/1/editar"}) {
+        for (String ruta : new String[] {"/admin/libros", "/user/cuenta", "/admin/usuarios", "/admin/prestamos", "/admin/libros/nuevo", "/admin/libros/1/editar"}) {
             mockMvc.perform(get(ruta)).andExpect(redirectedUrl("/login"));
         }
     }
@@ -140,7 +140,7 @@ class SeguridadTest {
     @Test
     @WithMockUser(roles = "USER")
     void unUsuarioNoEntraEnLasRutasDeAdministracion() throws Exception {
-        for (String ruta : new String[] {"/admin/libros", "/admin/usuarios", "/admin/usuarios/1", "/prestamos", "/admin/libros/nuevo", "/admin/autores/1/editar"}) {
+        for (String ruta : new String[] {"/admin/libros", "/admin/usuarios", "/admin/usuarios/1", "/admin/prestamos", "/admin/libros/nuevo", "/admin/autores/1/editar"}) {
             mockMvc.perform(get(ruta)).andExpect(status().isForbidden());
         }
     }
@@ -151,7 +151,7 @@ class SeguridadTest {
         long antes = usuarioRepository.count();
         mockMvc.perform(post("/admin/libros/1/eliminar").with(csrf())).andExpect(status().isForbidden());
         mockMvc.perform(post("/admin/usuarios/1/eliminar").with(csrf())).andExpect(status().isForbidden());
-        mockMvc.perform(post("/prestamos").with(csrf()).param("usuarioId", "1").param("libroId", "1"))
+        mockMvc.perform(post("/admin/prestamos").with(csrf()).param("usuarioId", "1").param("libroId", "1"))
                 .andExpect(status().isForbidden());
         assertThat(usuarioRepository.count()).isEqualTo(antes);
     }
@@ -173,7 +173,7 @@ class SeguridadTest {
     @WithMockUser(roles = "ADMIN")
     void unAdministradorPasaElControlDeAcceso() throws Exception {
         mockMvc.perform(get("/admin/usuarios")).andExpect(status().isOk());
-        mockMvc.perform(get("/prestamos")).andExpect(status().isOk());
+        mockMvc.perform(get("/admin/prestamos")).andExpect(status().isOk());
         // Pasa el filtro: la ruta todavía no existe, de ahí el 404 y no un 403
         mockMvc.perform(get("/admin/no-existe")).andExpect(status().isNotFound());
     }

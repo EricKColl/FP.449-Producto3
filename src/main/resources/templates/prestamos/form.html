@@ -7,12 +7,12 @@
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-    <a class="btn btn-link px-0 mb-2" th:href="@{/prestamos}">
+    <a class="btn btn-link px-0 mb-2" th:href="@{/admin/prestamos}">
         <i class="ti ti-arrow-left"></i> Volver a préstamos
     </a>
     <h1 class="h3 mb-3">Nuevo préstamo</h1>
 
-    <form class="card card-body" method="post" th:action="@{/prestamos}">
+    <form class="card card-body" method="post" th:action="@{/admin/prestamos}">
         <div class="row g-3">
             <div class="col-md-6">
                 <label for="usuarioId" class="form-label">Usuario *</label>
@@ -46,7 +46,7 @@
             <button type="submit" class="btn btn-primary">
                 <i class="ti ti-check"></i> Registrar préstamo
             </button>
-            <a class="btn btn-outline-secondary" th:href="@{/prestamos}">Cancelar</a>
+            <a class="btn btn-outline-secondary" th:href="@{/admin/prestamos}">Cancelar</a>
         </div>
     </form>
 </main>

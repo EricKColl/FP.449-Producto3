@@ -8,16 +8,16 @@
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
     <div class="cabecera-panel">
         <h1 class="titulo-panel">Préstamos</h1>
-        <a class="btn btn-primary" th:href="@{/prestamos/nuevo}">
+        <a class="btn btn-primary" th:href="@{/admin/prestamos/nuevo}">
             <i class="ti ti-plus"></i> Nuevo préstamo
         </a>
     </div>
     <!-- Filtro por estado -->
     <div class="btn-group flex-wrap mb-3" role="group" aria-label="Filtrar por estado">
-        <a class="btn btn-outline-primary" th:href="@{/prestamos}"
+        <a class="btn btn-outline-primary" th:href="@{/admin/prestamos}"
            th:classappend="${estadoSeleccionado == null} ? 'active'">Todos</a>
         <a class="btn btn-outline-primary" th:each="estado : ${estados}"
-           th:href="@{/prestamos(estado=${estado})}"
+           th:href="@{/admin/prestamos(estado=${estado})}"
            th:classappend="${estado == estadoSeleccionado} ? 'active'"
            th:text="${estado.etiqueta} + 's'">Activos</a>
     </div>
@@ -52,7 +52,7 @@
                     <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
                     <td class="text-end">
                         <form th:unless="${prestamo.devuelto}" method="post"
-                              th:action="@{/prestamos/{id}/devolver(id=${prestamo.id})}">
+                              th:action="@{/admin/prestamos/{id}/devolver(id=${prestamo.id})}">
                             <button class="btn btn-sm btn-outline-success text-nowrap" type="submit">
                                 <i class="ti ti-arrow-back-up"></i> Registrar devolución
                             </button>
