@@ -32,22 +32,22 @@
   </div>
 
   <div class="row g-3">
-    <div class="col-lg-5 col-xl-4">
+    <div class="col-lg-6 col-xl-5">
       <div class="card">
         <div class="card-body">
           <dl class="row mb-0">
-            <dt class="col-6">ISBN</dt>
-            <dd class="col-6 text-nowrap" th:text="${libro.isbn}">ISBN</dd>
-            <dt class="col-6">Editorial</dt>
-            <dd class="col-6" th:text="${libro.editorial} ?: '—'">Editorial</dd>
-            <dt class="col-6">Año</dt>
-            <dd class="col-6" th:text="${libro.anioPublicacion} ?: '—'">Año</dd>
-            <dt class="col-6">Género</dt>
-            <dd class="col-6" th:text="${libro.genero} ?: '—'">Género</dd>
-            <dt class="col-6">Ejemplares</dt>
-            <dd class="col-6" th:text="${libro.ejemplares}">1</dd>
-            <dt class="col-6">Disponibles</dt>
-            <dd class="col-6 mb-0">
+            <dt class="col-5">ISBN</dt>
+            <dd class="col-7 text-nowrap" th:text="${libro.isbn}">ISBN</dd>
+            <dt class="col-5">Editorial</dt>
+            <dd class="col-7" th:text="${libro.editorial} ?: '—'">Editorial</dd>
+            <dt class="col-5">Año</dt>
+            <dd class="col-7" th:text="${libro.anioPublicacion} ?: '—'">Año</dd>
+            <dt class="col-5">Género</dt>
+            <dd class="col-7" th:text="${libro.genero} ?: '—'">Género</dd>
+            <dt class="col-5">Ejemplares</dt>
+            <dd class="col-7" th:text="${libro.ejemplares}">1</dd>
+            <dt class="col-5">Disponibles</dt>
+            <dd class="col-7 mb-0">
               <span class="badge" th:text="${disponibles}"
                  th:classappend="${disponibles > 0} ? 'text-bg-success' : 'text-bg-danger'">1</span>
             </dd>
@@ -93,7 +93,7 @@
       </div>
     </div>
 
-    <div class="col-lg-7 col-xl-8" sec:authorize="hasRole('ADMIN')">
+    <div class="col-lg-6 col-xl-7" sec:authorize="hasRole('ADMIN')">
       <div class="card">
         <div class="card-header fw-semibold">Historial de préstamos</div>
         <div class="table-responsive">
