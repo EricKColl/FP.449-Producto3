@@ -55,19 +55,29 @@
         </div>
       </div>
 
+      <!--/* Botones del usuario de la sesión: el formulario solo dice qué libro, nunca quién lo pide */-->
       <div class="d-grid gap-2 mt-3" sec:authorize="isAuthenticated()">
-        <form method="post" th:action="@{/user/prestamos}" th:if="${disponibles > 0}">
-          <input type="hidden" name="libroId" th:value="${libro.id}">
-          <button class="btn btn-primary w-100" type="submit">
-            <i class="ti ti-book-download"></i> Pedir prestado
-          </button>
-        </form>
-        <form method="post" th:action="@{/user/reservas}" th:unless="${disponibles > 0}">
-          <input type="hidden" name="libroId" th:value="${libro.id}">
-          <button class="btn btn-primary w-100" type="submit">
-            <i class="ti ti-bookmark"></i> Reservar
-          </button>
-        </form>
+        <a class="btn btn-outline-success w-100" th:if="${loTienePrestado}" th:href="@{/user/prestamos}">
+          <i class="ti ti-book-2"></i> Lo tienes prestado
+        </a>
+        <th:block th:unless="${loTienePrestado}">
+          <form method="post" th:action="@{/user/prestamos}" th:if="${disponibles > 0}">
+            <input type="hidden" name="libroId" th:value="${libro.id}">
+            <button class="btn btn-primary w-100" type="submit">
+              <i class="ti ti-book-download"></i> Pedir prestado
+            </button>
+          </form>
+          <a class="btn btn-outline-primary w-100" th:if="${disponibles <= 0 and loTieneReservado}"
+             th:href="@{/user/reservas}">
+            <i class="ti ti-bookmark"></i> Ya lo tienes reservado
+          </a>
+          <form method="post" th:action="@{/user/reservas}" th:if="${disponibles <= 0 and not loTieneReservado}">
+            <input type="hidden" name="libroId" th:value="${libro.id}">
+            <button class="btn btn-primary w-100" type="submit">
+              <i class="ti ti-bookmark"></i> Reservar
+            </button>
+          </form>
+        </th:block>
         <form method="post" th:action="@{/user/favoritos/{id}(id=${libro.id})}" th:unless="${esFavorito}">
           <button class="btn btn-outline-primary w-100" type="submit">
             <i class="ti ti-heart"></i> Añadir a favoritos
@@ -75,6 +85,7 @@
         </form>
         <form method="post" th:action="@{/user/favoritos/{id}/quitar(id=${libro.id})}"
               th:if="${esFavorito}">
+          <input type="hidden" name="desdeFicha" value="true">
           <button class="btn btn-outline-secondary w-100" type="submit">
             <i class="ti ti-heart-off"></i> Quitar de favoritos
           </button>

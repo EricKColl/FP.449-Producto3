@@ -62,14 +62,14 @@ Rama `feature/carles-rutas-admin` · **Del lunes 9 al viernes 13 de noviembre** 
 
 ## Turno 4 · Rutas de usuario (Antonio)
 
-Rama `feature/antonio-rutas-user` · **Del sábado 14 al miércoles 18 de noviembre**
+Rama `feature/antonio-rutas-user` · **Del sábado 14 al miércoles 18 de noviembre** · Terminado el 5 de noviembre
 
-- [ ] `/user/prestamos`: los préstamos del usuario con sesión iniciada y pedir un libro. El usuario sale de la sesión, nunca del formulario.
-- [ ] `/user/reservas`: reservar un libro sin ejemplares, ver las reservas propias y cancelarlas.
-- [ ] `/user/favoritos`: marcar y desmarcar libros desde su ficha y ver la lista propia.
-- [ ] `/admin/prestamos`: la gestión de todos los préstamos y el registro de devoluciones.
-- [ ] Añadir «Mis préstamos», «Mis reservas» y «Mis favoritos» al menú para quien tenga la sesión iniciada.
-- [ ] Tests: un usuario no puede ver ni tocar los préstamos, las reservas o los favoritos de otro.
+- [x] `/user/prestamos`: los préstamos del usuario con sesión iniciada y pedir un libro. El usuario sale de la sesión, nunca del formulario.
+- [x] `/user/reservas`: reservar un libro sin ejemplares, ver las reservas propias y cancelarlas.
+- [x] `/user/favoritos`: marcar y desmarcar libros desde su ficha y ver la lista propia.
+- [x] `/admin/prestamos`: la gestión de todos los préstamos y el registro de devoluciones.
+- [x] Añadir «Mis préstamos», «Mis reservas» y «Mis favoritos» al menú para quien tenga la sesión iniciada.
+- [x] Tests: un usuario no puede ver ni tocar los préstamos, las reservas o los favoritos de otro: `./mvnw verify` da **124 tests**.
 
 ## Calendario por turnos
 

@@ -8,8 +8,7 @@
     <div class="cabecera-panel">
         <h1 class="titulo-panel">Mis reservas</h1>
     </div>
-    <p class="text-body-secondary">Se reserva desde la ficha de un libro que no tiene ejemplares
-        disponibles.</p>
+    <p class="text-body-secondary">Se reserva desde la ficha de un libro que no tiene ejemplares disponibles.</p>
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -27,8 +26,8 @@
                            th:text="${reserva.libro.titulo}">Libro</a></td>
                     <td th:text="${#temporals.format(reserva.fechaReserva, 'dd/MM/yyyy')}">01/10/2026</td>
                     <td>
-<span class="estado" th:classappend="${reserva.activa} ? 'estado-activo' : 'estado-devuelto'"
-      th:text="${reserva.estado.etiqueta}">Activa</span>
+                        <span class="estado" th:classappend="${reserva.activa} ? 'estado-activo' : 'estado-devuelto'"
+                              th:text="${reserva.estado.etiqueta}">Activa</span>
                     </td>
                     <td class="text-end">
                         <form method="post" th:if="${reserva.activa}"

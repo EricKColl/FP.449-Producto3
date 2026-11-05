@@ -46,8 +46,13 @@ public class PrestamoService {
                 .toList();
     }
 
+    /** Los préstamos de un usuario, del más reciente al más antiguo. */
     public List<Prestamo> listarDeUsuario(Long usuarioId) {
         return prestamoRepository.findByUsuarioIdOrderByFechaPrestamoDescIdDesc(usuarioId);
+    }
+
+    public boolean tieneSinDevolver(Long usuarioId, Long libroId) {
+        return prestamoRepository.existsByUsuarioIdAndLibroIdAndFechaDevolucionIsNull(usuarioId, libroId);
     }
 
     public Prestamo buscarPorId(Long id) {
@@ -82,6 +87,10 @@ public class PrestamoService {
         if (!prestatario.puedePedir()) {
             throw new IllegalStateException(usuario.getNombreCompleto() + " no puede llevarse otro libro: "
                     + prestatario.motivo());
+        }
+        if (tieneSinDevolver(usuarioId, libroId)) {
+            throw new IllegalStateException(usuario.getNombreCompleto() + " ya tiene «" + libro.getTitulo()
+                    + "» sin devolver");
         }
         if (ejemplaresDisponibles(libro) <= 0) {
             throw new IllegalStateException(

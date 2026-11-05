@@ -28,15 +28,12 @@
                     <td><a th:href="@{/libros/{id}(id=${prestamo.libro.id})}"
                            th:text="${prestamo.libro.titulo}">Libro</a></td>
                     <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
-                    <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista,
-'dd/MM/yyyy')}">15/10/2026</td>
-                    <td th:text="${prestamo.devuelto} ? ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')}
-: '—'">—</td>
+                    <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/10/2026</td>
+                    <td th:text="${prestamo.devuelto} ? ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')} : '—'">—</td>
                     <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(prestamos)}">
-                    <td colspan="5" class="text-center text-body-secondary py-4">Todavía no has pedido ningún
-                        libro.</td>
+                    <td colspan="5" class="text-center text-body-secondary py-4">Todavía no has pedido ningún libro.</td>
                 </tr>
                 </tbody>
             </table>

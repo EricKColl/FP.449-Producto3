@@ -1,4 +1,5 @@
 package edu.uoc.biblioteca.controller;
+
 import edu.uoc.biblioteca.model.Reserva;
 import edu.uoc.biblioteca.security.CuentaUsuario;
 import edu.uoc.biblioteca.service.ReservaService;
@@ -11,18 +12,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+/** Las reservas del usuario de la sesión: reservar un libro sin ejemplares y cancelar las propias. */
 @Controller
 @RequestMapping("/user/reservas")
 public class MisReservasController {
+
     private final ReservaService reservaService;
+
     public MisReservasController(ReservaService reservaService) {
         this.reservaService = reservaService;
     }
+
     @GetMapping
     public String listar(@AuthenticationPrincipal CuentaUsuario cuenta, Model model) {
         model.addAttribute("reservas", reservaService.listarDeUsuario(cuenta.getId()));
         return "user/reservas";
     }
+
     @PostMapping
     public String reservar(@AuthenticationPrincipal CuentaUsuario cuenta, @RequestParam Long libroId,
                            RedirectAttributes redirectAttributes) {
@@ -36,6 +43,7 @@ public class MisReservasController {
             return "redirect:/libros/" + libroId;
         }
     }
+
     @PostMapping("/{id}/cancelar")
     public String cancelar(@AuthenticationPrincipal CuentaUsuario cuenta, @PathVariable Long id,
                            RedirectAttributes redirectAttributes) {

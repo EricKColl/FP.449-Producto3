@@ -31,12 +31,14 @@ class RutasAdminTest {
     private static final String[] RUTAS = {
             "/admin/libros/nuevo", "/admin/libros/1/editar",
             "/admin/autores/nuevo", "/admin/autores/1/editar",
-            "/admin/usuarios", "/admin/usuarios/1", "/admin/usuarios/nuevo", "/admin/usuarios/1/editar"};
+            "/admin/usuarios", "/admin/usuarios/1", "/admin/usuarios/nuevo", "/admin/usuarios/1/editar",
+            "/admin/prestamos", "/admin/prestamos/nuevo"};
 
     private static final String[] ESCRITURAS = {
             "/admin/libros", "/admin/libros/14", "/admin/libros/14/eliminar",
             "/admin/autores", "/admin/autores/1", "/admin/autores/1/eliminar",
-            "/admin/usuarios", "/admin/usuarios/1", "/admin/usuarios/1/eliminar"};
+            "/admin/usuarios", "/admin/usuarios/1", "/admin/usuarios/1/eliminar",
+            "/admin/prestamos", "/admin/prestamos/7/devolver"};
 
     @Autowired
     private MockMvc mockMvc;
@@ -84,11 +86,13 @@ class RutasAdminTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void lasRutasAntiguasYaNoModificanNada() throws Exception {
-        for (String ruta : new String[] {"/libros/14/eliminar", "/autores/1/eliminar", "/usuarios/1/eliminar"}) {
+        for (String ruta : new String[] {"/libros/14/eliminar", "/autores/1/eliminar", "/usuarios/1/eliminar",
+                "/prestamos", "/prestamos/7/devolver"}) {
             mockMvc.perform(post(ruta).with(csrf())).andExpect(status().isNotFound());
         }
         // Los formularios antiguos tampoco existen: «nuevo» no se confunde con el id de una ficha
-        for (String ruta : new String[] {"/libros/nuevo", "/autores/nuevo", "/libros/1/editar", "/autores/1/editar"}) {
+        for (String ruta : new String[] {"/libros/nuevo", "/autores/nuevo", "/libros/1/editar", "/autores/1/editar",
+                "/prestamos", "/prestamos/nuevo"}) {
             mockMvc.perform(get(ruta)).andExpect(status().isNotFound());
         }
         assertThat(libroRepository.existsById(14L)).isTrue();

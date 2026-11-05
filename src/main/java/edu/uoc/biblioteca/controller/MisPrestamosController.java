@@ -1,4 +1,5 @@
 package edu.uoc.biblioteca.controller;
+
 import edu.uoc.biblioteca.model.Prestamo;
 import edu.uoc.biblioteca.security.CuentaUsuario;
 import edu.uoc.biblioteca.service.PrestamoService;
@@ -10,10 +11,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 /** Los préstamos del usuario de la sesión. El usuario nunca llega del formulario: sale de la sesión. */
 @Controller
 @RequestMapping("/user/prestamos")
 public class MisPrestamosController {
+
     private final PrestamoService prestamoService;
 
     public MisPrestamosController(PrestamoService prestamoService) {
@@ -26,6 +29,7 @@ public class MisPrestamosController {
         return "user/prestamos";
     }
 
+    // Las reglas son las mismas que en /admin/prestamos: están en PrestamoService.crear
     @PostMapping
     public String pedir(@AuthenticationPrincipal CuentaUsuario cuenta, @RequestParam Long libroId,
                         RedirectAttributes redirectAttributes) {
