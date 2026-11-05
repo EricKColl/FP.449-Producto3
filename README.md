@@ -85,8 +85,8 @@ Las crea `02-datos.sql` y solo sirven para desarrollar y hacer la demostración.
 | Rutas | Quién entra |
 |---|---|
 | `/`, `/login`, `/registro`, consulta de `/libros` y `/autores` | Cualquiera, sin cuenta |
-| `/user/*` | Cualquier usuario con la sesión iniciada |
-| `/admin/*` y todo lo demás | Solo el rol ADMIN |
+| `/user/*`: mi cuenta, mis préstamos, mis reservas y mis favoritos | Cualquier usuario con la sesión iniciada |
+| `/admin/*`: alta, edición y borrado de libros, autores y usuarios, y gestión de préstamos; y todo lo demás | Solo el rol ADMIN |
 
 Una ruta que no aparezca en `SecurityConfig` queda reservada a ADMIN. El menú y las vistas cambian según el rol.
 
@@ -129,7 +129,7 @@ La BD se publica en el **3307** del equipo para no chocar con un MySQL o XAMPP l
 ```
 src/main/java/edu/uoc/biblioteca/
 ├── BibliotecaApplication.java
-├── model/          # entidades JPA: Autor, Libro, Usuario, Prestamo
+├── model/          # entidades JPA: Autor, Libro, Usuario, Prestamo, Reserva
 ├── repository/     # repositorios Spring Data
 ├── service/        # lógica de negocio
 ├── security/       # SecurityConfig, cuentas y login

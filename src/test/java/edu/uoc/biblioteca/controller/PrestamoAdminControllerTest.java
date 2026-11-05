@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2")
 @Transactional
 @WithMockUser(roles = "ADMIN")
-class PrestamoControllerTest {
+class PrestamoAdminControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,7 +44,7 @@ class PrestamoControllerTest {
 
     @Test
     void listaTodosLosPrestamos() throws Exception {
-        mockMvc.perform(get("/prestamos"))
+        mockMvc.perform(get("/admin/prestamos"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("prestamos/lista"))
                 .andExpect(content().string(containsString("Cien años de soledad")))
@@ -53,7 +53,7 @@ class PrestamoControllerTest {
 
     @Test
     void filtraLosVencidos() throws Exception {
-        mockMvc.perform(get("/prestamos").param("estado", "VENCIDO"))
+        mockMvc.perform(get("/admin/prestamos").param("estado", "VENCIDO"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("La casa de los espíritus")))
                 .andExpect(content().string(not(containsString("Cien años de soledad"))));
@@ -61,8 +61,8 @@ class PrestamoControllerTest {
 
     @Test
     void registraUnaDevolucion() throws Exception {
-        mockMvc.perform(post("/prestamos/7/devolver").with(csrf()))
-                .andExpect(redirectedUrl("/prestamos"))
+        mockMvc.perform(post("/admin/prestamos/7/devolver").with(csrf()))
+                .andExpect(redirectedUrl("/admin/prestamos"))
                 .andExpect(flash().attributeExists("mensajeExito"));
         assertThat(prestamoRepository.findById(7L)).get()
                 .satisfies(prestamo -> assertThat(prestamo.getFechaDevolucion()).isEqualTo(LocalDate.now()));
@@ -70,14 +70,14 @@ class PrestamoControllerTest {
 
     @Test
     void noDevuelveDosVecesElMismoPrestamo() throws Exception {
-        mockMvc.perform(post("/prestamos/1/devolver").with(csrf()))
-                .andExpect(redirectedUrl("/prestamos"))
+        mockMvc.perform(post("/admin/prestamos/1/devolver").with(csrf()))
+                .andExpect(redirectedUrl("/admin/prestamos"))
                 .andExpect(flash().attributeExists("mensajeError"));
     }
 
     @Test
     void muestraElFormularioDeNuevoPrestamo() throws Exception {
-        mockMvc.perform(get("/prestamos/nuevo"))
+        mockMvc.perform(get("/admin/prestamos/nuevo"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("prestamos/form"))
                 .andExpect(content().string(containsString("Laura Martínez Soler")))
@@ -88,10 +88,10 @@ class PrestamoControllerTest {
     void creaUnPrestamoDeUnLibroDisponible() throws Exception {
         long antes = prestamoRepository.count();
 
-        mockMvc.perform(post("/prestamos").with(csrf())
+        mockMvc.perform(post("/admin/prestamos").with(csrf())
                         .param("usuarioId", "1")
                         .param("libroId", "14"))
-                .andExpect(redirectedUrl("/prestamos"))
+                .andExpect(redirectedUrl("/admin/prestamos"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
         assertThat(prestamoRepository.count()).isEqualTo(antes + 1);
@@ -102,10 +102,10 @@ class PrestamoControllerTest {
         long antes = prestamoRepository.count();
 
         // Libro 3: 1 ejemplar, ya prestado (préstamo 5)
-        mockMvc.perform(post("/prestamos").with(csrf())
+        mockMvc.perform(post("/admin/prestamos").with(csrf())
                         .param("usuarioId", "1")
                         .param("libroId", "3"))
-                .andExpect(redirectedUrl("/prestamos/nuevo"))
+                .andExpect(redirectedUrl("/admin/prestamos/nuevo"))
                 .andExpect(flash().attributeExists("mensajeError"));
 
         assertThat(prestamoRepository.count()).isEqualTo(antes);
@@ -116,10 +116,10 @@ class PrestamoControllerTest {
         long antes = prestamoRepository.count();
 
         // Javier (usuario 2) tiene sin devolver el préstamo 6, ya vencido
-        mockMvc.perform(post("/prestamos").with(csrf())
+        mockMvc.perform(post("/admin/prestamos").with(csrf())
                         .param("usuarioId", "2")
                         .param("libroId", "14"))
-                .andExpect(redirectedUrl("/prestamos/nuevo"))
+                .andExpect(redirectedUrl("/admin/prestamos/nuevo"))
                 .andExpect(flash().attribute("mensajeError", containsString("tiene préstamos vencidos")));
 
         assertThat(prestamoRepository.count()).isEqualTo(antes);
@@ -129,15 +129,15 @@ class PrestamoControllerTest {
     void noPasaDelMaximoDePrestamosAbiertos() throws Exception {
         // Marta (usuario 3) tiene 1 préstamo abierto: llega a 3 con dos más y el cuarto se rechaza
         for (String libro : new String[] {"6", "11"}) {
-            mockMvc.perform(post("/prestamos").with(csrf()).param("usuarioId", "3").param("libroId", libro))
+            mockMvc.perform(post("/admin/prestamos").with(csrf()).param("usuarioId", "3").param("libroId", libro))
                     .andExpect(flash().attributeExists("mensajeExito"));
         }
         long antes = prestamoRepository.count();
 
-        mockMvc.perform(post("/prestamos").with(csrf())
+        mockMvc.perform(post("/admin/prestamos").with(csrf())
                         .param("usuarioId", "3")
                         .param("libroId", "14"))
-                .andExpect(redirectedUrl("/prestamos/nuevo"))
+                .andExpect(redirectedUrl("/admin/prestamos/nuevo"))
                 .andExpect(flash().attribute("mensajeError", containsString("ya tiene 3 préstamos sin devolver")));
 
         assertThat(prestamoRepository.count()).isEqualTo(antes);
@@ -145,7 +145,7 @@ class PrestamoControllerTest {
 
     @Test
     void elFormularioDesactivaLosUsuariosQueNoPuedenPedir() throws Exception {
-        mockMvc.perform(get("/prestamos/nuevo"))
+        mockMvc.perform(get("/admin/prestamos/nuevo"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Javier López Ferrer · tiene préstamos vencidos")))
                 .andExpect(content().string(matchesPattern(
@@ -156,7 +156,7 @@ class PrestamoControllerTest {
     @Test
     void elFormularioDesactivaLosLibrosSinEjemplares() throws Exception {
         // Libro 3 («La casa de los espíritus»): 1 ejemplar, ya prestado (préstamo 5)
-        mockMvc.perform(get("/prestamos/nuevo"))
+        mockMvc.perform(get("/admin/prestamos/nuevo"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("La casa de los espíritus · sin ejemplares")))
                 .andExpect(content().string(matchesPattern(

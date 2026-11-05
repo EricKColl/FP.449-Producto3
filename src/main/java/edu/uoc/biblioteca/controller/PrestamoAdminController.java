@@ -12,17 +12,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/** Gestión de todos los préstamos: solo para el rol ADMIN. */
 @Controller
-@RequestMapping("/prestamos")
-public class PrestamoController {
+@RequestMapping("/admin/prestamos")
+public class PrestamoAdminController {
 
     private final PrestamoService prestamoService;
 
-    public PrestamoController(PrestamoService prestamoService) {
+    public PrestamoAdminController(PrestamoService prestamoService) {
         this.prestamoService = prestamoService;
     }
 
-    // Listado, con filtro opcional: /prestamos?estado=VENCIDO
+    // Listado, con filtro opcional: /admin/prestamos?estado=VENCIDO
     @GetMapping
     public String listar(@RequestParam(required = false) EstadoPrestamo estado, Model model) {
         model.addAttribute("prestamos", prestamoService.listar(estado));
@@ -49,10 +50,10 @@ public class PrestamoController {
             Prestamo prestamo = prestamoService.crear(usuarioId, libroId);
             redirectAttributes.addFlashAttribute("mensajeExito",
                     "Préstamo registrado: «" + prestamo.getLibro().getTitulo() + "»");
-            return "redirect:/prestamos";
+            return "redirect:/admin/prestamos";
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
-            return "redirect:/prestamos/nuevo";
+            return "redirect:/admin/prestamos/nuevo";
         }
     }
 
@@ -66,6 +67,6 @@ public class PrestamoController {
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
         }
-        return "redirect:/prestamos";
+        return "redirect:/admin/prestamos";
     }
 }

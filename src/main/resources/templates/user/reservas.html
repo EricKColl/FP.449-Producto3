@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis reservas')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('mis-reservas')}"></nav>
+<main class="container py-4">
+    <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
+    <div class="cabecera-panel">
+        <h1 class="titulo-panel">Mis reservas</h1>
+    </div>
+    <p class="text-body-secondary">Se reserva desde la ficha de un libro que no tiene ejemplares disponibles.</p>
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Libro</th>
+                    <th>Reservado</th>
+                    <th>Estado</th>
+                    <th class="text-end">Acción</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="reserva : ${reservas}">
+                    <td><a th:href="@{/libros/{id}(id=${reserva.libro.id})}"
+                           th:text="${reserva.libro.titulo}">Libro</a></td>
+                    <td th:text="${#temporals.format(reserva.fechaReserva, 'dd/MM/yyyy')}">01/10/2026</td>
+                    <td>
+                        <span class="estado" th:classappend="${reserva.activa} ? 'estado-activo' : 'estado-devuelto'"
+                              th:text="${reserva.estado.etiqueta}">Activa</span>
+                    </td>
+                    <td class="text-end">
+                        <form method="post" th:if="${reserva.activa}"
+                              th:action="@{/user/reservas/{id}/cancelar(id=${reserva.id})}">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                <i class="ti ti-x"></i> Cancelar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(reservas)}">
+                    <td colspan="4" class="text-center text-body-secondary py-4">No tienes reservas.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

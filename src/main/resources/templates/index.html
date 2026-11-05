@@ -35,7 +35,7 @@
             </a>
         </div>
         <div class="col-6 col-xl-3" sec:authorize="hasRole('ADMIN')">
-            <a class="tarjeta-resumen" th:href="@{/prestamos}">
+            <a class="tarjeta-resumen" th:href="@{/admin/prestamos}">
                 <span class="placa" th:classappend="${resumen.prestamosVencidos > 0} ? 'placa-alerta' : 'joya-esmeralda'">
                     <i class="ti ti-arrows-exchange"></i>
                 </span>
@@ -79,7 +79,7 @@
 
                 <div class="panel-titulo mt-4 mb-2">
                     <span>Últimos préstamos</span>
-                    <a class="small" th:href="@{/prestamos}">Ver todos</a>
+                    <a class="small" th:href="@{/admin/prestamos}">Ver todos</a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -110,7 +110,7 @@
         <div class="col-lg-4">
             <section class="panel">
                 <div class="panel-titulo"><span>Accesos rápidos</span></div>
-                <a class="acceso" th:href="@{/prestamos/nuevo}">
+                <a class="acceso" th:href="@{/admin/prestamos/nuevo}">
                     <span class="placa joya-esmeralda"><i class="ti ti-arrows-exchange"></i></span>
                     <span>Nuevo préstamo<small>Libro y usuario, con plazo de 15 días</small></span>
                 </a>
@@ -126,7 +126,7 @@
                     <span class="placa joya-amatista"><i class="ti ti-feather"></i></span>
                     <span>Nuevo autor<small>Para asignarlo después a sus libros</small></span>
                 </a>
-                <a class="acceso" th:href="@{/prestamos(estado='VENCIDO')}">
+                <a class="acceso" th:href="@{/admin/prestamos(estado='VENCIDO')}">
                     <span class="placa placa-alerta"><i class="ti ti-alarm"></i></span>
                     <span>Préstamos fuera de plazo<small>Para avisar a los usuarios</small></span>
                 </a>

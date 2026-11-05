@@ -1,7 +1,12 @@
 package edu.uoc.biblioteca.controller;
 
 import edu.uoc.biblioteca.model.Libro;
+import edu.uoc.biblioteca.security.CuentaUsuario;
+import edu.uoc.biblioteca.service.FavoritoService;
 import edu.uoc.biblioteca.service.LibroService;
+import edu.uoc.biblioteca.service.PrestamoService;
+import edu.uoc.biblioteca.service.ReservaService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +20,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class LibroController {
 
     private final LibroService libroService;
+    private final FavoritoService favoritoService;
+    private final PrestamoService prestamoService;
+    private final ReservaService reservaService;
 
-    public LibroController(LibroService libroService) {
+    public LibroController(LibroService libroService, FavoritoService favoritoService,
+                           PrestamoService prestamoService, ReservaService reservaService) {
         this.libroService = libroService;
+        this.favoritoService = favoritoService;
+        this.prestamoService = prestamoService;
+        this.reservaService = reservaService;
     }
 
     @GetMapping
@@ -29,10 +41,15 @@ public class LibroController {
 
     // Solo números: así una ruta antigua como /libros/nuevo responde 404 en lugar de 400
     @GetMapping("/{id:\\d+}")
-    public String detalle(@PathVariable Long id, Model model) {
+    public String detalle(@PathVariable Long id, @AuthenticationPrincipal CuentaUsuario cuenta, Model model) {
         Libro libro = libroService.buscarPorId(id);
         model.addAttribute("libro", libro);
         model.addAttribute("disponibles", libroService.ejemplaresDisponibles(libro));
+        // Sin sesión, cuenta es null y la vista no enseña los botones de usuario
+        boolean conCuenta = cuenta != null;
+        model.addAttribute("esFavorito", conCuenta && favoritoService.esFavorito(cuenta.getId(), id));
+        model.addAttribute("loTienePrestado", conCuenta && prestamoService.tieneSinDevolver(cuenta.getId(), id));
+        model.addAttribute("loTieneReservado", conCuenta && reservaService.tieneReservaActiva(cuenta.getId(), id));
         return "libros/detalle";
     }
 }
