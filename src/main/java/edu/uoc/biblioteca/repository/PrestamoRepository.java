@@ -13,6 +13,10 @@ public interface PrestamoRepository extends JpaRepository<Prestamo, Long> {
     @EntityGraph(attributePaths = {"usuario", "libro"})
     List<Prestamo> findAllByOrderByFechaPrestamoDesc();
 
+    /** Préstamos de un usuario, del más reciente al más antiguo, cargando el libro en la misma consulta.*/
+    @EntityGraph(attributePaths = "libro")
+    List<Prestamo> findByUsuarioIdOrderByFechaPrestamoDescIdDesc(Long usuarioId);
+
     /** Los cinco préstamos más recientes, para el panel de inicio. */
     @EntityGraph(attributePaths = {"usuario", "libro"})
     List<Prestamo> findTop5ByOrderByFechaPrestamoDescIdDesc();

@@ -17,7 +17,7 @@
   </html>
 
   navbar(seccion) pinta el menú lateral según el rol y marca como activa la opción:
-  inicio | libros | autores | cuenta | usuarios | prestamos | login | registro
+  inicio | libros | autores | cuenta | mis-prestamos | mis-reservas | mis-favoritos | usuarios | prestamos| login | registro
   data-bs-theme="dark" activa el modo oscuro de Bootstrap; los colores de BackLord están en css/estilos.css.
 -->
 
@@ -78,6 +78,22 @@
             <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'cuenta'} ? 'active'"
                th:aria-current="${seccion == 'cuenta'} ? 'page'" th:href="@{/user/cuenta}">
                 <i class="ti ti-user-circle"></i> Mi cuenta
+            </a>
+            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'mis-prestamos'} ? 'active'"
+
+               th:aria-current="${seccion == 'mis-prestamos'} ? 'page'" th:href="@{/user/prestamos}">
+                <i class="ti ti-book-2"></i> Mis préstamos
+            </a>
+
+            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'mis-reservas'} ? 'active'"
+
+               th:aria-current="${seccion == 'mis-reservas'} ? 'page'" th:href="@{/user/reservas}">
+                <i class="ti ti-bookmark"></i> Mis reservas
+            </a>
+            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'mis-favoritos'} ? 'active'"
+
+               th:aria-current="${seccion == 'mis-favoritos'} ? 'page'" th:href="@{/user/favoritos}">
+                <i class="ti ti-heart"></i> Mis favoritos
             </a>
             <th:block sec:authorize="hasRole('ADMIN')">
                 <p class="menu-grupo">Administración</p>

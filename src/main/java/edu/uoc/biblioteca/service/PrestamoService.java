@@ -46,6 +46,10 @@ public class PrestamoService {
                 .toList();
     }
 
+    public List<Prestamo> listarDeUsuario(Long usuarioId) {
+        return prestamoRepository.findByUsuarioIdOrderByFechaPrestamoDescIdDesc(usuarioId);
+    }
+
     public Prestamo buscarPorId(Long id) {
         return prestamoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,

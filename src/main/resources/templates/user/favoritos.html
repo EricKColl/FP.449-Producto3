@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis favoritos')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('mis-favoritos')}"></nav>
+<main class="container py-4">
+    <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
+    <div class="cabecera-panel">
+        <h1 class="titulo-panel">Mis favoritos</h1>
+    </div>
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Libro</th>
+                    <th>Autores</th>
+                    <th class="text-end">Acción</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="libro : ${favoritos}">
+                    <td><a th:href="@{/libros/{id}(id=${libro.id})}" th:text="${libro.titulo}">Libro</a></td>
+                    <td th:text="${libro.autoresTexto}">Autores</td>
+                    <td class="text-end">
+                        <form method="post" th:action="@{/user/favoritos/{id}/quitar(id=${libro.id})}">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit">
+                                <i class="ti ti-heart-off"></i> Quitar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(favoritos)}">
+                    <td colspan="3" class="text-center text-body-secondary py-4">Aún no has marcado ningún
+                        libro.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

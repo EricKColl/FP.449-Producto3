@@ -1,4 +1,7 @@
 package edu.uoc.biblioteca.controller;
+import edu.uoc.biblioteca.security.CuentaUsuario;
+import edu.uoc.biblioteca.service.FavoritoService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import edu.uoc.biblioteca.model.Libro;
 import edu.uoc.biblioteca.service.LibroService;
@@ -15,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class LibroController {
 
     private final LibroService libroService;
+    private final FavoritoService favoritoService;
 
-    public LibroController(LibroService libroService) {
+    public LibroController(LibroService libroService, FavoritoService favoritoService) {
         this.libroService = libroService;
+        this.favoritoService = favoritoService;
     }
 
     @GetMapping
@@ -29,10 +34,13 @@ public class LibroController {
 
     // Solo números: así una ruta antigua como /libros/nuevo responde 404 en lugar de 400
     @GetMapping("/{id:\\d+}")
-    public String detalle(@PathVariable Long id, Model model) {
+    public String detalle(@PathVariable Long id, @AuthenticationPrincipal CuentaUsuario cuenta, Model
+            model) {
         Libro libro = libroService.buscarPorId(id);
         model.addAttribute("libro", libro);
         model.addAttribute("disponibles", libroService.ejemplaresDisponibles(libro));
+        // Sin sesión, cuenta es null y la vista no enseña los botones de usuario
+        model.addAttribute("esFavorito", cuenta != null && favoritoService.esFavorito(cuenta.getId(), id));
         return "libros/detalle";
     }
 }
