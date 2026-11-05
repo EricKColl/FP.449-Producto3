@@ -30,7 +30,7 @@
                     <th>Usuario</th>
                     <th>Prestado</th>
                     <th>Devolución prevista</th>
-                    <th>Devuelto</th>
+                    <th class="d-none d-xl-table-cell">Devuelto</th>
                     <th>Estado</th>
                     <th class="text-end">Acción</th>
                 </tr>
@@ -47,14 +47,14 @@
                     </td>
                     <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
                     <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/10/2026</td>
-                    <td th:text="${prestamo.devuelto}
+                    <td class="d-none d-xl-table-cell" th:text="${prestamo.devuelto}
                         ? ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')} : '—'">—</td>
                     <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
                     <td class="text-end">
                         <form th:unless="${prestamo.devuelto}" method="post"
                               th:action="@{/admin/prestamos/{id}/devolver(id=${prestamo.id})}">
                             <button class="btn btn-sm btn-outline-success text-nowrap" type="submit">
-                                <i class="ti ti-arrow-back-up"></i> Registrar devolución
+                                <i class="ti ti-arrow-back-up"></i> <span class="d-xl-none">Devolver</span><span class="d-none d-xl-inline">Registrar devolución</span>
                             </button>
                         </form>
                     </td>

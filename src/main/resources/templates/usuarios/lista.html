@@ -22,8 +22,8 @@
           <th>Nombre</th>
           <th>DNI</th>
           <th>Email</th>
-          <th>Teléfono</th>
-          <th>Alta</th>
+          <th class="d-none d-xl-table-cell">Teléfono</th>
+          <th class="d-none d-xl-table-cell">Alta</th>
           <th class="text-end">Préstamos</th>
           <th class="text-end">Acciones</th>
         </tr>
@@ -35,8 +35,8 @@
           </td>
           <td th:text="${usuario.dni}">DNI</td>
           <td th:text="${usuario.email}">Email</td>
-          <td th:text="${usuario.telefono} ?: '—'">Teléfono</td>
-          <td th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</td>
+          <td class="d-none d-xl-table-cell" th:text="${usuario.telefono} ?: '—'">Teléfono</td>
+          <td class="d-none d-xl-table-cell" th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</td>
           <td class="text-end">
             <span class="badge text-bg-secondary" th:text="${#lists.size(usuario.prestamos)}">0</span>
           </td>
