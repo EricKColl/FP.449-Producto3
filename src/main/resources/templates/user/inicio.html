@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi inicio')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('inicio')}"></nav>
+
+<main class="container py-4 tablero" th:with="ini=${inicio}, u=${inicio.usuario}">
+    <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
+
+    <!-- Saludo -->
+    <header class="saludo" data-aparecer>
+        <span class="avatar avatar-grande" th:text="${#strings.substring(u.nombre, 0, 1)} + ${#strings.substring(u.apellidos, 0, 1)}">LM</span>
+        <div class="saludo-texto">
+            <p class="seccion-etiqueta">Mi biblioteca</p>
+            <h1 class="tablero-titulo">Hola, <span th:text="${u.nombre}">Laura</span></h1>
+            <p class="tablero-fecha" th:text="'Con cuenta desde el ' + ${#temporals.format(u.fechaAlta, 'd ''de'' MMMM ''de'' yyyy')}">Con cuenta desde</p>
+        </div>
+        <form class="buscador buscador-saludo" role="search" method="get" th:action="@{/libros}">
+            <i class="ti ti-search" aria-hidden="true"></i>
+            <input type="search" name="q" class="form-control" placeholder="Busca tu próximo libro" aria-label="Buscar en el catálogo">
+        </form>
+    </header>
+
+    <a class="franja-alerta" th:if="${ini.bloqueado}" th:href="@{/user/prestamos}" data-aparecer>
+        <span class="franja-icono"><i class="ti ti-alarm"></i></span>
+        <span><strong>Tienes un préstamo fuera de plazo.</strong> Devuélvelo en la biblioteca para poder pedir otro libro.</span>
+        <i class="ti ti-arrow-right ms-auto"></i>
+    </a>
+    <a class="franja-exito" th:if="${ini.reservasListas() > 0}" th:href="@{/user/reservas}" data-aparecer>
+        <span class="franja-icono"><i class="ti ti-confetti"></i></span>
+        <span><strong>¡Buenas noticias!</strong> Ya hay ejemplares de un libro que reservaste. Pídelo antes de que vuele.</span>
+        <i class="ti ti-arrow-right ms-auto"></i>
+    </a>
+
+    <!-- Resumen -->
+    <section class="indicadores indicadores-cliente" aria-label="Resumen de mi cuenta">
+        <a class="indicador indicador-enlace" th:href="@{/user/prestamos}" data-aparecer>
+            <div class="anillo" th:style="|--p: ${#lists.size(ini.enCurso) * 100 / ini.maxPrestamos()}|" role="img"
+                 th:aria-label="|${#lists.size(ini.enCurso)} de ${ini.maxPrestamos()} préstamos|">
+                <span th:text="${#lists.size(ini.enCurso)} + '/' + ${ini.maxPrestamos()}">1/3</span></div>
+            <div>
+                <h2 class="indicador-titulo">En préstamo</h2>
+                <p class="indicador-valor"><span th:text="${#lists.size(ini.enCurso)}">1</span> <small>libros en casa</small></p>
+                <p class="indicador-nota" th:classappend="${ini.bloqueado} ? 'nota-alerta'"
+                   th:text="${ini.bloqueado} ? 'Bloqueado hasta devolver el vencido' : ('Puedes pedir ' + ${ini.prestamosLibres} + ' más')">Puedes pedir 2 más</p>
+            </div>
+        </a>
+        <a class="indicador indicador-enlace" th:href="@{/user/reservas}" data-aparecer>
+            <span class="indicador-icono joya-amatista"><i class="ti ti-bookmark"></i></span>
+            <div>
+                <h2 class="indicador-titulo">Reservas</h2>
+                <p class="indicador-valor"><span th:text="${#lists.size(ini.reservas)}">1</span> <small>activas</small></p>
+                <p class="indicador-nota" th:text="${ini.reservasListas() > 0} ? (${ini.reservasListas()} + ' lista para pedir') : 'Ninguna lista aún'">Ninguna lista aún</p>
+            </div>
+        </a>
+        <a class="indicador indicador-enlace" th:href="@{/user/favoritos}" data-aparecer>
+            <span class="indicador-icono joya-rubi"><i class="ti ti-heart"></i></span>
+            <div>
+                <h2 class="indicador-titulo">Favoritos</h2>
+                <p class="indicador-valor"><span th:text="${#lists.size(ini.favoritos)}">2</span> <small>libros guardados</small></p>
+                <p class="indicador-nota" th:text="${#lists.size(ini.favoritos.?[prestable])} + ' disponibles ahora'">2 disponibles</p>
+            </div>
+        </a>
+        <a class="indicador indicador-enlace" th:href="@{/user/prestamos}" data-aparecer>
+            <span class="indicador-icono joya-ambar"><i class="ti ti-history"></i></span>
+            <div>
+                <h2 class="indicador-titulo">Historial</h2>
+                <p class="indicador-valor"><span th:text="${ini.prestamosTotales}">3</span> <small>préstamos</small></p>
+                <p class="indicador-nota">en toda tu historia</p>
+            </div>
+        </a>
+    </section>
+
+    <section class="rejilla-panel">
+        <!-- Préstamos en curso con el plazo -->
+        <article class="bloque bloque-ancho" data-aparecer>
+            <header class="bloque-cabecera">
+                <h2><i class="ti ti-book-2"></i> En casa ahora</h2>
+                <a class="enlace-mas" th:href="@{/user/prestamos}">Mis préstamos <i class="ti ti-arrow-right"></i></a>
+            </header>
+            <ul class="prestamos-curso">
+                <li th:each="p : ${ini.enCurso}" th:classappend="${p.diasRetraso > 0} ? 'vencido'">
+                    <span class="lomo" th:classappend="|tono-${p.libro.id % 6}|"><i class="ti ti-crown"></i></span>
+                    <div class="prestamo-datos">
+                        <a class="prestamo-titulo" th:href="@{/libros/{id}(id=${p.libro.id})}" th:text="${p.libro.titulo}">Cien años de soledad</a>
+                        <span class="prestamo-autor" th:text="${p.libro.autoresTexto}">Gabriel García Márquez</span>
+                        <div class="plazo">
+                            <span class="plazo-pista"><span class="plazo-relleno" th:style="|width: ${p.porcentajePlazo}%|"></span></span>
+                            <span class="plazo-texto" th:if="${p.diasRetraso > 0}"
+                                  th:text="'Venció hace ' + ${p.diasRetraso} + (${p.diasRetraso == 1} ? ' día' : ' días')">Venció</span>
+                            <span class="plazo-texto" th:if="${p.diasRetraso == 0}"
+                                  th:text="${p.diasRestantes == 0} ? 'Vence hoy' : ('Quedan ' + ${p.diasRestantes} + (${p.diasRestantes == 1} ? ' día' : ' días'))">Quedan 10 días</span>
+                        </div>
+                    </div>
+                    <span class="prestamo-fecha">
+                        <small>Devolver el</small>
+                        <strong th:text="${#temporals.format(p.fechaDevolucionPrevista, 'dd/MM')}">15/11</strong>
+                    </span>
+                </li>
+                <li th:if="${#lists.isEmpty(ini.enCurso)}" class="vacio-grande">
+                    <i class="ti ti-books"></i>
+                    <span>No tienes ningún libro en préstamo. <a th:href="@{/libros}">Explora el catálogo</a> y llévate el próximo.</span>
+                </li>
+            </ul>
+        </article>
+
+        <!-- Reservas -->
+        <article class="bloque" data-aparecer>
+            <header class="bloque-cabecera">
+                <h2><i class="ti ti-bookmark"></i> Mis reservas</h2>
+                <a class="enlace-mas" th:href="@{/user/reservas}">Ver todas <i class="ti ti-arrow-right"></i></a>
+            </header>
+            <ul class="lista-panel">
+                <li th:each="r : ${ini.reservas}">
+                    <span class="lomo lomo-mini" th:classappend="|tono-${r.reserva.libro.id % 6}|"></span>
+                    <span class="lista-datos">
+                        <a th:href="@{/libros/{id}(id=${r.reserva.libro.id})}" th:text="${r.reserva.libro.titulo}">El capitán Alatriste</a>
+                        <small th:text="'Reservado el ' + ${#temporals.format(r.reserva.fechaReserva, 'dd/MM/yyyy')}">Reservado</small>
+                    </span>
+                    <form th:if="${r.disponible}" method="post" th:action="@{/user/prestamos}">
+                        <input type="hidden" name="libroId" th:value="${r.reserva.libro.id}">
+                        <button class="btn btn-sm btn-primary" type="submit"><i class="ti ti-book-download"></i> Pedir</button>
+                    </form>
+                    <span th:unless="${r.disponible}" class="estado estado-activo">En espera</span>
+                </li>
+                <li th:if="${#lists.isEmpty(ini.reservas)}" class="vacio">No tienes reservas. Si un libro no tiene ejemplares, resérvalo desde su ficha.</li>
+            </ul>
+        </article>
+    </section>
+
+    <!-- Favoritos -->
+    <section class="seccion-tablero" th:unless="${#lists.isEmpty(ini.favoritos)}">
+        <div class="seccion-cabecera" data-aparecer>
+            <div>
+                <p class="seccion-etiqueta">Guardados para después</p>
+                <h2 class="seccion-titulo">Tus favoritos</h2>
+            </div>
+            <a class="enlace-mas" th:href="@{/user/favoritos}">Mis favoritos <i class="ti ti-arrow-right"></i></a>
+        </div>
+        <div class="rejilla-libros">
+            <th:block th:each="f : ${ini.favoritos}">
+                <a th:replace="~{fragments/layout :: cubierta(${f.libro}, ${f.disponibles})}"></a>
+            </th:block>
+        </div>
+    </section>
+
+    <!-- Recomendaciones -->
+    <section class="seccion-tablero" th:unless="${#lists.isEmpty(ini.recomendados)}">
+        <div class="seccion-cabecera" data-aparecer>
+            <div>
+                <p class="seccion-etiqueta">Disponibles hoy</p>
+                <h2 class="seccion-titulo">Te puede gustar</h2>
+            </div>
+            <a class="enlace-mas" th:href="@{/libros}">Todo el catálogo <i class="ti ti-arrow-right"></i></a>
+        </div>
+        <div class="rejilla-libros">
+            <th:block th:each="l : ${ini.recomendados}">
+                <a th:replace="~{fragments/layout :: cubierta(${l.libro}, ${l.disponibles})}"></a>
+            </th:block>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

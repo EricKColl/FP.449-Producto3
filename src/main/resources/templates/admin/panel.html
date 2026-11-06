@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Panel de administración')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('inicio')}"></nav>
+
+<main class="container py-4 tablero" th:with="i=${panel.indicadores}">
+    <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
+
+    <!-- Saludo, fecha y acciones rápidas -->
+    <header class="tablero-cabecera" data-aparecer>
+        <div>
+            <p class="seccion-etiqueta">Panel de administración</p>
+            <h1 class="tablero-titulo">Así está la biblioteca hoy</h1>
+            <p class="tablero-fecha"><i class="ti ti-calendar"></i>
+                <span th:text="${#temporals.format(#temporals.createToday(), 'EEEE, d ''de'' MMMM ''de'' yyyy')}">jueves, 6 de noviembre de 2026</span></p>
+        </div>
+        <div class="tablero-acciones">
+            <a class="btn btn-primary" th:href="@{/admin/prestamos/nuevo}"><i class="ti ti-arrows-exchange"></i> Nuevo préstamo</a>
+            <a class="btn btn-sesion" th:href="@{/admin/libros/nuevo}"><i class="ti ti-book-upload"></i> Nuevo libro</a>
+            <a class="btn btn-sesion" th:href="@{/admin/usuarios/nuevo}"><i class="ti ti-user-plus"></i> Nuevo usuario</a>
+        </div>
+    </header>
+
+    <!-- Aviso de préstamos fuera de plazo -->
+    <a class="franja-alerta" th:if="${i.vencidos > 0}" th:href="@{/admin/prestamos(estado='VENCIDO')}" data-aparecer>
+        <span class="franja-icono"><i class="ti ti-alarm"></i></span>
+        <span><strong th:text="${i.vencidos} + (${i.vencidos == 1} ? ' préstamo fuera de plazo' : ' préstamos fuera de plazo')">2 préstamos fuera de plazo</strong>
+            · <span th:text="${i.porcentajeVencidos()} + '% de los préstamos en curso'">29%</span>. Conviene avisar a los usuarios.</span>
+        <i class="ti ti-arrow-right ms-auto"></i>
+    </a>
+
+    <!-- Indicadores -->
+    <section class="indicadores" aria-label="Indicadores principales">
+        <article class="indicador" data-aparecer>
+            <div class="anillo" th:style="|--p: ${i.ocupacion()}|" role="img"
+                 th:aria-label="|Ocupación del ${i.ocupacion()} %|"><span th:text="${i.ocupacion()} + '%'">35%</span></div>
+            <div>
+                <h2 class="indicador-titulo">Ocupación del catálogo</h2>
+                <p class="indicador-valor"><span data-contar th:text="${i.ejemplaresPrestados}">7</span> <small th:text="'de ' + ${i.ejemplares} + ' ejemplares prestados'">de 20</small></p>
+                <p class="indicador-nota" th:text="${i.ejemplaresLibres()} + ' libres para prestar ahora'">13 libres</p>
+            </div>
+        </article>
+        <article class="indicador" data-aparecer>
+            <span class="indicador-icono joya-esmeralda"><i class="ti ti-book-2"></i></span>
+            <div>
+                <h2 class="indicador-titulo">Préstamos en curso</h2>
+                <p class="indicador-valor"><span data-contar th:text="${i.activos + i.vencidos}">7</span>
+                    <small th:text="${i.activos} + ' en plazo'">5 en plazo</small></p>
+                <p class="indicador-nota" th:classappend="${i.vencidos > 0} ? 'nota-alerta'"
+                   th:text="${i.vencidos} + ' fuera de plazo (' + ${i.porcentajeVencidos()} + ' %)'">2 fuera de plazo</p>
+            </div>
+        </article>
+        <article class="indicador" data-aparecer>
+            <div class="anillo anillo-verde" th:style="|--p: ${i.puntualidad()}|" role="img"
+                 th:aria-label="|Puntualidad del ${i.puntualidad()} %|"><span th:text="${i.puntualidad()} + '%'">75%</span></div>
+            <div>
+                <h2 class="indicador-titulo">Devoluciones a tiempo</h2>
+                <p class="indicador-valor"><span data-contar th:text="${i.devueltosEnPlazo}">3</span>
+                    <small th:text="'de ' + ${i.devueltos} + ' devoluciones'">de 4</small></p>
+                <p class="indicador-nota" th:text="${i.prestamosTotales()} + ' préstamos en la historia'">11 préstamos</p>
+            </div>
+        </article>
+        <article class="indicador" data-aparecer>
+            <span class="indicador-icono joya-zafiro"><i class="ti ti-users-group"></i></span>
+            <div>
+                <h2 class="indicador-titulo">Clientes</h2>
+                <p class="indicador-valor"><span data-contar th:text="${i.clientes}">6</span> <small>con cuenta</small></p>
+                <p class="indicador-nota" th:text="'+' + ${i.clientesNuevos} + ' en los últimos 30 días'">+1</p>
+            </div>
+        </article>
+        <article class="indicador" data-aparecer>
+            <span class="indicador-icono joya-amatista"><i class="ti ti-bookmark"></i></span>
+            <div>
+                <h2 class="indicador-titulo">Reservas en cola</h2>
+                <p class="indicador-valor"><span data-contar th:text="${i.reservasActivas}">1</span> <small>activas</small></p>
+                <p class="indicador-nota" th:with="listas=${#lists.size(panel.reservas.?[listaParaPrestar])}"
+                   th:text="${listas} + (${listas == 1} ? ' lista para prestar' : ' listas para prestar')">0 listas</p>
+            </div>
+        </article>
+        <article class="indicador" data-aparecer>
+            <span class="indicador-icono joya-ambar"><i class="ti ti-books"></i></span>
+            <div>
+                <h2 class="indicador-titulo">Catálogo</h2>
+                <p class="indicador-valor"><span data-contar th:text="${i.titulos}">14</span> <small>títulos</small></p>
+                <p class="indicador-nota" th:text="${i.autores} + ' autores · ' + ${#lists.size(panel.agotados)} + ' sin ejemplares'">11 autores</p>
+            </div>
+        </article>
+    </section>
+
+    <!-- Gráficas: los datos van también en tablas para lectores de pantalla y para quien no tenga JavaScript -->
+    <section class="rejilla-panel">
+        <article class="bloque bloque-ancho" data-aparecer>
+            <header class="bloque-cabecera">
+                <h2>Actividad de los últimos 6 meses</h2>
+                <span class="leyenda"><i class="punto oro"></i> Préstamos <i class="punto verde"></i> Devoluciones</span>
+            </header>
+            <div class="grafica" data-grafica="actividad" role="img" aria-label="Préstamos y devoluciones por mes"></div>
+            <table class="visually-hidden" id="datos-actividad">
+                <caption>Préstamos y devoluciones por mes</caption>
+                <thead><tr><th>Mes</th><th>Préstamos</th><th>Devoluciones</th></tr></thead>
+                <tbody>
+                <tr th:each="mes : ${panel.actividad}">
+                    <td th:text="${mes.nombre}">nov</td><td th:text="${mes.prestamos}">3</td><td th:text="${mes.devoluciones}">2</td>
+                </tr>
+                </tbody>
+            </table>
+        </article>
+        <article class="bloque" data-aparecer>
+            <header class="bloque-cabecera"><h2>Estado de los préstamos</h2></header>
+            <div class="grafica" data-grafica="estados" role="img" aria-label="Préstamos por estado"></div>
+            <table class="visually-hidden" id="datos-estados">
+                <caption>Préstamos por estado</caption>
+                <tbody>
+                <tr><td>En plazo</td><td th:text="${i.activos}">5</td></tr>
+                <tr><td>Fuera de plazo</td><td th:text="${i.vencidos}">2</td></tr>
+                <tr><td>Devueltos</td><td th:text="${i.devueltos}">4</td></tr>
+                </tbody>
+            </table>
+        </article>
+        <article class="bloque bloque-mitad" data-aparecer>
+            <header class="bloque-cabecera"><h2>Libros más prestados</h2></header>
+            <div class="grafica" data-grafica="libros" role="img" aria-label="Libros más prestados"></div>
+            <table class="visually-hidden" id="datos-libros">
+                <caption>Libros más prestados</caption>
+                <tbody>
+                <tr th:each="libro : ${panel.masPrestados}"><td th:text="${libro.etiqueta}">1984</td><td th:text="${libro.valor}">2</td></tr>
+                </tbody>
+            </table>
+        </article>
+        <article class="bloque bloque-mitad" data-aparecer>
+            <header class="bloque-cabecera"><h2>Títulos por género</h2></header>
+            <div class="grafica" data-grafica="generos" role="img" aria-label="Títulos por género"></div>
+            <table class="visually-hidden" id="datos-generos">
+                <caption>Títulos por género</caption>
+                <tbody>
+                <tr th:each="genero : ${panel.generos}"><td th:text="${genero.etiqueta}">Novela</td><td th:text="${genero.valor}">4</td></tr>
+                </tbody>
+            </table>
+        </article>
+    </section>
+
+    <!-- Tablas de trabajo -->
+    <section class="rejilla-panel">
+        <article class="bloque bloque-ancho" data-aparecer>
+            <header class="bloque-cabecera">
+                <h2><i class="ti ti-alarm text-danger"></i> Fuera de plazo</h2>
+                <a class="enlace-mas" th:href="@{/admin/prestamos(estado='VENCIDO')}">Ver todos <i class="ti ti-arrow-right"></i></a>
+            </header>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 tabla-panel">
+                    <thead><tr><th>Usuario</th><th>Libro</th><th>Debía volver</th><th>Retraso</th><th class="text-end">Acción</th></tr></thead>
+                    <tbody>
+                    <tr th:each="prestamo : ${panel.vencidos}">
+                        <td><a th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}" th:text="${prestamo.usuario.nombreCompleto}">Javier López</a></td>
+                        <td><a th:href="@{/libros/{id}(id=${prestamo.libro.id})}" th:text="${prestamo.libro.titulo}">El señor de los anillos</a></td>
+                        <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')}">01/11/2026</td>
+                        <td><span class="estado estado-vencido" th:text="${prestamo.diasRetraso} + (${prestamo.diasRetraso == 1} ? ' día' : ' días')">5 días</span></td>
+                        <td class="text-end">
+                            <form method="post" th:action="@{/admin/prestamos/{id}/devolver(id=${prestamo.id})}">
+                                <button class="btn btn-sm btn-outline-success text-nowrap" type="submit"><i class="ti ti-arrow-back-up"></i> Devolver</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(panel.vencidos)}">
+                        <td colspan="5" class="vacio"><i class="ti ti-circle-check"></i> Ningún préstamo fuera de plazo.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+        <article class="bloque" data-aparecer>
+            <header class="bloque-cabecera"><h2><i class="ti ti-bookmark"></i> Cola de reservas</h2></header>
+            <ul class="lista-panel">
+                <li th:each="r : ${panel.reservas}">
+                    <span class="puesto" th:text="${r.puesto}">1</span>
+                    <span class="lista-datos">
+                        <a th:href="@{/libros/{id}(id=${r.reserva.libro.id})}" th:text="${r.reserva.libro.titulo}">El capitán Alatriste</a>
+                        <small th:text="${r.reserva.usuario.nombreCompleto} + ' · desde el ' + ${#temporals.format(r.reserva.fechaReserva, 'dd/MM')}">Laura · 05/11</small>
+                    </span>
+                    <span class="estado" th:classappend="${r.listaParaPrestar} ? 'estado-devuelto' : 'estado-activo'"
+                          th:text="${r.listaParaPrestar} ? 'Lista para prestar' : 'En espera'">En espera</span>
+                </li>
+                <li th:if="${#lists.isEmpty(panel.reservas)}" class="vacio">No hay reservas pendientes.</li>
+            </ul>
+            <div class="agotados" th:unless="${#lists.isEmpty(panel.agotados)}">
+                <p class="agotados-titulo">Sin ejemplares ahora</p>
+                <a class="chip-agotado" th:each="a : ${panel.agotados}" th:href="@{/libros/{id}(id=${a.libro.id})}" th:text="${a.libro.titulo}">El señor de los anillos</a>
+            </div>
+        </article>
+        <article class="bloque bloque-ancho" data-aparecer>
+            <header class="bloque-cabecera">
+                <h2><i class="ti ti-history"></i> Últimos préstamos</h2>
+                <a class="enlace-mas" th:href="@{/admin/prestamos}">Gestionar préstamos <i class="ti ti-arrow-right"></i></a>
+            </header>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 tabla-panel">
+                    <thead><tr><th>Fecha</th><th>Usuario</th><th>Libro</th><th>Estado</th></tr></thead>
+                    <tbody>
+                    <tr th:each="prestamo : ${panel.ultimosPrestamos}">
+                        <td class="text-nowrap" th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">05/11/2026</td>
+                        <td th:text="${prestamo.usuario.nombreCompleto}">Laura Martínez</td>
+                        <td><a th:href="@{/libros/{id}(id=${prestamo.libro.id})}" th:text="${prestamo.libro.titulo}">1984</a></td>
+                        <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+        <article class="bloque" data-aparecer>
+            <header class="bloque-cabecera">
+                <h2><i class="ti ti-user-plus"></i> Clientes recientes</h2>
+                <a class="enlace-mas" th:href="@{/admin/usuarios}">Usuarios <i class="ti ti-arrow-right"></i></a>
+            </header>
+            <ul class="lista-panel">
+                <li th:each="cliente : ${panel.ultimosClientes}">
+                    <span class="avatar avatar-mini" th:text="${#strings.substring(cliente.nombre, 0, 1)} + ${#strings.substring(cliente.apellidos, 0, 1)}">LM</span>
+                    <span class="lista-datos">
+                        <a th:href="@{/admin/usuarios/{id}(id=${cliente.id})}" th:text="${cliente.nombreCompleto}">Daniel Navarro</a>
+                        <small th:text="${cliente.email}">daniel@example.com</small>
+                    </span>
+                    <small class="text-body-secondary text-nowrap" th:text="${#temporals.format(cliente.fechaAlta, 'dd/MM/yyyy')}">01/10/2026</small>
+                </li>
+            </ul>
+        </article>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/webjars/echarts/dist/echarts.min.js}"></script>
+<script th:src="@{/js/panel.js}"></script>
+</body>
+</html>

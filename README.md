@@ -84,11 +84,13 @@ Las crea `02-datos.sql` y solo sirven para desarrollar y hacer la demostración.
 
 | Rutas | Quién entra |
 |---|---|
-| `/`, `/login`, `/registro`, consulta de `/libros` y `/autores` | Cualquiera, sin cuenta |
-| `/user/*`: mi cuenta, mis préstamos, mis reservas y mis favoritos | Cualquier usuario con la sesión iniciada |
+| `/` (portada), `/login`, `/registro`, consulta de `/libros` y `/autores` | Cualquiera, sin cuenta |
+| `/inicio` y `/user/cuenta` | Cualquier cuenta: `/inicio` lleva al administrador a `/admin/panel` y al cliente a `/user/inicio` |
+| `/user/*`: inicio, mis préstamos, mis reservas y mis favoritos | Solo el rol USER (el administrador no pide préstamos ni reserva) |
 | `/admin/*`: alta, edición y borrado de libros, autores y usuarios, y gestión de préstamos; y todo lo demás | Solo el rol ADMIN |
 
 Una ruta que no aparezca en `SecurityConfig` queda reservada a ADMIN. El menú y las vistas cambian según el rol.
+Además, la aplicación envía una política de seguridad de contenidos (CSP) que solo ejecuta los scripts servidos por ella misma.
 
 ### Tests
 

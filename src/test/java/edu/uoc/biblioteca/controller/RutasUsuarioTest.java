@@ -230,7 +230,16 @@ class RutasUsuarioTest {
                 .andExpect(content().string(containsString("Quitar de favoritos")));
         mockMvc.perform(get("/libros/14"))
                 .andExpect(content().string(allOf(not(containsString("Pedir prestado")),
-                        not(containsString("favoritos")))));
+                        not(containsString("/user/favoritos")))));
+    }
+
+    @Test
+    void elInicioDelClienteEnsenaSuBiblioteca() throws Exception {
+        mockMvc.perform(get("/user/inicio").with(laura()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(allOf(containsString("Hola, <span>Laura</span>"),
+                        containsString("Cien años de soledad"), containsString("El capitán Alatriste"),
+                        containsString("Tus favoritos"), not(containsString("Javier López")))));
     }
 
     @Test

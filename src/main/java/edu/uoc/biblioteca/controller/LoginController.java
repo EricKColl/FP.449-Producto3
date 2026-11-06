@@ -11,6 +11,6 @@ public class LoginController {
 
     @GetMapping("/login")
     public String login(Principal sesion) {
-        return sesion == null ? "login" : "redirect:/";
+        return sesion == null ? "login" : "redirect:/inicio";
     }
 }

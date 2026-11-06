@@ -38,7 +38,8 @@ public class LibroService {
         return libros.stream()
                 .filter(libro -> libro.getTitulo().toLowerCase(Locale.ROOT).contains(buscado)
                         || libro.getIsbn().toLowerCase(Locale.ROOT).contains(buscado)
-                        || libro.getAutoresTexto().toLowerCase(Locale.ROOT).contains(buscado))
+                        || libro.getAutoresTexto().toLowerCase(Locale.ROOT).contains(buscado)
+                        || (libro.getGenero() != null && libro.getGenero().toLowerCase(Locale.ROOT).contains(buscado)))
                 .toList();
     }
 

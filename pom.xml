@@ -19,6 +19,9 @@
 		<tabler-icons.version>3.28.1</tabler-icons.version>
 		<inter.version>5.2.5</inter.version>
 		<playfair-display.version>4.2.2</playfair-display.version>
+		<three.version>0.186.1</three.version>
+		<gsap.version>3.12.7</gsap.version>
+		<echarts.version>6.1.0</echarts.version>
 	</properties>
 	<dependencies>
 		<!-- Web y vistas -->
@@ -94,6 +97,22 @@
 			<groupId>org.webjars.npm</groupId>
 			<artifactId>fontsource__playfair-display</artifactId>
 			<version>${playfair-display.version}</version>
+		</dependency>
+		<!-- Efectos de la interfaz: 3D (Three.js), animación (GSAP) y gráficas del panel (ECharts) -->
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>three</artifactId>
+			<version>${three.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>gsap</artifactId>
+			<version>${gsap.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>echarts</artifactId>
+			<version>${echarts.version}</version>
 		</dependency>
 
 		<dependency>

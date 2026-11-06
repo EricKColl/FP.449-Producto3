@@ -34,12 +34,13 @@ class BibliotecaApplicationTests {
 
     @Test
     void elPanelMuestraLosDatosDeLaBaseDeDatos() throws Exception {
-        mockMvc.perform(get("/"))
+        mockMvc.perform(get("/admin/panel"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("resumen"))
+                .andExpect(model().attributeExists("panel"))
                 .andExpect(content().string(allOf(
-                        containsString("Sistema de Gestión"),
-                        containsString("2 vencidos"))));
+                        containsString("Así está la biblioteca hoy"),
+                        containsString("2 préstamos fuera de plazo"),
+                        containsString("Javier López Ferrer"))));
     }
 
     @Test

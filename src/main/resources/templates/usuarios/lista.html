@@ -47,8 +47,7 @@
             </a>
             <form class="d-inline" method="post"
                th:action="@{/admin/usuarios/{id}/eliminar(id=${usuario.id})}"
-               th:data-nombre="${usuario.nombreCompleto}"
-               onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
+               th:data-confirmar="|¿Eliminar a «${usuario.nombreCompleto}»?|">
               <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">
                 <i class="ti ti-trash"></i>
               </button>

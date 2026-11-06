@@ -18,8 +18,7 @@
         <i class="ti ti-pencil"></i> Editar
       </a>
       <form method="post" th:action="@{/admin/autores/{id}/eliminar(id=${autor.id})}"
-         th:data-nombre="${autor.nombreCompleto}"
-         onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
+         th:data-confirmar="|¿Eliminar a «${autor.nombreCompleto}»?|">
         <button class="btn btn-outline-danger" type="submit">
           <i class="ti ti-trash"></i> Eliminar
         </button>

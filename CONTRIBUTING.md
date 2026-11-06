@@ -29,6 +29,8 @@ Spring Boot 4 tiene paquetes de test distintos a los de la versión 3:
 - **Contraseñas:** las cifra `UsuarioService`. Nunca se guardan en claro ni se muestran. Los campos que puede rellenar un formulario se limitan con `@InitBinder`.
 - **Vistas según el rol:** `sec:authorize="hasRole('ADMIN')"` o `sec:authorize="isAuthenticated()"`, con `xmlns:sec="http://www.thymeleaf.org/extras/spring-security"` en la etiqueta `html`.
 - **Tests:** `@WithMockUser(roles = "ADMIN")` para simular el rol y `.with(csrf())` en cada `post(...)`. Hay ejemplos en `SeguridadTest`.
+- **JavaScript:** solo en ficheros de `static/js` (`app.js` para todas las páginas). La política de contenidos (CSP) de `SecurityConfig` bloquea los scripts escritos dentro del HTML y los atributos como `onsubmit`. Para pedir confirmación antes de borrar: `th:data-confirmar="|¿Eliminar «${libro.titulo}»?|"` en el `<form>`.
+- **Librerías nuevas:** como WebJar en el `pom.xml`, nunca desde un CDN: la aplicación tiene que funcionar sin conexión y la CSP no deja cargar scripts de otros dominios.
 
 ## Comandos
 

@@ -16,16 +16,18 @@
   </body>
   </html>
 
-  navbar(seccion) pinta el menú lateral según el rol y marca como activa la opción:
-  inicio | libros | autores | cuenta | mis-prestamos | mis-reservas | mis-favoritos | usuarios | prestamos | login | registro
-  data-bs-theme="dark" activa el modo oscuro de Bootstrap; los colores de BackLord están en css/estilos.css.
+  navbar(seccion) pinta la cabecera (logo en el centro, buscador y sesión) y el menú lateral según el rol:
+  portada | inicio | libros | autores | cuenta | mis-prestamos | mis-reservas | mis-favoritos | usuarios | prestamos | login | registro
+  En la portada el menú lateral no ocupa sitio: se abre desde el botón de la cabecera.
+  Todo el JavaScript va en ficheros de /js: la política de seguridad (SecurityConfig) no admite scripts dentro del HTML.
 -->
 
 <head th:fragment="head(titulo)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
-    <title th:text="${titulo} + ' · Biblioteca'">Biblioteca</title>
+    <meta name="description" content="Biblioteca BackLord: catálogo, préstamos, reservas y favoritos.">
+    <title th:text="${titulo} + ' · Biblioteca BackLord'">Biblioteca BackLord</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/dist/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/tabler__icons-webfont/dist/tabler-icons-outline.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/fontsource__inter/400.css}">
@@ -34,39 +36,102 @@
     <link rel="stylesheet" th:href="@{/webjars/fontsource__playfair-display/500.css}">
     <link rel="stylesheet" th:href="@{/webjars/fontsource__playfair-display/600.css}">
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <link rel="stylesheet" th:href="@{/css/backlord.css}">
     <link rel="icon" type="image/png" th:href="@{/img/favicon.png}">
 </head>
 
-<!-- Menú lateral fijo en escritorio; en pantallas pequeñas se abre desde la barra superior -->
 <th:block th:fragment="navbar(seccion)">
-    <header class="barra-movil d-lg-none">
-        <a class="marca" th:href="@{/}">
-            <img class="marca-icono" th:src="@{/img/corona-backlord.webp}" alt="" width="34" height="34">
-            <span class="marca-nombre">Biblioteca</span>
+    <a class="saltar-contenido" href="#contenido">Saltar al contenido</a>
+
+    <!-- Cabecera: buscador a la izquierda, logo en el centro (lleva a la portada) y sesión a la derecha -->
+    <header class="cabecera" th:classappend="${seccion == 'portada'} ? 'cabecera-portada'">
+        <div class="cabecera-lado">
+            <button class="btn btn-icono" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu-lateral"
+                    th:classappend="${seccion == 'portada'} ? '' : 'd-lg-none'"
+                    aria-controls="menu-lateral" aria-label="Abrir el menú">
+                <i class="ti ti-menu-2"></i>
+            </button>
+            <form class="buscador d-none d-md-flex" role="search" method="get" th:action="@{/libros}">
+                <i class="ti ti-search" aria-hidden="true"></i>
+                <input type="search" name="q" class="form-control" placeholder="Buscar título, autor o género"
+                       aria-label="Buscar en el catálogo">
+            </form>
+        </div>
+
+        <a class="cabecera-marca" th:href="@{/}" aria-label="Biblioteca BackLord, ir a la portada">
+            <img class="cabecera-corona" th:src="@{/img/corona-backlord.webp}" alt="" width="46" height="46">
+            <span class="cabecera-texto">
+                <span class="cabecera-nombre">Biblioteca</span>
+                <span class="cabecera-grupo">BackLord</span>
+            </span>
         </a>
-        <button class="btn btn-icono" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu-lateral"
-                aria-controls="menu-lateral" aria-label="Mostrar menú">
-            <i class="ti ti-menu-2"></i>
-        </button>
+
+        <div class="cabecera-lado cabecera-sesion">
+            <th:block sec:authorize="!isAuthenticated()">
+                <a class="btn btn-sesion" th:href="@{/login}"
+                   th:classappend="${seccion == 'login'} ? 'active'">
+                    <i class="ti ti-login-2"></i><span class="d-none d-sm-inline"> Iniciar sesión</span>
+                </a>
+                <a class="btn btn-primary btn-registro" th:href="@{/registro}"
+                   th:classappend="${seccion == 'registro'} ? 'active'">
+                    <i class="ti ti-user-plus"></i><span class="d-none d-sm-inline"> Crear cuenta</span>
+                </a>
+            </th:block>
+            <div class="dropdown" sec:authorize="isAuthenticated()">
+                <button class="btn perfil" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                        aria-label="Menú de la cuenta">
+                    <span class="avatar" th:text="${sesion?.iniciales}">LM</span>
+                    <span class="perfil-texto d-none d-md-flex">
+                        <span class="perfil-nombre" th:text="${sesion?.nombre}">Laura Martínez</span>
+                        <span class="perfil-rol" sec:authorize="hasRole('ADMIN')">Administrador</span>
+                        <span class="perfil-rol" sec:authorize="!hasRole('ADMIN')">Cliente</span>
+                    </span>
+                    <i class="ti ti-chevron-down d-none d-md-inline"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end menu-perfil">
+                    <div class="menu-perfil-cabecera">
+                        <span class="perfil-nombre" th:text="${sesion?.nombre}">Laura Martínez</span>
+                        <span class="perfil-email" sec:authentication="name">laura@example.com</span>
+                    </div>
+                    <a class="dropdown-item" th:href="@{/inicio}">
+                        <i class="ti ti-layout-dashboard"></i>
+                        <span sec:authorize="hasRole('ADMIN')">Panel de administración</span>
+                        <span sec:authorize="!hasRole('ADMIN')">Mi inicio</span>
+                    </a>
+                    <a class="dropdown-item" th:href="@{/user/cuenta}"><i class="ti ti-user-circle"></i> Mi cuenta</a>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" th:action="@{/logout}">
+                        <button class="dropdown-item item-salir" type="submit">
+                            <i class="ti ti-logout-2"></i> Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <aside class="offcanvas-lg offcanvas-start barra-lateral" tabindex="-1" id="menu-lateral" aria-label="Menú principal">
-        <div class="barra-lateral-cabecera">
-            <a class="marca" th:href="@{/}">
-                <img class="marca-icono" th:src="@{/img/corona-backlord.webp}" alt="" width="44" height="44">
-                <span>
-                    <span class="marca-nombre">Biblioteca</span>
-                    <span class="marca-grupo">BackLord</span>
-                </span>
-            </a>
-            <button type="button" class="btn-close d-lg-none" data-bs-dismiss="offcanvas"
-                    data-bs-target="#menu-lateral" aria-label="Cerrar menú"></button>
+    <!-- Menú lateral: fijo desde 992 px; en móvil, y siempre en la portada, se abre desde la cabecera -->
+    <aside class="barra-lateral" tabindex="-1" id="menu-lateral" aria-label="Menú principal"
+           th:classappend="${seccion == 'portada'} ? 'offcanvas offcanvas-start' : 'offcanvas-lg offcanvas-start'">
+        <div class="barra-lateral-movil">
+            <span class="cabecera-nombre">Menú</span>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#menu-lateral"
+                    aria-label="Cerrar el menú"></button>
         </div>
         <nav class="menu">
-            <a class="menu-enlace" th:classappend="${seccion == 'inicio'} ? 'active'"
-               th:aria-current="${seccion == 'inicio'} ? 'page'" th:href="@{/}">
-                <i class="ti ti-layout-dashboard"></i> Inicio
+            <a class="menu-enlace" sec:authorize="!isAuthenticated()" th:classappend="${seccion == 'portada'} ? 'active'"
+               th:aria-current="${seccion == 'portada'} ? 'page'" th:href="@{/}">
+                <i class="ti ti-crown"></i> Portada
             </a>
+            <a class="menu-enlace" sec:authorize="hasRole('ADMIN')" th:classappend="${seccion == 'inicio'} ? 'active'"
+               th:aria-current="${seccion == 'inicio'} ? 'page'" th:href="@{/admin/panel}">
+                <i class="ti ti-layout-dashboard"></i> Panel
+            </a>
+            <a class="menu-enlace" sec:authorize="hasRole('USER')" th:classappend="${seccion == 'inicio'} ? 'active'"
+               th:aria-current="${seccion == 'inicio'} ? 'page'" th:href="@{/user/inicio}">
+                <i class="ti ti-home"></i> Inicio
+            </a>
+            <p class="menu-grupo">Catálogo</p>
             <a class="menu-enlace" th:classappend="${seccion == 'libros'} ? 'active'"
                th:aria-current="${seccion == 'libros'} ? 'page'" th:href="@{/libros}">
                 <i class="ti ti-books"></i> Libros
@@ -75,22 +140,21 @@
                th:aria-current="${seccion == 'autores'} ? 'page'" th:href="@{/autores}">
                 <i class="ti ti-feather"></i> Autores
             </a>
-            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'cuenta'} ? 'active'"
-               th:aria-current="${seccion == 'cuenta'} ? 'page'" th:href="@{/user/cuenta}">
-                <i class="ti ti-user-circle"></i> Mi cuenta
-            </a>
-            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'mis-prestamos'} ? 'active'"
-               th:aria-current="${seccion == 'mis-prestamos'} ? 'page'" th:href="@{/user/prestamos}">
-                <i class="ti ti-book-2"></i> Mis préstamos
-            </a>
-            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'mis-reservas'} ? 'active'"
-               th:aria-current="${seccion == 'mis-reservas'} ? 'page'" th:href="@{/user/reservas}">
-                <i class="ti ti-bookmark"></i> Mis reservas
-            </a>
-            <a class="menu-enlace" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'mis-favoritos'} ? 'active'"
-               th:aria-current="${seccion == 'mis-favoritos'} ? 'page'" th:href="@{/user/favoritos}">
-                <i class="ti ti-heart"></i> Mis favoritos
-            </a>
+            <th:block sec:authorize="hasRole('USER')">
+                <p class="menu-grupo">Mi biblioteca</p>
+                <a class="menu-enlace" th:classappend="${seccion == 'mis-prestamos'} ? 'active'"
+                   th:aria-current="${seccion == 'mis-prestamos'} ? 'page'" th:href="@{/user/prestamos}">
+                    <i class="ti ti-book-2"></i> Mis préstamos
+                </a>
+                <a class="menu-enlace" th:classappend="${seccion == 'mis-reservas'} ? 'active'"
+                   th:aria-current="${seccion == 'mis-reservas'} ? 'page'" th:href="@{/user/reservas}">
+                    <i class="ti ti-bookmark"></i> Mis reservas
+                </a>
+                <a class="menu-enlace" th:classappend="${seccion == 'mis-favoritos'} ? 'active'"
+                   th:aria-current="${seccion == 'mis-favoritos'} ? 'page'" th:href="@{/user/favoritos}">
+                    <i class="ti ti-heart"></i> Mis favoritos
+                </a>
+            </th:block>
             <th:block sec:authorize="hasRole('ADMIN')">
                 <p class="menu-grupo">Administración</p>
                 <a class="menu-enlace" th:classappend="${seccion == 'usuarios'} ? 'active'"
@@ -102,40 +166,29 @@
                     <i class="ti ti-arrows-exchange"></i> Préstamos
                 </a>
             </th:block>
+            <a class="menu-enlace menu-cuenta" sec:authorize="isAuthenticated()" th:classappend="${seccion == 'cuenta'} ? 'active'"
+               th:aria-current="${seccion == 'cuenta'} ? 'page'" th:href="@{/user/cuenta}">
+                <i class="ti ti-user-circle"></i> Mi cuenta
+            </a>
         </nav>
-        <div class="barra-lateral-sesion">
-            <th:block sec:authorize="isAuthenticated()">
-                <p class="sesion-email" sec:authentication="name">usuario@example.com</p>
-                <p class="sesion-rol" sec:authorize="hasRole('ADMIN')">Administrador</p>
-                <p class="sesion-rol" sec:authorize="!hasRole('ADMIN')">Usuario</p>
-                <form method="post" th:action="@{/logout}">
-                    <button class="btn btn-outline-secondary btn-sm w-100" type="submit">
-                        <i class="ti ti-logout-2"></i> Cerrar sesión
-                    </button>
-                </form>
-            </th:block>
-            <th:block sec:authorize="!isAuthenticated()">
-                <a class="btn btn-primary btn-sm w-100" th:href="@{/login}">
-                    <i class="ti ti-login-2"></i> Iniciar sesión
-                </a>
-                <a class="btn btn-outline-secondary btn-sm w-100 mt-2" th:href="@{/registro}">
-                    <i class="ti ti-user-plus"></i> Crear cuenta
-                </a>
-            </th:block>
-        </div>
-        <div class="barra-lateral-pie">FP065 · UOC</div>
+        <div class="barra-lateral-pie">FP065 · UOC · BackLord</div>
     </aside>
 </th:block>
 
-<!-- Mensajes flash: redirectAttributes.addFlashAttribute("mensajeExito" | "mensajeError", "...") -->
+<!-- Mensajes flash: redirectAttributes.addFlashAttribute("mensajeExito" | "mensajeError", "...").
+     Se muestran como avisos flotantes arriba a la derecha y se cierran solos (js/app.js). -->
 <th:block th:fragment="alertas">
-    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="ti ti-circle-check me-1"></i> <span th:text="${mensajeExito}">Operación realizada</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="ti ti-alert-triangle me-1"></i> <span th:text="${mensajeError}">Error</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    <div class="avisos">
+        <div th:if="${mensajeExito}" class="aviso aviso-exito" role="status">
+            <i class="ti ti-circle-check"></i>
+            <span th:text="${mensajeExito}">Operación realizada</span>
+            <button type="button" class="aviso-cerrar" aria-label="Cerrar el aviso"><i class="ti ti-x"></i></button>
+        </div>
+        <div th:if="${mensajeError}" class="aviso aviso-error" role="alert">
+            <i class="ti ti-alert-triangle"></i>
+            <span th:text="${mensajeError}">Error</span>
+            <button type="button" class="aviso-cerrar" aria-label="Cerrar el aviso"><i class="ti ti-x"></i></button>
+        </div>
     </div>
 </th:block>
 
@@ -146,9 +199,32 @@
                       : (${prestamo.devuelto} ? 'estado-devuelto' : 'estado-activo')"
       th:text="${prestamo.estado.etiqueta}">Activo</span>
 
+<!-- Portada generada de un libro, con el estilo BackLord y un tono según el libro (sin imágenes con derechos):
+     <a th:replace="~{fragments/layout :: cubierta(${libro}, ${disponibles})}"></a> -->
+<a th:fragment="cubierta(libro, disponibles)" class="cubierta" th:href="@{/libros/{id}(id=${libro.id})}"
+   th:classappend="|tono-${libro.id % 6}|" th:aria-label="${libro.titulo}">
+    <span class="cubierta-libro">
+        <span class="cubierta-genero" th:text="${libro.genero} ?: 'Catálogo'">Novela</span>
+        <span class="cubierta-corona"><i class="ti ti-crown"></i></span>
+        <span class="cubierta-titulo" th:text="${libro.titulo}">Título</span>
+        <span class="cubierta-autor" th:text="${libro.autoresTexto}">Autor</span>
+    </span>
+    <span class="cubierta-pie">
+        <span class="cubierta-dato" th:text="${libro.anioPublicacion} ?: ''">1967</span>
+        <span class="disponibilidad" th:classappend="${disponibles > 0} ? 'si' : 'no'"
+              th:text="${disponibles > 0} ? (${disponibles} + (${disponibles == 1} ? ' disponible' : ' disponibles')) : 'Sin ejemplares'">2 disponibles</span>
+    </span>
+</a>
+
 <footer th:fragment="footer" class="pie">
-    <div class="container py-3 small text-center">FP065 · UOC · Proyecto Biblioteca</div>
+    <div class="container pie-contenido">
+        <span class="pie-marca"><i class="ti ti-crown"></i> Biblioteca BackLord</span>
+        <span>FP065 · UOC · Proyecto Biblioteca</span>
+    </div>
     <script th:src="@{/webjars/bootstrap/dist/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/webjars/gsap/dist/gsap.min.js}"></script>
+    <script th:src="@{/webjars/gsap/dist/ScrollTrigger.min.js}"></script>
+    <script th:src="@{/js/app.js}"></script>
 </footer>
 
 </html>

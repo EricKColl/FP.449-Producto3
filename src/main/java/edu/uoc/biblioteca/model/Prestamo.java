@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Préstamo de un libro a un usuario. Hace de entidad asociativa de la relación N:M
@@ -67,6 +68,23 @@ public class Prestamo {
 
     public boolean isDevuelto() {
         return fechaDevolucion != null;
+    }
+
+    /** Días que faltan para la fecha prevista (negativo si ya pasó); 0 si ya está devuelto. */
+    public long getDiasRestantes() {
+        return isDevuelto() ? 0 : ChronoUnit.DAYS.between(LocalDate.now(), fechaDevolucionPrevista);
+    }
+
+    /** Días de retraso de un préstamo sin devolver; 0 si está en plazo o devuelto. */
+    public long getDiasRetraso() {
+        return Math.max(0, -getDiasRestantes());
+    }
+
+    /** Parte del plazo ya consumida, de 0 a 100, para la barra de progreso. */
+    public int getPorcentajePlazo() {
+        long total = Math.max(1, ChronoUnit.DAYS.between(fechaPrestamo, fechaDevolucionPrevista));
+        long usados = ChronoUnit.DAYS.between(fechaPrestamo, isDevuelto() ? fechaDevolucion : LocalDate.now());
+        return (int) Math.min(100, Math.max(0, usados * 100 / total));
     }
 
     public Long getId() {

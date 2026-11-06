@@ -22,8 +22,7 @@
         <i class="ti ti-pencil"></i> Editar
       </a>
       <form method="post" th:action="@{/admin/libros/{id}/eliminar(id=${libro.id})}"
-         th:data-titulo="${libro.titulo}"
-         onsubmit="return confirm('¿Eliminar «' + this.dataset.titulo + '»?')">
+         th:data-confirmar="|¿Eliminar «${libro.titulo}»?|">
         <button class="btn btn-outline-danger" type="submit">
           <i class="ti ti-trash"></i> Eliminar
         </button>
@@ -55,8 +54,8 @@
         </div>
       </div>
 
-      <!--/* Botones del usuario de la sesión: el formulario solo dice qué libro, nunca quién lo pide */-->
-      <div class="d-grid gap-2 mt-3" sec:authorize="isAuthenticated()">
+      <!--/* Botones del cliente: el formulario solo dice qué libro, nunca quién lo pide. El administrador no pide ni reserva */-->
+      <div class="d-grid gap-2 mt-3" sec:authorize="hasRole('USER')">
         <a class="btn btn-outline-success w-100" th:if="${loTienePrestado}" th:href="@{/user/prestamos}">
           <i class="ti ti-book-2"></i> Lo tienes prestado
         </a>
