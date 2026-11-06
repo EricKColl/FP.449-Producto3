@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.1</version>
+		<version>4.1.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>edu.uoc</groupId>
@@ -16,8 +16,8 @@
 	<properties>
 		<java.version>21</java.version>
 		<bootstrap.version>5.3.8</bootstrap.version>
-		<tabler-icons.version>3.28.1</tabler-icons.version>
-		<inter.version>5.2.5</inter.version>
+		<tabler-icons.version>3.49.0</tabler-icons.version>
+		<inter.version>5.2.8</inter.version>
 		<playfair-display.version>4.2.2</playfair-display.version>
 		<three.version>0.186.1</three.version>
 		<gsap.version>3.12.7</gsap.version>
@@ -156,7 +156,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.13</version>
+				<version>0.8.16</version>
 				<executions>
 					<execution>
 						<id>preparar-cobertura</id>
