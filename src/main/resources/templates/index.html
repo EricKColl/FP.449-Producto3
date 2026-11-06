@@ -14,7 +14,13 @@
     <link rel="modulepreload" th:href="@{/js/corona3d.js}">
 
     <section class="escena" aria-labelledby="titulo-portada">
-        <div class="escena-fondo" aria-hidden="true"></div>
+        <!-- Fondo: el pasillo de una biblioteca, con dos paredes de estanterías que se pierden detrás de la corona -->
+        <div class="escena-fondo" aria-hidden="true">
+            <div class="fondo-pasillo">
+                <div class="pared izquierda"><div class="lomos"></div></div>
+                <div class="pared derecha"><div class="lomos"></div></div>
+            </div>
+        </div>
         <div class="escena-corona" aria-hidden="true">
             <img class="corona-respaldo" th:src="@{/img/corona-backlord.webp}" alt="" width="320" height="320">
             <canvas class="corona-lienzo" data-corona-3d></canvas>
