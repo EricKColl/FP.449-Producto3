@@ -56,9 +56,21 @@ public class UsuarioService {
 
     /** Regla común para las contraseñas nuevas: mínimo de 8 caracteres y límite de BCrypt en bytes. */
     public static boolean passwordValida(String password) {
-        return password != null && !password.isBlank()
-                && password.length() >= 8
-                && password.getBytes(StandardCharsets.UTF_8).length <= 72;
+        return problemaPassword(password) == null;
+    }
+
+    /**
+     * Qué le falta a una contraseña nueva, con un mensaje para quien la escribe, o null si es válida.
+     * BCrypt solo usa los primeros 72 bytes: una letra con tilde ocupa dos, de ahí que se cuenten bytes.
+     */
+    public static String problemaPassword(String password) {
+        if (password == null || password.isBlank() || password.length() < 8) {
+            return "La contraseña debe tener al menos 8 caracteres";
+        }
+        if (password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            return "La contraseña es demasiado larga: usa como máximo 72 caracteres";
+        }
+        return null;
     }
 
     /** El registro público siempre crea un socio con rol USER y fecha de alta de hoy. */

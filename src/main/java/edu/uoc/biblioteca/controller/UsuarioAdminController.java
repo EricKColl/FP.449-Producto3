@@ -113,8 +113,7 @@ public class UsuarioAdminController {
         // Al editar, una contraseña en blanco conserva la anterior.
         String password = usuario.getPassword();
         if (password != null && !password.isBlank() && !UsuarioService.passwordValida(password)) {
-            resultado.rejectValue("password", "password.longitud",
-                    "La contraseña debe tener al menos 8 caracteres y no superar 72 bytes en UTF-8");
+            resultado.rejectValue("password", "password.longitud", UsuarioService.problemaPassword(password));
         }
     }
 }

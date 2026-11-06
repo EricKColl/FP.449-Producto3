@@ -30,13 +30,9 @@
         if (mensaje && !window.confirm(mensaje)) e.preventDefault();
     });
 
-    // --- Consejos emergentes: aparecen al entrar hasta que se cierran; después queda la burbuja para reabrirlos ---
-    // El navegador recuerda los consejos ya vistos; si no deja guardar nada, simplemente vuelven a salir
-    const recordado = (clave) => { try { return localStorage.getItem(`consejo-${clave}`) === 'visto'; } catch { return false; } };
-    const recordar = (clave) => { try { localStorage.setItem(`consejo-${clave}`, 'visto'); } catch { /* sin almacenamiento */ } };
+    // --- Consejos emergentes: se abren cada vez que se entra en la página; al cerrarlos queda una burbuja ---
     document.querySelectorAll('.consejo-emergente').forEach((consejo) => {
-        const clave = consejo.dataset.consejo;
-        const burbuja = document.querySelector(`[data-consejo-abrir="${clave}"]`);
+        const burbuja = document.querySelector(`[data-consejo-abrir="${consejo.dataset.consejo}"]`);
         const abrir = () => {
             consejo.classList.remove('saliendo');
             consejo.classList.add('visible');
@@ -45,7 +41,6 @@
         const cerrar = () => {
             if (!consejo.classList.contains('visible')) return;
             consejo.classList.add('saliendo');
-            recordar(clave);
             setTimeout(() => {
                 consejo.classList.remove('visible', 'saliendo');
                 if (burbuja) {
@@ -61,11 +56,7 @@
             abrir();
             consejo.querySelector('.consejo-entendido')?.focus({ preventScroll: true });
         });
-        if (recordado(clave)) {
-            if (burbuja) burbuja.hidden = false;
-        } else {
-            setTimeout(abrir, reducido ? 0 : 600);
-        }
+        setTimeout(abrir, reducido ? 0 : 600);
     });
 
     // --- Ver u ocultar la contraseña: <button data-ver-clave="id-del-campo"> ---

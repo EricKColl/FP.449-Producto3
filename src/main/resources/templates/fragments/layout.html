@@ -193,16 +193,16 @@
     </div>
 </th:block>
 
-<!-- Consejo de la página: ventana emergente abajo a la derecha que aparece al entrar. Al cerrarla se recuerda
-     en el navegador y queda una burbuja para volver a abrirla (js/app.js). Sin JavaScript se ve como un bloque.
-     <th:block th:replace="~{fragments/layout :: consejo('reservas', 'Título', 'Texto')}"></th:block> -->
-<th:block th:fragment="consejo(clave, titulo, texto)">
+<!-- Consejo de la página: ventana emergente abajo a la derecha que se abre cada vez que se entra. Al cerrarla
+     queda una burbuja para volver a abrirla (js/app.js). Sin JavaScript se ve como un bloque. El icono es el del tema
+     de la página (Tabler Icons, sin el prefijo ti-):
+     <th:block th:replace="~{fragments/layout :: consejo('reservas', 'bookmark', 'Título', 'Texto')}"></th:block> -->
+<th:block th:fragment="consejo(clave, icono, titulo, texto)">
     <aside class="consejo-emergente" th:data-consejo="${clave}" role="dialog" aria-modal="false"
            th:aria-labelledby="|consejo-${clave}-titulo|">
         <div class="consejo-cuerpo">
-            <span class="consejo-icono" aria-hidden="true"><i class="ti ti-bulb"></i></span>
+            <span class="consejo-icono" aria-hidden="true"><i class="ti" th:classappend="|ti-${icono}|"></i></span>
             <div class="consejo-contenido">
-                <p class="consejo-etiqueta">Consejo</p>
                 <h2 class="consejo-titulo" th:id="|consejo-${clave}-titulo|" th:text="${titulo}">Título</h2>
                 <p class="consejo-texto" th:text="${texto}">Texto</p>
                 <button type="button" class="btn btn-primary btn-sm consejo-entendido">

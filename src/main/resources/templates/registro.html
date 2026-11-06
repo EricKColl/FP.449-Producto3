@@ -86,7 +86,7 @@
                                 </button>
                             </div>
                             <div class="invalid-feedback d-block" th:errors="*{password}">Error</div>
-                            <div id="ayuda-password" class="form-text">Usa al menos 8 caracteres.</div>
+                            <div id="ayuda-password" class="form-text" th:unless="${#fields.hasErrors('password')}">Usa al menos 8 caracteres.</div>
                         </div>
                         <div class="col-md-6 campo">
                             <label for="confirmarPassword" class="form-label">Repetir contraseña *</label>
