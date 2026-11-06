@@ -5,6 +5,7 @@ import edu.uoc.biblioteca.model.Usuario;
 import edu.uoc.biblioteca.repository.PrestamoRepository;
 import edu.uoc.biblioteca.repository.ReservaRepository;
 import edu.uoc.biblioteca.security.CuentaUsuario;
+import edu.uoc.biblioteca.service.AnioLectorService;
 import edu.uoc.biblioteca.service.InicioClienteService;
 import edu.uoc.biblioteca.service.UsuarioService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,9 +29,12 @@ public class CuentaController {
     private final InicioClienteService inicioClienteService;
     private final PrestamoRepository prestamoRepository;
     private final ReservaRepository reservaRepository;
+    private final AnioLectorService anioLectorService;
 
     public CuentaController(UsuarioService usuarioService, InicioClienteService inicioClienteService,
-                            PrestamoRepository prestamoRepository, ReservaRepository reservaRepository) {
+                            PrestamoRepository prestamoRepository, ReservaRepository reservaRepository,
+                            AnioLectorService anioLectorService) {
+        this.anioLectorService = anioLectorService;
         this.usuarioService = usuarioService;
         this.inicioClienteService = inicioClienteService;
         this.prestamoRepository = prestamoRepository;
@@ -42,6 +46,13 @@ public class CuentaController {
     public String inicio(@AuthenticationPrincipal CuentaUsuario cuenta, Model model) {
         model.addAttribute("inicio", inicioClienteService.obtener(cuenta.getId()));
         return "user/inicio";
+    }
+
+    // «Tu año lector»: resumen animado del año del socio (solo USER, como el resto de /user/**)
+    @GetMapping("/anio-lector")
+    public String anioLector(@AuthenticationPrincipal CuentaUsuario cuenta, Model model) {
+        model.addAttribute("anio", anioLectorService.resumen(cuenta.getId()));
+        return "user/anio-lector";
     }
 
     @GetMapping("/cuenta")

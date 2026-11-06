@@ -55,6 +55,6 @@ public class AccesoCorrecto extends SavedRequestAwareAuthenticationSuccessHandle
             return false;
         }
         return !ruta.startsWith("/login") && !ruta.startsWith("/registro") && !ruta.startsWith("/logout")
-                && !ruta.startsWith("/sesion");
+                && !ruta.startsWith("/sesion") && !ruta.startsWith("/avisos");
     }
 }

@@ -11,6 +11,7 @@ import edu.uoc.biblioteca.repository.LibroRepository;
 import edu.uoc.biblioteca.repository.PrestamoRepository;
 import edu.uoc.biblioteca.repository.ReservaRepository;
 import edu.uoc.biblioteca.repository.UsuarioRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,11 +31,14 @@ public class PrestamoService {
     private final LibroRepository libroRepository;
     private final UsuarioRepository usuarioRepository;
     private final ReservaRepository reservaRepository;
+    private final ApplicationEventPublisher eventos;
 
     public PrestamoService(PrestamoRepository prestamoRepository,
                            LibroRepository libroRepository,
                            UsuarioRepository usuarioRepository,
-                           ReservaRepository reservaRepository) {
+                           ReservaRepository reservaRepository,
+                           ApplicationEventPublisher eventos) {
+        this.eventos = eventos;
         this.prestamoRepository = prestamoRepository;
         this.libroRepository = libroRepository;
         this.usuarioRepository = usuarioRepository;
@@ -119,7 +123,9 @@ public class PrestamoService {
         // Si lo tenía reservado, la reserva queda atendida: se cierra y sale de la cola
         reservaRepository.findFirstByUsuarioIdAndLibroIdAndEstado(usuarioId, libroId, EstadoReserva.ACTIVA)
                 .ifPresent(Reserva::cancelar);
-        return prestamoRepository.save(new Prestamo(usuario, libro));
+        Prestamo prestamo = prestamoRepository.save(new Prestamo(usuario, libro));
+        eventos.publishEvent(new AvisosCambiados(libroId, usuarioId));
+        return prestamo;
     }
 
     /**
@@ -190,6 +196,7 @@ public class PrestamoService {
                     + motivo.substring(0, 1).toLowerCase() + motivo.substring(1));
         }
         prestamo.setFechaDevolucionPrevista(prestamo.getFechaDevolucionPrevista().plusDays(DIAS_RENOVACION));
+        eventos.publishEvent(new AvisosCambiados(prestamo.getLibro().getId(), usuarioId));
         return prestamo;
     }
 
@@ -200,6 +207,8 @@ public class PrestamoService {
             throw new IllegalStateException("Ese préstamo ya estaba devuelto");
         }
         prestamo.setFechaDevolucion(LocalDate.now());
+        // Quien lo tenía deja de tener el aviso; a quien lo reservó le puede llegar «Ya puedes pedirlo»
+        eventos.publishEvent(new AvisosCambiados(prestamo.getLibro().getId(), prestamo.getUsuario().getId()));
         return prestamo;
     }
 

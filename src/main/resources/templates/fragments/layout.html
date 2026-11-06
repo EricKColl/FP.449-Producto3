@@ -182,6 +182,10 @@
                    th:aria-current="${seccion == 'mis-favoritos'} ? 'page'" th:href="@{/user/favoritos}">
                     <i class="ti ti-heart"></i> Mis favoritos
                 </a>
+                <a class="menu-enlace" th:classappend="${seccion == 'anio-lector'} ? 'active'"
+                   th:aria-current="${seccion == 'anio-lector'} ? 'page'" th:href="@{/user/anio-lector}">
+                    <i class="ti ti-sparkles"></i> Mi año lector
+                </a>
             </th:block>
             <th:block sec:authorize="hasRole('ADMIN')">
                 <p class="menu-grupo">Administración</p>

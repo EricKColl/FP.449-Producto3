@@ -60,7 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/registro").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // Cualquier cuenta tiene su inicio y sus datos; préstamos, reservas y favoritos son del cliente
-                        .requestMatchers("/inicio", "/user/cuenta", "/user/cuenta/password", "/sesion/renovar").authenticated()
+                        .requestMatchers("/inicio", "/user/cuenta", "/user/cuenta/password", "/sesion/renovar", "/avisos/flujo").authenticated()
                         .requestMatchers("/user/**").hasRole("USER")
                         // La portada y el catálogo se pueden consultar sin cuenta
                         .requestMatchers(HttpMethod.GET, "/", "/libros", "/libros/*", "/autores", "/autores/*").permitAll()

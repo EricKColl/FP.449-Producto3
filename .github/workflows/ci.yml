@@ -17,7 +17,26 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      # verify pasa los tests y comprueba la cobertura mínima (JaCoCo, en el pom)
       - run: ./mvnw -B verify
+      - name: Resumen de la cobertura
+        if: always()
+        run: |
+          if [ -f target/site/jacoco/jacoco.csv ]; then
+            awk -F, 'NR > 1 { lf += $8; lc += $9; rf += $6; rc += $7 }
+              END {
+                printf "## Cobertura de los tests\n\n| Medida | Cubierto |\n|---|---|\n"
+                printf "| Líneas | %.1f %% |\n", 100 * lc / (lf + lc)
+                printf "| Ramas | %.1f %% |\n", 100 * rc / (rf + rc)
+              }' target/site/jacoco/jacoco.csv >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Guardar el informe de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-cobertura
+          path: target/site/jacoco/
+          if-no-files-found: ignore
 
   docker:
     name: Docker Compose
@@ -29,7 +48,9 @@ jobs:
       - name: Comprobar que la aplicación responde con datos
         run: |
           curl -fsS http://localhost:8080/actuator/health
-          curl -fsS http://localhost:8080/ | grep -q 'Sistema de Gestión'
+          curl -fsS http://localhost:8080/ | grep -q 'Biblioteca BackLord'
+          curl -fsS http://localhost:8080/ | grep -q 'títulos en el catálogo'
+          curl -fsS 'http://localhost:8080/libros/sugerencias?q=garcia' | grep -q 'García Márquez'
       - name: Logs
         if: failure()
         run: docker compose logs

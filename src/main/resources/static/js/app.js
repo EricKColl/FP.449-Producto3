@@ -270,26 +270,136 @@
 
     // --- Campanita de avisos: el navegador recuerda qué avisos ya se vieron (por su clave) y solo cuenta los
     // nuevos. Al abrir el menú quedan todos vistos. Los avisos que ya no existen se olvidan solos ---
+    // En tiempo real: la página escucha /avisos/flujo (Server-Sent Events) y, si llega una lista nueva, repinta
+    // el menú, hace sonar la campana y enseña el aviso nuevo en una notificación flotante
     const campana = document.querySelector('[data-campana]');
     if (campana) {
-        const items = [...campana.querySelectorAll('[data-aviso]')];
-        let vistos = [];
-        try { vistos = JSON.parse(localStorage.getItem('backlord-avisos-vistos') || '[]'); } catch { vistos = []; }
-        const nuevos = items.filter((item) => !vistos.includes(item.dataset.aviso));
-        nuevos.forEach((item) => item.classList.add('nuevo'));
-        const cuenta = campana.querySelector('.campana-cuenta');
-        if (cuenta) cuenta.textContent = String(nuevos.length);
-        campana.classList.toggle('todo-visto', nuevos.length === 0);
-        campana.classList.toggle('con-nuevos', nuevos.length > 0);
+        const menu = campana.querySelector('.menu-avisos');
         const boton = campana.querySelector('.campana-boton');
-        if (nuevos.length) boton.setAttribute('aria-label', `Avisos: ${nuevos.length} sin ver de ${items.length}`);
+        const leerVistos = () => {
+            try { return JSON.parse(localStorage.getItem('backlord-avisos-vistos') || '[]'); } catch { return []; }
+        };
+        const actualizarCuenta = () => {
+            const items = [...campana.querySelectorAll('[data-aviso]')];
+            const vistos = leerVistos();
+            const nuevos = items.filter((item) => !vistos.includes(item.dataset.aviso));
+            items.forEach((item) => item.classList.toggle('nuevo', nuevos.includes(item)));
+            let cuenta = campana.querySelector('.campana-cuenta');
+            if (!cuenta && nuevos.length) {
+                cuenta = document.createElement('span');
+                cuenta.className = 'campana-cuenta';
+                cuenta.setAttribute('aria-hidden', 'true');
+                boton.appendChild(cuenta);
+            }
+            if (cuenta) cuenta.textContent = String(nuevos.length);
+            campana.classList.toggle('todo-visto', nuevos.length === 0);
+            campana.classList.toggle('con-nuevos', nuevos.length > 0);
+            boton.setAttribute('aria-label', nuevos.length
+                ? `Avisos: ${nuevos.length} sin ver de ${items.length}` : `Avisos: ${items.length || 'ninguno'}`);
+        };
+        actualizarCuenta();
         boton.addEventListener('shown.bs.dropdown', () => {
-            try {
-                localStorage.setItem('backlord-avisos-vistos', JSON.stringify(items.map((i) => i.dataset.aviso)));
-            } catch { /* sin almacenamiento */ }
-            campana.classList.add('todo-visto');
-            campana.classList.remove('con-nuevos');
+            const claves = [...campana.querySelectorAll('[data-aviso]')].map((i) => i.dataset.aviso);
+            try { localStorage.setItem('backlord-avisos-vistos', JSON.stringify(claves)); } catch { /* sin almacenamiento */ }
+            actualizarCuenta();
         });
+
+        // Repinta el menú con la lista que manda el servidor (los textos van con textContent, nunca como HTML)
+        const pintarAvisos = (avisos) => {
+            menu.querySelectorAll('.aviso-item, .menu-avisos-vacio').forEach((el) => el.remove());
+            avisos.forEach((aviso) => {
+                const enlace = document.createElement('a');
+                enlace.className = `aviso-item tono-${aviso.tono}`;
+                enlace.href = aviso.enlace;
+                enlace.dataset.aviso = aviso.clave;
+                const icono = document.createElement('span');
+                icono.className = 'aviso-item-icono';
+                icono.setAttribute('aria-hidden', 'true');
+                const simbolo = document.createElement('i');
+                simbolo.className = `ti ti-${aviso.icono}`;
+                icono.appendChild(simbolo);
+                const texto = document.createElement('span');
+                texto.className = 'aviso-item-texto';
+                const titulo = document.createElement('strong');
+                titulo.textContent = aviso.titulo;
+                const detalle = document.createElement('small');
+                detalle.textContent = aviso.texto;
+                texto.append(titulo, detalle);
+                enlace.append(icono, texto);
+                menu.appendChild(enlace);
+            });
+            if (!avisos.length) {
+                const vacio = document.createElement('p');
+                vacio.className = 'menu-avisos-vacio';
+                const simbolo = document.createElement('i');
+                simbolo.className = 'ti ti-circle-check';
+                vacio.append(simbolo, ' Todo al día: no tienes avisos.');
+                menu.appendChild(vacio);
+            }
+        };
+        // Notificación flotante con el aviso que acaba de llegar
+        const notificar = (aviso) => {
+            let zona = document.querySelector('.avisos');
+            if (!zona) {
+                zona = document.createElement('div');
+                zona.className = 'avisos';
+                document.body.appendChild(zona);
+            }
+            const nota = document.createElement('div');
+            nota.className = `aviso aviso-vivo ${aviso.tono === 'peligro' ? 'aviso-error' : 'aviso-exito'}`;
+            nota.setAttribute('role', 'status');
+            const simbolo = document.createElement('i');
+            simbolo.className = `ti ti-${aviso.icono}`;
+            const enlace = document.createElement('a');
+            enlace.href = aviso.enlace;
+            enlace.textContent = aviso.titulo;
+            const cerrar = document.createElement('button');
+            cerrar.type = 'button';
+            cerrar.className = 'aviso-cerrar';
+            cerrar.setAttribute('aria-label', 'Cerrar el aviso');
+            const x = document.createElement('i');
+            x.className = 'ti ti-x';
+            cerrar.appendChild(x);
+            const quitar = () => {
+                nota.classList.add('saliendo');
+                setTimeout(() => nota.remove(), 350);
+            };
+            cerrar.addEventListener('click', quitar);
+            nota.append(simbolo, enlace, cerrar);
+            zona.appendChild(nota);
+            setTimeout(quitar, 8000);
+        };
+
+        if ('EventSource' in window) {
+            let fuente = null;
+            const abrir = () => {
+                if (fuente) return;
+                fuente = new EventSource('/avisos/flujo');
+                fuente.addEventListener('avisos', (e) => {
+                    let avisos;
+                    try { avisos = JSON.parse(e.data); } catch { return; }
+                    const antes = new Set([...campana.querySelectorAll('[data-aviso]')].map((i) => i.dataset.aviso));
+                    pintarAvisos(avisos);
+                    actualizarCuenta();
+                    const recien = avisos.filter((a) => !antes.has(a.clave));
+                    if (recien.length) {
+                        // Vuelve a lanzar el balanceo de la campana
+                        campana.classList.remove('con-nuevos');
+                        void campana.offsetWidth;
+                        campana.classList.add('con-nuevos');
+                        recien.forEach(notificar);
+                    }
+                });
+            };
+            const cerrarFuente = () => {
+                if (fuente) fuente.close();
+                fuente = null;
+            };
+            // Solo con la pestaña a la vista: el navegador admite pocas conexiones abiertas a la vez por web
+            document.addEventListener('visibilitychange', () => (document.hidden ? cerrarFuente() : abrir()));
+            window.addEventListener('pagehide', cerrarFuente);
+            if (!document.hidden) abrir();
+        }
     }
 
     // --- Buscador con sugerencias: <form data-sugerencias> con un <input name="q">. Mientras se escribe pide
@@ -510,6 +620,107 @@
                 .add(() => destino.classList.add('recibe'));
         });
     });
+
+    // --- «Tu año lector»: historia de pantallas (<section data-historia> con <article class="diapositiva">).
+    // Cada pantalla dura lo que tarda en llenarse su barra (animación CSS): al terminar pasa a la siguiente.
+    // Clic o toque en el tercio izquierdo vuelve atrás y en el resto avanza; flechas del teclado; espacio o el
+    // botón para pausar; mantener pulsado también pausa. Con «reducir movimiento» no avanza sola ---
+    const historia = document.querySelector('[data-historia]');
+    if (historia) {
+        const pantallas = [...historia.querySelectorAll('.diapositiva')];
+        const barras = historia.querySelector('.historia-barras');
+        const botonPausa = historia.querySelector('[data-historia-pausa]');
+        pantallas.forEach(() => {
+            const barra = document.createElement('span');
+            barra.className = 'barra';
+            const relleno = document.createElement('span');
+            relleno.className = 'relleno';
+            barra.appendChild(relleno);
+            barras.appendChild(barra);
+        });
+        let actual = -1;
+        let pausaManual = false;
+        const entrada = (pantalla) => {
+            pantalla.querySelectorAll('[data-cuenta]').forEach((cifra) => {
+                if (!cifra.dataset.final) cifra.dataset.final = cifra.textContent.trim();
+                const final = parseInt(cifra.dataset.final, 10);
+                if (!gsap || reducido || Number.isNaN(final)) return;
+                const estado = { valor: 0 };
+                cifra.textContent = '0';
+                gsap.to(estado, {
+                    valor: final, duration: 1.5, ease: 'power3.out', delay: 0.35,
+                    onUpdate: () => { cifra.textContent = String(Math.round(estado.valor)); }
+                });
+            });
+            if (gsap && !reducido) {
+                gsap.fromTo(pantalla.querySelectorAll('[data-entra]'),
+                    { y: 30, opacity: 0, scale: 0.96 },
+                    { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out', stagger: 0.11, overwrite: true });
+            }
+        };
+        const mostrar = (indice) => {
+            const i = Math.max(0, Math.min(pantallas.length - 1, indice));
+            actual = i;
+            pantallas.forEach((p, j) => {
+                p.classList.toggle('activa', j === i);
+                p.inert = j !== i;
+            });
+            [...barras.children].forEach((barra, j) => {
+                barra.classList.toggle('hecha', j < i || (j === i && (reducido || i === pantallas.length - 1)));
+                barra.classList.remove('actual');
+            });
+            const barra = barras.children[i];
+            void barra.offsetWidth; // reinicia la animación de la barra
+            if (!reducido && i < pantallas.length - 1) barra.classList.add('actual');
+            entrada(pantallas[i]);
+        };
+        [...barras.querySelectorAll('.relleno')].forEach((relleno, j) => {
+            relleno.addEventListener('animationend', () => { if (j === actual) mostrar(actual + 1); });
+        });
+        const pausar = (si) => {
+            historia.classList.toggle('pausada', si);
+            if (botonPausa) {
+                botonPausa.setAttribute('aria-label', si ? 'Seguir con la historia' : 'Pausar la historia');
+                botonPausa.querySelector('i').className = si ? 'ti ti-player-play' : 'ti ti-player-pause';
+            }
+        };
+        botonPausa?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            pausaManual = !historia.classList.contains('pausada');
+            pausar(pausaManual);
+        });
+        // Mantener pulsado pausa; soltar sigue. Una pulsación larga no cuenta como clic para avanzar
+        let pulsadoDesde = 0;
+        historia.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('a, button')) return;
+            pulsadoDesde = performance.now();
+            pausar(true);
+        });
+        historia.addEventListener('pointerup', () => { if (!pausaManual) pausar(false); });
+        historia.addEventListener('pointercancel', () => { if (!pausaManual) pausar(false); });
+        historia.addEventListener('click', (e) => {
+            if (e.target.closest('a, button') || performance.now() - pulsadoDesde > 300) return;
+            const caja = historia.getBoundingClientRect();
+            mostrar(e.clientX - caja.left < caja.width / 3 ? actual - 1 : actual + 1);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.target.closest('input, textarea, select')) return;
+            if (e.key === 'ArrowRight') mostrar(actual + 1);
+            else if (e.key === 'ArrowLeft') mostrar(actual - 1);
+            else if (e.key === ' ' && !e.target.closest('button, a')) {
+                e.preventDefault();
+                pausaManual = !historia.classList.contains('pausada');
+                pausar(pausaManual);
+            }
+        });
+        historia.querySelector('[data-historia-repetir]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            pausaManual = false;
+            pausar(false);
+            mostrar(0);
+        });
+        mostrar(0);
+    }
 
     // --- Medidor de fuerza de la contraseña: <div data-fuerza-de="id-del-campo"> (fragmento fuerzaClave).
     // Orienta mientras se escribe; la regla que manda es la del servidor (UsuarioService.problemaPassword) ---

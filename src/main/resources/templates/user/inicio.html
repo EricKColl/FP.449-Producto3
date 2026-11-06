@@ -31,6 +31,15 @@
         <i class="ti ti-arrow-right ms-auto"></i>
     </a>
 
+    <!-- Acceso a «Tu año lector» -->
+    <a class="franja-anio" th:href="@{/user/anio-lector}" data-aparecer>
+        <span class="franja-anio-brillo" aria-hidden="true"></span>
+        <span class="franja-icono"><i class="ti ti-sparkles"></i></span>
+        <span><strong th:text="|Tu ${#temporals.year(#temporals.createNow())} lector ya está listo.|">Tu 2026 lector ya está listo.</strong>
+            Descubre tus libros, tu género y tu nivel lector del año.</span>
+        <i class="ti ti-arrow-right ms-auto"></i>
+    </a>
+
     <!-- Resumen -->
     <section class="indicadores indicadores-cliente" aria-label="Resumen de mi cuenta">
         <a class="indicador indicador-enlace" th:href="@{/user/prestamos}" data-aparecer>

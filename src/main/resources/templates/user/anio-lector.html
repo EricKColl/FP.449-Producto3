@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tu año lector')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar('anio-lector')}"></nav>
+
+<!-- «Tu año lector»: una historia de pantallas que avanza sola (js/app.js, data-historia). Clic o toque a la
+     derecha para seguir y a la izquierda para volver; flechas del teclado; espacio para pausar.
+     Sin JavaScript, las pantallas se ven una debajo de otra. -->
+<main class="container py-4 anio-lector" th:with="a=${anio}">
+    <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
+    <h1 class="visually-hidden" th:text="|Tu ${a.anio} lector|">Tu año lector</h1>
+
+    <section class="historia" data-historia aria-roledescription="historia" aria-label="Resumen de tu año lector">
+        <div class="historia-barras" aria-hidden="true"></div>
+        <div class="historia-controles">
+            <button type="button" class="historia-pausa" data-historia-pausa aria-label="Pausar la historia"><i class="ti ti-player-pause"></i></button>
+        </div>
+
+        <!-- 1 · Portada -->
+        <article class="diapositiva d-oro" aria-label="Portada">
+            <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+            <span class="historia-corona" data-entra><i class="ti ti-crown"></i></span>
+            <p class="historia-antetitulo" data-entra th:text="|Hola, ${a.usuario.nombre}|">Hola, Laura</p>
+            <h2 class="historia-titulo" data-entra>Tu <span th:text="${a.anio}">2026</span><br>en BackLord</h2>
+            <p class="historia-texto" data-entra>Esto es lo que has leído este año. Ponte a gusto: empieza la historia.</p>
+            <p class="historia-pista" data-entra><i class="ti ti-hand-finger"></i> Toca para avanzar</p>
+        </article>
+
+        <!-- Sin préstamos este año -->
+        <article class="diapositiva d-amatista" th:if="${a.prestamos() == 0}" aria-label="Tu historia está por escribir">
+            <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+            <p class="historia-antetitulo" data-entra>Este año</p>
+            <h2 class="historia-titulo" data-entra>Tu historia está por escribir</h2>
+            <p class="historia-texto" data-entra>Todavía no te has llevado ningún libro. El catálogo te espera: el primero siempre es el mejor.</p>
+            <a class="btn btn-primary btn-lg btn-accion" th:href="@{/libros}" data-entra><i class="ti ti-books"></i> Elegir mi primer libro</a>
+        </article>
+
+        <th:block th:if="${a.prestamos() > 0}">
+            <!-- 2 · Libros -->
+            <article class="diapositiva d-rubi" aria-label="Libros del año">
+                <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p class="historia-antetitulo" data-entra>Este año te llevaste</p>
+                <p class="historia-cifra" data-entra><span data-cuenta th:text="${a.prestamos()}">3</span></p>
+                <p class="historia-subcifra" data-entra th:text="${a.prestamos() == 1} ? 'libro a casa' : 'libros a casa'">libros a casa</p>
+                <div class="abanico" data-abanico>
+                    <span class="abanico-libro cubierta-libro" th:each="libro, i : ${a.libros}" th:if="${i.index < 7}"
+                          th:classappend="|tono-${libro.id % 6}|" th:style="|--i: ${i.index}; --n: ${#lists.size(a.libros) < 7 ? #lists.size(a.libros) : 7}|">
+                        <span class="cubierta-corona"><i class="ti ti-crown"></i></span>
+                        <span class="cubierta-titulo" th:text="${libro.titulo}">Título</span>
+                    </span>
+                </div>
+            </article>
+
+            <!-- 3 · Días -->
+            <article class="diapositiva d-zafiro" aria-label="Días leyendo">
+                <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p class="historia-antetitulo" data-entra>Pasaste</p>
+                <p class="historia-cifra" data-entra><span data-cuenta th:text="${a.dias}">45</span></p>
+                <p class="historia-subcifra" data-entra th:text="${a.dias == 1} ? 'día con un libro en casa' : 'días con un libro en casa'">días con un libro en casa</p>
+                <p class="historia-texto" data-entra th:if="${a.semanas() >= 1}"
+                   th:text="|Eso son unas ${a.semanas()} ${a.semanas() == 1 ? 'semana' : 'semanas'} de lectura.|">Eso son unas 6 semanas.</p>
+                <p class="historia-texto" data-entra th:if="${a.renovados > 0}"
+                   th:text="|Y ${a.renovados == 1 ? 'renovaste un préstamo' : 'renovaste ' + a.renovados + ' préstamos'} porque no querías soltarlo.|">Y renovaste uno.</p>
+            </article>
+
+            <!-- 4 · Género -->
+            <article class="diapositiva d-esmeralda" th:if="${a.genero() != null}" aria-label="Tu género">
+                <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p class="historia-antetitulo" data-entra>Tu género del año</p>
+                <h2 class="historia-titulo historia-grande" data-entra th:text="${a.genero().etiqueta}">Novela</h2>
+                <ol class="historia-ranking">
+                    <li th:each="g, i : ${a.generos}" th:if="${i.index < 3}" data-entra>
+                        <span class="ranking-puesto" th:text="${i.count}">1</span>
+                        <span class="ranking-nombre" th:text="${g.etiqueta}">Novela</span>
+                        <span class="ranking-barra"><span th:style="|--ancho: ${g.valor * 100 / a.genero().valor}%|"></span></span>
+                        <span class="ranking-valor" th:text="${g.valor}">2</span>
+                    </li>
+                </ol>
+            </article>
+
+            <!-- 5 · Autoría -->
+            <article class="diapositiva d-ambar" th:if="${a.autor != null}" aria-label="Quien más te acompañó">
+                <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p class="historia-antetitulo" data-entra>Quien más te acompañó</p>
+                <span class="historia-monograma" data-entra
+                      th:text="${#strings.substring(a.autor.etiqueta, 0, 1)}">G</span>
+                <h2 class="historia-titulo" data-entra th:text="${a.autor.etiqueta}">Gabriel García Márquez</h2>
+                <p class="historia-texto" data-entra
+                   th:text="${a.autor.valor == 1} ? 'Un libro suyo pasó por tus manos.' : |${a.autor.valor} libros suyos pasaron por tus manos.|">2 libros suyos.</p>
+            </article>
+
+            <!-- 6 · Mes -->
+            <article class="diapositiva d-amatista" th:if="${a.mesFavorito != null}" aria-label="Tu mes más lector">
+                <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p class="historia-antetitulo" data-entra>Tu mes más lector</p>
+                <h2 class="historia-titulo historia-grande historia-mes" data-entra th:text="${a.mesFavorito}">noviembre</h2>
+                <div class="historia-meses" data-entra role="img"
+                     th:aria-label="|Préstamos por mes: ${#strings.listJoin(a.meses.![etiqueta + ' ' + valor], ', ')}|">
+                    <span class="mes" th:each="m : ${a.meses}" th:classappend="${m.valor == a.maximoMes() and m.valor > 0} ? 'mes-top'">
+                        <span class="mes-barra" th:style="|--alto: ${a.maximoMes() > 0 ? m.valor * 100 / a.maximoMes() : 0}%|"></span>
+                        <span class="mes-nombre" th:text="${#strings.substring(m.etiqueta, 0, 1)}">e</span>
+                    </span>
+                </div>
+            </article>
+
+            <!-- 7 · Puntualidad -->
+            <article class="diapositiva d-esmeralda" th:if="${a.puntualidad >= 0}" aria-label="Puntualidad">
+                <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p class="historia-antetitulo" data-entra>Devolviste a tiempo</p>
+                <p class="historia-cifra" data-entra><span data-cuenta th:text="${a.puntualidad}">100</span><small>%</small></p>
+                <p class="historia-texto" data-entra
+                   th:text="${a.puntualidad == 100} ? 'Ni un día tarde. La biblioteca te lo agradece.'
+                           : (${a.puntualidad >= 50} ? 'Casi siempre en plazo. ¡Un empujón más y lo bordas!'
+                           : 'El próximo año, a por la puntualidad: renovar también vale.')">Ni un día tarde.</p>
+            </article>
+
+            <!-- 8 · Comparación -->
+            <article class="diapositiva d-rubi" aria-label="Comparación con otros socios">
+                <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+                <p class="historia-antetitulo" data-entra>Has leído más que el</p>
+                <p class="historia-cifra" data-entra><span data-cuenta th:text="${a.superaA}">60</span><small>%</small></p>
+                <p class="historia-subcifra" data-entra>de los socios de la biblioteca</p>
+            </article>
+        </th:block>
+
+        <!-- 9 · Nivel y resumen -->
+        <article class="diapositiva d-oro diapositiva-final" aria-label="Tu nivel lector">
+            <div class="diapositiva-fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+            <p class="historia-antetitulo" data-entra>Tu nivel lector</p>
+            <div class="historia-coronas" data-entra role="img" th:aria-label="|Nivel ${a.nivel.numero} de 5|">
+                <i class="ti ti-crown" th:each="n : ${#numbers.sequence(1, 5)}" th:classappend="${n <= a.nivel.numero} ? 'ganada'"></i>
+            </div>
+            <h2 class="historia-titulo" data-entra th:text="${a.nivel.nombre}">Trama en marcha</h2>
+            <p class="historia-texto" data-entra th:text="${a.nivel.descripcion}">La historia se pone interesante.</p>
+            <dl class="historia-resumen" data-entra>
+                <div><dt>Libros</dt><dd th:text="${a.prestamos()}">3</dd></div>
+                <div><dt>Días</dt><dd th:text="${a.dias}">45</dd></div>
+                <div><dt>Reservas</dt><dd th:text="${a.reservas}">1</dd></div>
+                <div><dt>Favoritos</dt><dd th:text="${a.favoritos}">2</dd></div>
+            </dl>
+            <div class="historia-botones" data-entra>
+                <button type="button" class="btn btn-sesion" data-historia-repetir><i class="ti ti-reload"></i> Ver otra vez</button>
+                <a class="btn btn-primary btn-accion" th:href="@{/user/inicio}"><i class="ti ti-home"></i> Mi inicio</a>
+            </div>
+        </article>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
