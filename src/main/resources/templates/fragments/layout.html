@@ -199,10 +199,6 @@
 <th:block th:fragment="consejo(clave, titulo, texto)">
     <aside class="consejo-emergente" th:data-consejo="${clave}" role="dialog" aria-modal="false"
            th:aria-labelledby="|consejo-${clave}-titulo|">
-        <span class="consejo-esquina arriba izquierda" aria-hidden="true"></span>
-        <span class="consejo-esquina arriba derecha" aria-hidden="true"></span>
-        <span class="consejo-esquina abajo izquierda" aria-hidden="true"></span>
-        <span class="consejo-esquina abajo derecha" aria-hidden="true"></span>
         <div class="consejo-cuerpo">
             <span class="consejo-icono" aria-hidden="true"><i class="ti ti-bulb"></i></span>
             <div class="consejo-contenido">
