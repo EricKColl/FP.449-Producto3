@@ -149,7 +149,7 @@
         <nav class="menu">
             <a class="menu-enlace" sec:authorize="!isAuthenticated()" th:classappend="${seccion == 'portada'} ? 'active'"
                th:aria-current="${seccion == 'portada'} ? 'page'" th:href="@{/}">
-                <i class="ti ti-crown"></i> Portada
+                <i class="ti ti-home"></i> Home
             </a>
             <a class="menu-enlace" sec:authorize="hasRole('ADMIN')" th:classappend="${seccion == 'inicio'} ? 'active'"
                th:aria-current="${seccion == 'inicio'} ? 'page'" th:href="@{/admin/panel}">
