@@ -793,6 +793,33 @@ body::before {
     opacity: 0;
 }
 
+/* Al volver a la portada: la última imagen del 3D se ve al instante, con el mismo difuminado que el lienzo.
+   Cuando el 3D dibuja su primer fotograma (el mismo momento del giro) aparece encima sin fundido y la imagen
+   se retira debajo: el relevo no se nota */
+.corona-instantanea {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
+    mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
+    transition: opacity 0.2s ease 0.1s;
+}
+
+.escena-corona.con-foto::before {
+    opacity: 0;
+    animation: none;
+}
+
+.escena-corona.con-foto .corona-lienzo {
+    transition: none;
+}
+
+.escena-corona.con-3d .corona-instantanea {
+    opacity: 0;
+}
+
 .escena-texto {
     position: relative;
     transform: perspective(900px) rotateX(var(--giro-x, 0deg)) rotateY(var(--giro-y, 0deg));

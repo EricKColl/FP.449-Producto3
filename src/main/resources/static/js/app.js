@@ -10,6 +10,30 @@
     const gsap = window.gsap;
     document.documentElement.classList.add('js');
 
+    // --- Portada: al volver a ella todo aparece al instante ---
+    // La corona enseña la última imagen que dibujó el 3D (la guarda js/corona3d.js al salir) mientras el 3D se
+    // prepara, y la entrada animada del título solo se ve la primera vez de cada sesión
+    const escenaCorona = document.querySelector('.escena-corona');
+    let portadaYaVista = false;
+    if (escenaCorona) {
+        try {
+            portadaYaVista = sessionStorage.getItem('backlord-portada') === 'vista';
+            sessionStorage.setItem('backlord-portada', 'vista');
+            const foto = sessionStorage.getItem('backlord-corona-foto');
+            if (foto) {
+                const imagen = new Image();
+                imagen.className = 'corona-instantanea';
+                imagen.alt = '';
+                imagen.decoding = 'sync';
+                imagen.src = foto;
+                escenaCorona.querySelector('canvas')?.before(imagen);
+                escenaCorona.classList.add('con-foto');
+            }
+        } catch {
+            // Sin sessionStorage se ve la entrada normal
+        }
+    }
+
     // El enlace «Saltar al contenido» lleva al <main> de cada página
     const principal = document.querySelector('main');
     if (principal && !principal.id) principal.id = 'contenido';
@@ -325,13 +349,16 @@
 
     // Entrada suave del contenido de cada página
     // Solo opacidad: un transform en <main> movería los avisos flotantes, que son position: fixed
-    gsap.from('body > main', { opacity: 0, duration: 0.45, ease: 'power2.out', clearProps: 'opacity' });
+    // (en la portada ya vista no: debe aparecer al instante)
+    if (!portadaYaVista) {
+        gsap.from('body > main', { opacity: 0, duration: 0.45, ease: 'power2.out', clearProps: 'opacity' });
+    }
 
     // Solo se anima lo que existe en la página: así la consola no se llena de avisos
     const hay = (selector) => document.querySelector(selector) !== null;
 
-    // Entrada del título de la portada
-    if (hay('.titulo-3d .letra')) {
+    // Entrada del título de la portada: solo la primera vez de la sesión
+    if (hay('.titulo-3d .letra') && !portadaYaVista) {
         gsap.from('.titulo-3d .letra', {
             yPercent: 110, rotateX: -80, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: 0.06, delay: 0.25
         });

@@ -4,8 +4,14 @@
  * propio para los reflejos del oro. Gira despacio, flota y se inclina hacia el ratón; alrededor flota polvo dorado.
  * Los sombreadores se preparan antes del primer fotograma, así la corona aparece de golpe y gira sin tirones.
  * Si el navegador no tiene WebGL se muestra la imagen plana de la corona; con «reducir movimiento» no se anima.
+ *
+ * Volver a la portada es instantáneo: al salir se guarda en sessionStorage la última imagen dibujada y el
+ * momento del giro. Al volver, js/app.js enseña esa imagen en cuanto se pinta la página, y cuando el 3D está
+ * listo continúa exactamente desde ese mismo instante, así el cambio de la imagen al 3D no se nota.
+ * Three.js se importa después de pintar (import dinámico) para no frenar la carga de la página.
  */
-import * as THREE from '/webjars/three/build/three.module.js';
+let THREE;
+const GUARDADO = 'backlord-corona';
 
 const lienzo = document.querySelector('[data-corona-3d]');
 const escenaHtml = document.querySelector('.escena-corona');
@@ -16,6 +22,7 @@ if (lienzo && escenaHtml) {
 }
 
 async function iniciar() {
+    THREE = await import('/webjars/three/build/three.module.js');
     const render = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true, powerPreference: 'high-performance' });
     // Resolución: nítida en pantallas normales sin llegar a la de las pantallas de muy alta densidad
     let resolucion = Math.min(window.devicePixelRatio, 1.5);
@@ -42,9 +49,17 @@ async function iniciar() {
     escena.add(polvo);
     escena.add(construirHalo());
 
+    // Si se viene de otra página, se sigue desde el mismo momento del giro que se guardó al salir
+    let previo = null;
+    try {
+        previo = JSON.parse(sessionStorage.getItem(`${GUARDADO}-estado`));
+    } catch {
+        previo = null;
+    }
+
     // Inclinación hacia el ratón, suavizada en cada fotograma
-    const raton = { x: 0, y: 0 };
-    const giro = { x: 0, y: 0 };
+    const giro = { x: previo?.giro?.x ?? 0, y: previo?.giro?.y ?? 0 };
+    const raton = { x: giro.x, y: giro.y };
     window.addEventListener('pointermove', (e) => {
         raton.x = (e.clientX / window.innerWidth) * 2 - 1;
         raton.y = (e.clientY / window.innerHeight) * 2 - 1;
@@ -68,7 +83,7 @@ async function iniciar() {
 
     let inicio = 0;
     let ultimo = 0;
-    let t = 0;
+    let t = Number.isFinite(previo?.t) ? previo.t : 0;
     const dibujar = (ahora) => {
         // El tiempo de la animación solo avanza mientras se dibuja: al volver a la portada sigue donde estaba
         const paso = ultimo ? Math.min(0.05, (ahora - ultimo) / 1000) : 0;
@@ -94,8 +109,45 @@ async function iniciar() {
         }
     };
 
+    // Cada segundo y medio se guarda una imagen del fotograma recién dibujado junto con el momento del giro al
+    // que corresponde. toBlob codifica la imagen fuera del hilo principal: guardar no frena ni el giro ni el
+    // cambio de página. Al volver, el 3D sigue desde ese momento exacto, así enlaza con la imagen sin saltos
+    let ultimaFoto = 0;
+    let fotografiando = false;
+    const copia = document.createElement('canvas');
+    const fotografiar = (ahora) => {
+        if (fotografiando || ahora - ultimaFoto < 1500 || !lienzo.width) return;
+        fotografiando = true;
+        ultimaFoto = ahora;
+        const estado = JSON.stringify({ t, giro: { x: giro.x, y: giro.y } });
+        // El fotograma se copia ya, en el mismo turno en que se ha dibujado: el lienzo 3D se vacía después
+        copia.width = lienzo.width;
+        copia.height = lienzo.height;
+        const ctx = copia.getContext('2d');
+        ctx.clearRect(0, 0, copia.width, copia.height);
+        ctx.drawImage(lienzo, 0, 0);
+        copia.toBlob((imagen) => {
+            if (!imagen) {
+                fotografiando = false;
+                return;
+            }
+            const lector = new FileReader();
+            lector.onload = () => {
+                try {
+                    sessionStorage.setItem(`${GUARDADO}-foto`, lector.result);
+                    sessionStorage.setItem(`${GUARDADO}-estado`, estado);
+                } catch {
+                    // Sin sessionStorage (modo privado estricto) la portada funciona igual, solo que sin la imagen
+                }
+                fotografiando = false;
+            };
+            lector.readAsDataURL(imagen);
+        }, 'image/webp', 0.9);
+    };
+
     if (reducido) {
         dibujar(performance.now());
+        fotografiar(performance.now());
         new ResizeObserver(() => dibujar(performance.now())).observe(lienzo);
         return;
     }
@@ -112,6 +164,7 @@ async function iniciar() {
         }
         const antes = ultimo;
         dibujar(ahora);
+        fotografiar(ahora);
         if (antes && ahora - inicio > 2500 && rebajas < 2) {
             acumulado += ahora - antes;
             if (++muestras === 120) {
@@ -254,14 +307,23 @@ function construirCorona() {
 }
 
 // Partículas de polvo dorado alrededor de la corona
+// Las posiciones salen de una serie fija (no de Math.random) para que sean las mismas en cada visita:
+// así la imagen guardada y el 3D coinciden también en el polvo
 function construirPolvo() {
     const cantidad = 700;
     const posiciones = new Float32Array(cantidad * 3);
+    let semilla = 0x4241434b;
+    const azar = () => {
+        semilla = (semilla + 0x6d2b79f5) | 0;
+        let x = Math.imul(semilla ^ (semilla >>> 15), 1 | semilla);
+        x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+        return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
     for (let i = 0; i < cantidad; i++) {
-        const radio = 2.1 + Math.random() * 2.8;
-        const angulo = Math.random() * Math.PI * 2;
+        const radio = 2.1 + azar() * 2.8;
+        const angulo = azar() * Math.PI * 2;
         posiciones[i * 3] = Math.cos(angulo) * radio;
-        posiciones[i * 3 + 1] = (Math.random() - 0.35) * 3.6;
+        posiciones[i * 3 + 1] = (azar() - 0.35) * 3.6;
         posiciones[i * 3 + 2] = Math.sin(angulo) * radio;
     }
     const geometria = new THREE.BufferGeometry();
