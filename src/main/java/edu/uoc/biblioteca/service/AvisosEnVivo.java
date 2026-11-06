@@ -95,6 +95,7 @@ public class AvisosEnVivo {
      */
     @Scheduled(fixedRate = 25_000, initialDelay = 25_000)
     public void latido() {
+        // Ningún fallo con una conexión debe parar el latido de las demás: enviar() ya los recoge
         socios.values().forEach(lista -> lista.forEach(e -> enviar(e, SseEmitter.event().comment("latido"), () -> lista.remove(e))));
         administracion.forEach(e -> enviar(e, SseEmitter.event().comment("latido"), () -> administracion.remove(e)));
         socios.values().removeIf(List::isEmpty);
@@ -109,10 +110,10 @@ public class AvisosEnVivo {
         try {
             emisor.send(evento);
         } catch (IOException | IllegalStateException e) {
-            // La página se cerró: se quita la conexión sin más
+            // La página se cerró: se quita la conexión sin más. Tomcat ya la ha dado por terminada, así que
+            // no se vuelve a tocar (completarla otra vez lanzaría otra excepción y pararía el latido)
             log.debug("Conexión de avisos cerrada: {}", e.getMessage());
             siFalla.run();
-            emisor.completeWithError(e);
         }
     }
 }

@@ -5,9 +5,15 @@ import edu.uoc.biblioteca.service.AvisoService;
 import edu.uoc.biblioteca.service.AvisoService.Aviso;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.util.List;
 
@@ -28,11 +34,27 @@ public class AvisosAdvice {
     @ModelAttribute("avisos")
     public List<Aviso> avisos(Authentication autenticacion, HttpServletRequest request) {
         AvisoService servicio = avisoService.getIfAvailable();
-        if (servicio == null || !"GET".equals(request.getMethod()) || request.getRequestURI().startsWith("/sesion")
+        if (servicio == null || !"GET".equals(request.getMethod()) || !devuelvePagina(request)
                 || autenticacion == null || !(autenticacion.getPrincipal() instanceof CuentaUsuario cuenta)) {
             return null;
         }
         boolean admin = cuenta.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         return admin ? servicio.deAdministracion() : servicio.deSocio(cuenta.getId());
+    }
+
+    /**
+     * Si la petición pinta una página. Las que devuelven datos (JSON de las sugerencias, la conexión de avisos en
+     * tiempo real, renovar la sesión) no necesitan la campanita. Además, en la conexión de avisos, que dura minutos,
+     * consultar la base de datos aquí dejaría ocupada una conexión del pool todo ese tiempo.
+     */
+    static boolean devuelvePagina(HttpServletRequest request) {
+        if (!(request.getAttribute(HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE) instanceof HandlerMethod metodo)) {
+            return true;
+        }
+        Class<?> tipo = metodo.getMethod().getReturnType();
+        return !metodo.hasMethodAnnotation(ResponseBody.class)
+                && !AnnotatedElementUtils.hasAnnotation(metodo.getBeanType(), ResponseBody.class)
+                && !ResponseEntity.class.isAssignableFrom(tipo)
+                && !ResponseBodyEmitter.class.isAssignableFrom(tipo);
     }
 }

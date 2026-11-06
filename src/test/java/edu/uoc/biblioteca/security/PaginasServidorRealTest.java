@@ -46,6 +46,45 @@ class PaginasServidorRealTest {
         assertThat(respuesta.body()).contains("name=\"_csrf\"").contains("</html>");
     }
 
+    /**
+     * Las conexiones de avisos en tiempo real duran minutos. Si cada una retuviera una conexión de la base de datos,
+     * con unas pocas páginas abiertas el pool se agotaría y la web dejaría de responder. Aquí se abren más
+     * conexiones de avisos que conexiones tiene el pool (10) y la web tiene que seguir respondiendo al momento.
+     */
+    @Test
+    void muchasConexionesDeAvisosNoBloqueanLaWeb() throws Exception {
+        HttpClient navegador = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+                .cookieHandler(new java.net.CookieManager()).build();
+        String base = "http://localhost:" + puerto;
+        String login = navegador.send(HttpRequest.newBuilder(URI.create(base + "/login")).build(),
+                HttpResponse.BodyHandlers.ofString()).body();
+        java.util.regex.Matcher token = java.util.regex.Pattern.compile("name=\"_csrf\" value=\"([^\"]+)\"").matcher(login);
+        assertThat(token.find()).isTrue();
+        String formulario = "email=laura.martinez%40example.com&password=Usuario1234&_csrf="
+                + java.net.URLEncoder.encode(token.group(1), java.nio.charset.StandardCharsets.UTF_8);
+        navegador.send(HttpRequest.newBuilder(URI.create(base + "/login"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(formulario)).build(), HttpResponse.BodyHandlers.discarding());
+
+        java.util.List<java.io.InputStream> flujos = new java.util.ArrayList<>();
+        try {
+            for (int i = 0; i < 15; i++) {
+                HttpResponse<java.io.InputStream> flujo = navegador.send(HttpRequest.newBuilder(URI.create(base + "/avisos/flujo"))
+                        .header("Accept", "text/event-stream").build(), HttpResponse.BodyHandlers.ofInputStream());
+                assertThat(flujo.statusCode()).isEqualTo(200);
+                flujos.add(flujo.body());
+            }
+            HttpResponse<String> pagina = navegador.send(HttpRequest.newBuilder(URI.create(base + "/libros"))
+                    .timeout(java.time.Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
+            assertThat(pagina.statusCode()).isEqualTo(200);
+            assertThat(pagina.body()).contains("data-campana");
+        } finally {
+            for (java.io.InputStream flujo : flujos) {
+                flujo.close();
+            }
+        }
+    }
+
     @Test
     void laPortadaLlegaEnteraConSuPoliticaDeSeguridad() throws Exception {
         HttpResponse<String> respuesta = pedir("/");
