@@ -822,6 +822,8 @@ body::before {
 
 .escena-texto {
     position: relative;
+    max-width: 100%;
+    min-width: 0;
     transform: perspective(900px) rotateX(var(--giro-x, 0deg)) rotateY(var(--giro-y, 0deg));
     transition: transform 0.5s var(--curva);
     will-change: transform;
@@ -831,7 +833,8 @@ body::before {
 /* Título dorado con relieve: el degradado rellena cada letra y las sombras apiladas dan el volumen */
 .titulo-3d {
     margin: 0;
-    font-size: clamp(3.4rem, 10vw, 8rem);
+    /* En el móvil manda el ancho de la pantalla: la palabra entera debe caber sin salirse */
+    font-size: clamp(2.4rem, min(12.5vw, 10vw + 1rem), 8rem);
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.01em;
@@ -4495,6 +4498,560 @@ fieldset.campo > legend {
     color: #fff;
 }
 
+/* ======================================================================
+   Seguridad de la cuenta: medidor de fuerza y confirmación de contraseña
+   ====================================================================== */
+.fuerza-clave {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.45rem;
+    font-size: 0.8rem;
+    color: var(--gris-tenue);
+}
+
+.fuerza-pista {
+    flex: 0 0 5.5rem;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.fuerza-relleno {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: #c94b4b;
+    transition: transform 0.35s var(--curva), background-color 0.35s ease;
+}
+
+.fuerza-clave[data-nivel="1"] .fuerza-relleno { transform: scaleX(0.2); background: #c94b4b; }
+.fuerza-clave[data-nivel="2"] .fuerza-relleno { transform: scaleX(0.4); background: #d9823b; }
+.fuerza-clave[data-nivel="3"] .fuerza-relleno { transform: scaleX(0.6); background: var(--oro); }
+.fuerza-clave[data-nivel="4"] .fuerza-relleno { transform: scaleX(0.8); background: #7fc48f; }
+.fuerza-clave[data-nivel="5"] .fuerza-relleno { transform: scaleX(1); background: #4fbf86; }
+.fuerza-clave[data-nivel="1"] .fuerza-texto { color: #f08a8a; }
+.fuerza-clave[data-nivel="4"] .fuerza-texto,
+.fuerza-clave[data-nivel="5"] .fuerza-texto { color: #86cfa6; }
+
+.coincide {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.45rem 0 0;
+    font-size: 0.8rem;
+    color: #f08a8a;
+}
+
+.coincide.si {
+    color: #86cfa6;
+}
+
+.form-clave .formulario-botones {
+    margin-top: 1.2rem;
+}
+
+.recordarme {
+    margin: 0.2rem 0 1.2rem;
+    color: var(--gris-texto);
+}
+
+.recordarme small {
+    color: var(--gris-tenue);
+}
+
+/* Aviso de sesión a punto de caducar (js/app.js) */
+.aviso-sesion {
+    position: fixed;
+    left: 50%;
+    bottom: 1.25rem;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: min(560px, calc(100vw - 2rem));
+    padding: 0.8rem 0.9rem 0.8rem 1rem;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(32, 29, 22, 0.98), rgba(16, 15, 18, 0.98));
+    border: 1px solid rgba(212, 169, 74, 0.55);
+    box-shadow: var(--sombra-profunda), 0 0 40px -12px rgba(212, 169, 74, 0.45);
+    transform: translateX(-50%);
+    animation: aviso-sesion-entra 0.35s var(--curva);
+}
+
+.aviso-sesion p {
+    flex: 1;
+    margin: 0;
+    font-size: 0.92rem;
+}
+
+.aviso-sesion .btn {
+    flex: none;
+    border-radius: 999px;
+}
+
+.aviso-sesion-icono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    background: rgba(212, 169, 74, 0.14);
+    color: var(--oro-claro);
+    font-size: 1.2rem;
+}
+
+@keyframes aviso-sesion-entra {
+    from { opacity: 0; transform: translate(-50%, 16px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 575.98px) {
+    .aviso-sesion {
+        flex-wrap: wrap;
+    }
+
+    .aviso-sesion p {
+        flex-basis: calc(100% - 3.2rem);
+    }
+
+    .aviso-sesion .btn {
+        width: 100%;
+    }
+}
+
+/* ======================================================================
+   Renovar préstamos y cola de reservas
+   ====================================================================== */
+.prestamo-lado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+}
+
+.insignia-renovado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(110, 200, 150, 0.1);
+    border: 1px solid rgba(110, 200, 150, 0.35);
+    color: #86cfa6;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.btn-renovar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+}
+
+.btn-renovar span {
+    color: var(--gris-texto);
+    font-size: 0.78rem;
+}
+
+.btn-renovar:hover i {
+    transform: rotate(180deg);
+}
+
+.btn-renovar i {
+    transition: transform 0.45s var(--curva);
+}
+
+.motivo-renovar {
+    max-width: 12rem;
+    font-size: 0.72rem;
+    color: var(--gris-tenue);
+    text-align: right;
+}
+
+.puesto-cola {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--gris-texto);
+}
+
+.puesto-numero {
+    display: grid;
+    place-items: center;
+    min-width: 2rem;
+    height: 1.6rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: rgba(212, 169, 74, 0.14);
+    border: 1px solid rgba(212, 169, 74, 0.45);
+    color: var(--oro-claro);
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+
+.tarjeta-reserva.lista .puesto-numero {
+    background: rgba(110, 200, 150, 0.14);
+    border-color: rgba(110, 200, 150, 0.5);
+    color: #86cfa6;
+}
+
+.nota-cola {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-basis: 100%;
+    margin: 0.2rem 0 0;
+    font-size: 0.82rem;
+    color: var(--gris-texto);
+}
+
+@media (max-width: 575.98px) {
+    .prestamos-curso > li:not(.vacio-grande) {
+        flex-wrap: wrap;
+    }
+
+    .prestamo-lado {
+        flex-direction: row;
+        flex-basis: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .motivo-renovar {
+        text-align: left;
+    }
+}
+
+/* ======================================================================
+   Campanita de avisos
+   ====================================================================== */
+.campana-boton {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.campana-cuenta {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    display: grid;
+    place-items: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: #d65a5a;
+    border: 2px solid var(--negro);
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Sin avisos nuevos (todos vistos) el número desaparece; con nuevos, la campana se balancea al llegar */
+.campana.todo-visto .campana-cuenta {
+    display: none;
+}
+
+.campana.con-nuevos .campana-boton i {
+    transform-origin: 50% 10%;
+    animation: campana-suena 1.4s ease-in-out 0.6s 2;
+}
+
+@keyframes campana-suena {
+    0%, 60%, 100% { transform: rotate(0); }
+    10% { transform: rotate(16deg); }
+    20% { transform: rotate(-14deg); }
+    30% { transform: rotate(10deg); }
+    40% { transform: rotate(-6deg); }
+    50% { transform: rotate(3deg); }
+}
+
+.menu-avisos {
+    --bs-dropdown-bg: rgba(18, 17, 21, 0.98);
+    --bs-dropdown-border-color: rgba(212, 169, 74, 0.25);
+    width: min(360px, calc(100vw - 1.5rem));
+    margin-top: 0.6rem !important;
+    padding: 0.45rem;
+    border-radius: 16px;
+    box-shadow: var(--sombra-profunda);
+    backdrop-filter: blur(12px);
+}
+
+.menu-avisos-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.2rem 0.5rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--oro);
+}
+
+.aviso-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.6rem 0.65rem;
+    border-radius: 12px;
+    color: var(--marfil);
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.aviso-item:hover,
+.aviso-item:focus-visible {
+    background: rgba(212, 169, 74, 0.08);
+    color: var(--marfil);
+}
+
+.aviso-item.nuevo::after {
+    content: "";
+    position: absolute;
+    top: 0.85rem;
+    right: 0.7rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--oro);
+    box-shadow: 0 0 8px rgba(212, 169, 74, 0.8);
+}
+
+.aviso-item-icono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    font-size: 1.05rem;
+}
+
+.tono-peligro .aviso-item-icono { background: rgba(214, 90, 90, 0.14); color: #f08a8a; }
+.tono-aviso .aviso-item-icono { background: rgba(212, 169, 74, 0.14); color: var(--oro-claro); }
+.tono-exito .aviso-item-icono { background: rgba(110, 200, 150, 0.14); color: #86cfa6; }
+
+.aviso-item-texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding-right: 0.8rem;
+}
+
+.aviso-item-texto strong {
+    font-size: 0.88rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.aviso-item-texto small {
+    color: var(--gris-texto);
+    font-size: 0.78rem;
+}
+
+.menu-avisos-vacio {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.7rem 0.6rem 0.8rem;
+    color: var(--gris-texto);
+    font-size: 0.88rem;
+}
+
+.menu-avisos-vacio i {
+    color: #86cfa6;
+    font-size: 1.15rem;
+}
+
+/* ======================================================================
+   Buscador con sugerencias (js/app.js, form[data-sugerencias])
+   ====================================================================== */
+.con-sugerencias {
+    position: relative;
+}
+
+.sugerencias {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 1070;
+    width: max(100%, min(420px, calc(100vw - 2rem)));
+    max-height: min(70vh, 30rem);
+    padding: 0.4rem;
+    overflow-y: auto;
+    border-radius: 16px;
+    background: rgba(18, 17, 21, 0.98);
+    border: 1px solid rgba(212, 169, 74, 0.3);
+    box-shadow: var(--sombra-profunda);
+    backdrop-filter: blur(12px);
+    text-align: left;
+    animation: sugerencias-entran 0.18s var(--curva);
+}
+
+@keyframes sugerencias-entran {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.sugerencias-grupo {
+    margin: 0.35rem 0.55rem 0.25rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--oro);
+}
+
+.sugerencia {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 11px;
+    color: var(--marfil);
+    text-decoration: none;
+}
+
+.sugerencia:hover,
+.sugerencia.activa {
+    background: rgba(212, 169, 74, 0.1);
+    color: var(--marfil);
+}
+
+.sugerencia.activa {
+    box-shadow: inset 0 0 0 1px rgba(212, 169, 74, 0.45);
+}
+
+.sugerencia-datos {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sugerencia-datos strong {
+    overflow: hidden;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sugerencia-datos small {
+    overflow: hidden;
+    color: var(--gris-texto);
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sugerencia mark {
+    padding: 0;
+    background: none;
+    color: var(--oro-claro);
+    font-weight: 700;
+}
+
+.sugerencia .disponibilidad {
+    flex: none;
+    font-size: 0.7rem;
+}
+
+.sugerencia-icono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(212, 169, 74, 0.12);
+    color: var(--oro-claro);
+}
+
+.sugerencia-todos {
+    justify-content: center;
+    margin-top: 0.3rem;
+    border-top: 1px solid rgba(212, 169, 74, 0.12);
+    border-radius: 0 0 11px 11px;
+    color: var(--gris-texto);
+    font-size: 0.85rem;
+}
+
+.sugerencia-todos {
+    gap: 0.3rem;
+}
+
+.sugerencia-todos strong {
+    color: var(--oro-claro);
+}
+
+.sugerencias-vacio {
+    margin: 0;
+    padding: 0.7rem 0.6rem;
+    color: var(--gris-texto);
+    font-size: 0.88rem;
+}
+
+/* ======================================================================
+   El libro que vuela al menú al pedirlo o reservarlo (js/app.js, data-volar)
+   ====================================================================== */
+.libro-volador {
+    position: fixed;
+    z-index: 2000;
+    margin: 0;
+    pointer-events: none;
+    transform-origin: 50% 50%;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 169, 74, 0.45);
+}
+
+/* La entrada del menú que recibe el libro brilla un momento (en esta página y al llegar a la siguiente) */
+.menu-enlace.recibe,
+.menu-enlace.llega,
+.perfil.recibe {
+    animation: menu-recibe 1.1s var(--curva);
+}
+
+@keyframes menu-recibe {
+    0% { box-shadow: 0 0 0 0 rgba(212, 169, 74, 0.7); background-color: rgba(212, 169, 74, 0.28); }
+    100% { box-shadow: 0 0 0 14px rgba(212, 169, 74, 0); }
+}
+
+/* Móviles estrechos: «Bienvenidos» más pequeño para que no pise los botones de la sesión */
+@media (max-width: 419.98px) {
+    .cabecera-bienvenida {
+        font-size: 1.12rem;
+        letter-spacing: 0.02em;
+    }
+
+    .buscador-portada {
+        padding-left: 0.95rem;
+    }
+
+    .buscador-portada .btn {
+        padding-inline: 1rem;
+    }
+}
+
 /* Sin animaciones para quien las tenga desactivadas en el sistema */
 @media (prefers-reduced-motion: reduce) {
     .ventana-confirmar[open],
@@ -4524,6 +5081,10 @@ fieldset.campo > legend {
     .ficha-datos,
     .escena-fondo,
     .pared .lomos,
+    .menu-enlace.recibe,
+    .menu-enlace.llega,
+    .sugerencias,
+    .campana.con-nuevos .campana-boton i,
     .escena-bajar,
     .franja-icono {
         animation: none !important;

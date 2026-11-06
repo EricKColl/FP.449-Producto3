@@ -80,24 +80,26 @@
                                 <i class="ti ti-key" aria-hidden="true"></i>
                                 <input type="password" class="form-control" th:field="*{password}" th:errorclass="is-invalid"
                                        autocomplete="new-password" minlength="8" maxlength="72" required
-                                       aria-describedby="ayuda-password" data-aviso-mayusculas>
+                                       aria-describedby="fuerza-password" data-aviso-mayusculas>
                                 <button type="button" class="ver-clave" data-ver-clave="password" aria-label="Mostrar la contraseña">
                                     <i class="ti ti-eye"></i>
                                 </button>
                             </div>
                             <div class="invalid-feedback d-block" th:errors="*{password}">Error</div>
-                            <div id="ayuda-password" class="form-text" th:unless="${#fields.hasErrors('password')}">Usa al menos 8 caracteres.</div>
+                            <th:block th:unless="${#fields.hasErrors('password')}"><div th:replace="~{fragments/layout :: fuerzaClave('password')}"></div></th:block>
                         </div>
                         <div class="col-md-6 campo">
                             <label for="confirmarPassword" class="form-label">Repetir contraseña *</label>
                             <div class="campo-control">
                                 <i class="ti ti-key" aria-hidden="true"></i>
                                 <input type="password" class="form-control" id="confirmarPassword" name="confirmarPassword"
-                                       autocomplete="new-password" minlength="8" maxlength="72" required data-aviso-mayusculas>
+                                       autocomplete="new-password" minlength="8" maxlength="72" required data-aviso-mayusculas
+                                       data-igual-que="password">
                                 <button type="button" class="ver-clave" data-ver-clave="confirmarPassword" aria-label="Mostrar la contraseña repetida">
                                     <i class="ti ti-eye"></i>
                                 </button>
                             </div>
+                            <p class="coincide" data-coincide-de="confirmarPassword" hidden></p>
                         </div>
                     </div>
                     <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>

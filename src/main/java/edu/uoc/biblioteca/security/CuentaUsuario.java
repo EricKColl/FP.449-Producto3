@@ -18,7 +18,12 @@ public class CuentaUsuario extends User {
     private final String iniciales;
 
     public CuentaUsuario(Usuario usuario) {
-        super(usuario.getEmail(), usuario.getPassword(),
+        this(usuario, false);
+    }
+
+    /** Con {@code bloqueada}, Spring Security rechaza el acceso aunque la contraseña sea correcta (IntentosDeAcceso). */
+    public CuentaUsuario(Usuario usuario, boolean bloqueada) {
+        super(usuario.getEmail(), usuario.getPassword(), true, true, true, !bloqueada,
                 List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name())));
         this.id = usuario.getId();
         this.nombre = usuario.getNombreCompleto();

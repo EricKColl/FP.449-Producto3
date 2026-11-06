@@ -70,6 +70,8 @@ async function iniciar() {
         if (!ancho || !alto) return;
         render.setSize(ancho, alto, false);
         camara.aspect = ancho / alto;
+        // En pantallas estrechas (móvil en vertical) se abre el encuadre para que la corona quepa entera
+        camara.zoom = Math.min(1, camara.aspect / 1.3);
         camara.updateProjectionMatrix();
     };
     new ResizeObserver(ajustar).observe(lienzo);

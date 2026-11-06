@@ -30,6 +30,13 @@
                 <div th:if="${param.error}" class="alert alert-danger" role="alert">
                     <i class="ti ti-alert-triangle me-1"></i> El email o la contraseña no son correctos.
                 </div>
+                <div th:if="${param.bloqueado}" class="alert alert-danger" role="alert">
+                    <i class="ti ti-lock me-1"></i> Demasiados intentos fallidos con este email. Por seguridad, espera
+                    <span th:text="${minutosBloqueo} + (${minutosBloqueo == 1} ? ' minuto' : ' minutos')">5 minutos</span> y vuelve a intentarlo.
+                </div>
+                <div th:if="${param.caducada}" class="alert alert-warning" role="alert">
+                    <i class="ti ti-clock-x me-1"></i> Tu sesión se cerró por inactividad. Vuelve a entrar para seguir.
+                </div>
                 <div th:if="${param.salida}" class="alert alert-success" role="alert">
                     <i class="ti ti-circle-check me-1"></i> Has cerrado la sesión.
                 </div>
@@ -38,6 +45,8 @@
                 </div>
 
                 <form method="post" th:action="@{/login}" data-enviando>
+                    <!-- Página a la que volver después de entrar (solo rutas de la aplicación: AccesoCorrecto) -->
+                    <input type="hidden" name="volver" th:if="${param.volver}" th:value="${param.volver}">
                     <div class="campo">
                         <label for="email" class="form-label">Email</label>
                         <div class="campo-control">
@@ -58,6 +67,11 @@
                         </div>
                         <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>
                     </div>
+                    <label class="interruptor recordarme">
+                        <input type="checkbox" name="recordarme" value="true">
+                        <span class="interruptor-pista" aria-hidden="true"></span>
+                        <span>Recordarme en este equipo <small>(14 días)</small></span>
+                    </label>
                     <button type="submit" class="btn btn-primary btn-lg btn-accion w-100">
                         <i class="ti ti-login-2"></i> Entrar
                     </button>

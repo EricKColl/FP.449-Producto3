@@ -1,5 +1,8 @@
 package edu.uoc.biblioteca.controller;
 
+import edu.uoc.biblioteca.repository.UsuarioRepository;
+import edu.uoc.biblioteca.security.CuentaDetailsService;
+import edu.uoc.biblioteca.security.IntentosDeAcceso;
 import edu.uoc.biblioteca.security.SecurityConfig;
 import edu.uoc.biblioteca.service.AutorDestacado;
 import edu.uoc.biblioteca.service.Cifra;
@@ -27,7 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @WebMvcTest(InicioController.class)
-@Import(SecurityConfig.class)
+// La configuración de seguridad real, con el freno de intentos y las cuentas («Recordarme» las necesita)
+@Import({SecurityConfig.class, IntentosDeAcceso.class, CuentaDetailsService.class})
 class InicioControllerTest {
 
     @Autowired
@@ -35,6 +39,9 @@ class InicioControllerTest {
 
     @MockitoBean
     private PortadaService portadaService;
+
+    @MockitoBean
+    private UsuarioRepository usuarioRepository;
 
     @Test
     void laPortadaEsPublicaYEnsenaElCatalogo() throws Exception {

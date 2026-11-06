@@ -1,12 +1,15 @@
 package edu.uoc.biblioteca.service;
 
 import edu.uoc.biblioteca.model.EstadoPrestamo;
+import edu.uoc.biblioteca.model.EstadoReserva;
 import edu.uoc.biblioteca.model.Libro;
 import edu.uoc.biblioteca.model.Prestamo;
+import edu.uoc.biblioteca.model.Reserva;
 import edu.uoc.biblioteca.model.Rol;
 import edu.uoc.biblioteca.model.Usuario;
 import edu.uoc.biblioteca.repository.LibroRepository;
 import edu.uoc.biblioteca.repository.PrestamoRepository;
+import edu.uoc.biblioteca.repository.ReservaRepository;
 import edu.uoc.biblioteca.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,13 +29,16 @@ public class PrestamoService {
     private final PrestamoRepository prestamoRepository;
     private final LibroRepository libroRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ReservaRepository reservaRepository;
 
     public PrestamoService(PrestamoRepository prestamoRepository,
                            LibroRepository libroRepository,
-                           UsuarioRepository usuarioRepository) {
+                           UsuarioRepository usuarioRepository,
+                           ReservaRepository reservaRepository) {
         this.prestamoRepository = prestamoRepository;
         this.libroRepository = libroRepository;
         this.usuarioRepository = usuarioRepository;
+        this.reservaRepository = reservaRepository;
     }
 
     /** Todos los préstamos (del más reciente al más antiguo) o solo los de un estado. */
@@ -106,7 +112,85 @@ public class PrestamoService {
             throw new IllegalStateException(
                     "No quedan ejemplares disponibles de «" + libro.getTitulo() + "»");
         }
+        if (ejemplaresParaUsuario(libro, usuarioId) <= 0) {
+            throw new IllegalStateException("Los ejemplares libres de «" + libro.getTitulo()
+                    + "» están apartados para quien lo reservó antes");
+        }
+        // Si lo tenía reservado, la reserva queda atendida: se cierra y sale de la cola
+        reservaRepository.findFirstByUsuarioIdAndLibroIdAndEstado(usuarioId, libroId, EstadoReserva.ACTIVA)
+                .ifPresent(Reserva::cancelar);
         return prestamoRepository.save(new Prestamo(usuario, libro));
+    }
+
+    /**
+     * Ejemplares que puede llevarse este usuario. Los libres se reparten por orden de reserva: primero quien
+     * reservó antes. Quien está el N.º en la cola necesita N ejemplares libres; quien no lo ha reservado,
+     * que sobre alguno después de atender a toda la cola.
+     */
+    public long ejemplaresParaUsuario(Libro libro, Long usuarioId) {
+        List<Reserva> cola = colaDe(libro.getId());
+        int delante = cola.size();
+        for (int i = 0; i < cola.size(); i++) {
+            if (cola.get(i).getUsuario().getId().equals(usuarioId)) {
+                delante = i;
+                break;
+            }
+        }
+        return ejemplaresDisponibles(libro) - delante;
+    }
+
+    /** Puesto (1, 2, 3...) de una reserva activa en la cola de su libro; 0 si no está en la cola. */
+    public int puestoEnCola(Reserva reserva) {
+        List<Reserva> cola = colaDe(reserva.getLibro().getId());
+        for (int i = 0; i < cola.size(); i++) {
+            if (cola.get(i).getId().equals(reserva.getId())) {
+                return i + 1;
+            }
+        }
+        return 0;
+    }
+
+    private List<Reserva> colaDe(Long libroId) {
+        return reservaRepository.findByLibroIdAndEstadoOrderByFechaReservaAscIdAsc(libroId, EstadoReserva.ACTIVA);
+    }
+
+    /** Días que añade cada renovación (una por préstamo). */
+    public static final int DIAS_RENOVACION = Prestamo.DIAS_PRESTAMO;
+
+    /**
+     * Por qué no se puede renovar un préstamo, o null si se puede. Solo una vez, dentro de plazo y si nadie
+     * espera ese libro: con reservas en cola, el ejemplar tiene que volver a tiempo.
+     */
+    public String motivoNoRenovable(Prestamo prestamo) {
+        if (prestamo.isDevuelto()) {
+            return "Ya está devuelto";
+        }
+        if (prestamo.getDiasRetraso() > 0) {
+            return "Está fuera de plazo: hay que devolverlo";
+        }
+        if (prestamo.isRenovado()) {
+            return "Ya se renovó una vez";
+        }
+        if (!colaDe(prestamo.getLibro().getId()).isEmpty()) {
+            return "Otros socios esperan este libro";
+        }
+        return null;
+    }
+
+    /** El socio alarga DIAS_RENOVACION días un préstamo suyo. El préstamo de otro se comporta como si no existiera. */
+    @Transactional
+    public Prestamo renovar(Long id, Long usuarioId) {
+        Prestamo prestamo = buscarPorId(id);
+        if (!prestamo.getUsuario().getId().equals(usuarioId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el préstamo " + id);
+        }
+        String motivo = motivoNoRenovable(prestamo);
+        if (motivo != null) {
+            throw new IllegalStateException("No se puede renovar «" + prestamo.getLibro().getTitulo() + "»: "
+                    + motivo.substring(0, 1).toLowerCase() + motivo.substring(1));
+        }
+        prestamo.setFechaDevolucionPrevista(prestamo.getFechaDevolucionPrevista().plusDays(DIAS_RENOVACION));
+        return prestamo;
     }
 
     @Transactional
@@ -132,7 +216,7 @@ public class PrestamoService {
         return new UsuarioPrestatario(usuario, abiertos, motivo);
     }
 
-    private long ejemplaresDisponibles(Libro libro) {
+    long ejemplaresDisponibles(Libro libro) {
         return libro.getEjemplares()
                 - prestamoRepository.countByLibroIdAndFechaDevolucionIsNull(libro.getId());
     }

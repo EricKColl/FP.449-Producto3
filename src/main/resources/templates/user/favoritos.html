@@ -18,11 +18,11 @@
         <div class="estante-libro" th:each="f : ${favoritos}" data-aparecer>
             <a th:replace="~{fragments/layout :: cubierta(${f.libro}, ${f.disponibles})}"></a>
             <div class="estante-acciones">
-                <form th:if="${f.prestable}" method="post" th:action="@{/user/prestamos}" data-enviando>
+                <form th:if="${f.prestable}" method="post" th:action="@{/user/prestamos}" data-enviando data-volar="mis-prestamos">
                     <input type="hidden" name="libroId" th:value="${f.libro.id}">
                     <button class="btn btn-sm btn-primary" type="submit"><i class="ti ti-book-download"></i> Pedir</button>
                 </form>
-                <form th:unless="${f.prestable}" method="post" th:action="@{/user/reservas}" data-enviando>
+                <form th:unless="${f.prestable}" method="post" th:action="@{/user/reservas}" data-enviando data-volar="mis-reservas">
                     <input type="hidden" name="libroId" th:value="${f.libro.id}">
                     <button class="btn btn-sm btn-sesion" type="submit"><i class="ti ti-bookmark"></i> Reservar</button>
                 </form>

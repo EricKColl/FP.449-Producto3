@@ -15,19 +15,24 @@
             <span class="chip-cuenta" th:text="${#lists.size(activas)}">1</span>
         </header>
         <ul class="tarjetas-reserva">
-            <li class="tarjeta-reserva" th:each="r : ${activas}" th:with="libres=${disponibles.get(r.libro.id)}"
+            <li class="tarjeta-reserva" th:each="r : ${activas}" th:with="libres=${disponibles.get(r.libro.id)}, puesto=${puestos.get(r.id)}"
                 th:classappend="${libres > 0} ? 'lista'">
                 <span class="lomo" th:classappend="|tono-${r.libro.id % 6}|"><i class="ti ti-crown"></i></span>
                 <div class="reserva-datos">
                     <a class="prestamo-titulo" th:href="@{/libros/{id}(id=${r.libro.id})}" th:text="${r.libro.titulo}">El capitán Alatriste</a>
                     <span class="prestamo-autor" th:text="${r.libro.autoresTexto}">Arturo Pérez-Reverte</span>
                     <span class="reserva-fecha" th:text="'Reservado el ' + ${#temporals.format(r.fechaReserva, 'd ''de'' MMMM')}">Reservado el 1 de noviembre</span>
+                    <!-- Puesto en la cola del libro: los ejemplares que vuelven se reparten por orden de reserva -->
+                    <span class="puesto-cola" th:if="${puesto > 0}">
+                        <span class="puesto-numero" th:text="|${puesto}.º|">1.º</span>
+                        <span th:text="${puesto == 1} ? 'Eres el primero de la cola' : |Hay ${puesto - 1} ${puesto == 2 ? 'persona' : 'personas'} antes que tú|">Eres el primero de la cola</span>
+                    </span>
                 </div>
                 <div class="reserva-estado">
                     <span class="estado" th:classappend="${libres > 0} ? 'estado-listo' : 'estado-activo'"
                           th:text="${libres > 0} ? '¡Ya hay ejemplar!' : 'En espera'">En espera</span>
                     <div class="reserva-acciones">
-                        <form th:if="${libres > 0}" method="post" th:action="@{/user/prestamos}" data-enviando>
+                        <form th:if="${libres > 0}" method="post" th:action="@{/user/prestamos}" data-enviando data-volar="mis-prestamos">
                             <input type="hidden" name="libroId" th:value="${r.libro.id}">
                             <button class="btn btn-sm btn-primary" type="submit"><i class="ti ti-book-download"></i> Pedir</button>
                         </form>
@@ -60,7 +65,8 @@
                     <a th:href="@{/libros/{id}(id=${r.libro.id})}" th:text="${r.libro.titulo}">Libro</a>
                     <small th:text="'Reservado el ' + ${#temporals.format(r.fechaReserva, 'dd/MM/yyyy')}">Reservado</small>
                 </span>
-                <span class="estado estado-neutro" th:text="${r.estado.etiqueta}">Cancelada</span>
+                <span class="estado" th:classappend="${atendidas.contains(r.id)} ? 'estado-devuelto' : 'estado-neutro'"
+                      th:text="${atendidas.contains(r.id)} ? 'Atendida' : ${r.estado.etiqueta}">Cancelada</span>
             </li>
         </ul>
     </article>

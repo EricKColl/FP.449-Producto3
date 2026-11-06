@@ -30,7 +30,7 @@
             <p class="titulo-grupo"><span>BackLord</span></p>
             <p class="escena-lema">El catálogo completo, tus préstamos y tus reservas en un mismo lugar.
                 Elige un libro, pídelo en un clic y devuélvelo cuando termines.</p>
-            <form class="buscador-portada" role="search" method="get" th:action="@{/libros}">
+            <form class="buscador-portada" role="search" method="get" th:action="@{/libros}" data-sugerencias>
                 <i class="ti ti-search" aria-hidden="true"></i>
                 <input type="search" name="q" placeholder="¿Qué te apetece leer? Título, autor o género"
                        aria-label="Buscar en el catálogo">

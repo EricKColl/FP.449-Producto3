@@ -80,6 +80,14 @@ public class Prestamo {
         return Math.max(0, -getDiasRestantes());
     }
 
+    /**
+     * Si ya se renovó: un préstamo nace con DIAS_PRESTAMO días de plazo y cada renovación los alarga otros tantos,
+     * así que un plazo más largo indica que se renovó. No hace falta ninguna columna nueva en la base de datos.
+     */
+    public boolean isRenovado() {
+        return ChronoUnit.DAYS.between(fechaPrestamo, fechaDevolucionPrevista) > DIAS_PRESTAMO;
+    }
+
     /** Parte del plazo ya consumida, de 0 a 100, para la barra de progreso. */
     public int getPorcentajePlazo() {
         long total = Math.max(1, ChronoUnit.DAYS.between(fechaPrestamo, fechaDevolucionPrevista));

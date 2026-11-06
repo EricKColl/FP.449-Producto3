@@ -89,6 +89,30 @@ public class UsuarioService {
         return null;
     }
 
+    /**
+     * El propio usuario cambia su contraseña desde Mi cuenta. Debe escribir la actual (así nadie que encuentre
+     * la sesión abierta puede cambiarla) y repetir la nueva. Si algo falla, lanza IllegalArgumentException con
+     * un mensaje para quien la escribe.
+     */
+    @Transactional
+    public void cambiarPassword(Long id, String actual, String nueva, String repetida) {
+        Usuario usuario = buscarPorId(id);
+        if (actual == null || !passwordEncoder.matches(actual, usuario.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual no es correcta");
+        }
+        String problema = problemaPassword(nueva);
+        if (problema != null) {
+            throw new IllegalArgumentException(problema);
+        }
+        if (!nueva.equals(repetida)) {
+            throw new IllegalArgumentException("Las dos contraseñas nuevas no coinciden");
+        }
+        if (passwordEncoder.matches(nueva, usuario.getPassword())) {
+            throw new IllegalArgumentException("La contraseña nueva debe ser distinta de la actual");
+        }
+        usuario.setPassword(passwordEncoder.encode(nueva));
+    }
+
     /** El registro público siempre crea un socio con rol USER y fecha de alta de hoy. */
     @Transactional
     public Usuario registrar(Usuario usuario) {

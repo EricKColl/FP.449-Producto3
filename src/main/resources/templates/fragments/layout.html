@@ -39,6 +39,8 @@
     <link rel="stylesheet" th:href="@{/css/backlord.css}">
     <link rel="icon" type="image/png" th:href="@{/img/favicon.png}">
     <script th:src="@{/js/inicio.js}"></script>
+    <!-- Segundos de inactividad que aguanta la sesión: js/app.js avisa un poco antes de que caduque -->
+    <meta name="sesion-caduca" th:if="${sesionCaduca != null}" th:content="${sesionCaduca}">
 </head>
 
 <th:block th:fragment="navbar(seccion)">
@@ -52,7 +54,7 @@
                     aria-controls="menu-lateral" aria-label="Abrir el menú">
                 <i class="ti ti-menu-2"></i>
             </button>
-            <form class="buscador d-none d-md-flex" role="search" method="get" th:action="@{/libros}">
+            <form class="buscador d-none d-md-flex" role="search" method="get" th:action="@{/libros}" data-sugerencias>
                 <i class="ti ti-search" aria-hidden="true"></i>
                 <input type="search" name="q" class="form-control" placeholder="Buscar en el catálogo"
                        aria-label="Buscar en el catálogo">
@@ -70,7 +72,7 @@
 
         <div class="cabecera-lado cabecera-sesion">
             <th:block sec:authorize="!isAuthenticated()">
-                <a class="btn btn-sesion" th:href="@{/login}"
+                <a class="btn btn-sesion" th:href="${rutaActual == null} ? @{/login} : @{/login(volver=${rutaActual})}"
                    th:classappend="${seccion == 'login'} ? 'active'">
                     <i class="ti ti-login-2"></i><span class="d-none d-sm-inline"> Iniciar sesión</span>
                 </a>
@@ -79,6 +81,30 @@
                     <i class="ti ti-user-plus"></i><span class="d-none d-sm-inline"> Crear cuenta</span>
                 </a>
             </th:block>
+            <!-- Campanita de avisos (AvisosAdvice): se calculan con el estado real de préstamos y reservas.
+                 El navegador recuerda cuáles se han visto y solo cuenta los nuevos (js/app.js) -->
+            <div class="dropdown campana" th:if="${avisos != null}" data-campana>
+                <button class="btn btn-icono campana-boton" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                        th:aria-label="${#lists.isEmpty(avisos)} ? 'Avisos: ninguno' : |Avisos: ${#lists.size(avisos)}|">
+                    <i class="ti ti-bell"></i>
+                    <span class="campana-cuenta" th:unless="${#lists.isEmpty(avisos)}" th:text="${#lists.size(avisos)}"
+                          aria-hidden="true">2</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end menu-avisos">
+                    <p class="menu-avisos-titulo"><i class="ti ti-bell"></i> Avisos</p>
+                    <a class="aviso-item" th:each="a : ${avisos}" th:href="@{${a.enlace}}"
+                       th:classappend="|tono-${a.tono}|" th:data-aviso="${a.clave}">
+                        <span class="aviso-item-icono" aria-hidden="true"><i class="ti" th:classappend="|ti-${a.icono}|"></i></span>
+                        <span class="aviso-item-texto">
+                            <strong th:text="${a.titulo}">«Cien años de soledad» vence mañana</strong>
+                            <small th:text="${a.texto}">Devuélvelo a tiempo.</small>
+                        </span>
+                    </a>
+                    <p class="menu-avisos-vacio" th:if="${#lists.isEmpty(avisos)}">
+                        <i class="ti ti-circle-check"></i> Todo al día: no tienes avisos.
+                    </p>
+                </div>
+            </div>
             <div class="dropdown" sec:authorize="isAuthenticated()">
                 <button class="btn perfil" type="button" data-bs-toggle="dropdown" aria-expanded="false"
                         aria-label="Menú de la cuenta">
@@ -198,7 +224,7 @@
      de la página (Tabler Icons, sin el prefijo ti-):
      <th:block th:replace="~{fragments/layout :: consejo('reservas', 'bookmark', 'Título', 'Texto')}"></th:block> -->
 <th:block th:fragment="consejo(clave, icono, titulo, texto)">
-    <aside class="consejo-emergente" th:data-consejo="${clave}" role="dialog" aria-modal="false"
+    <div class="consejo-emergente" th:data-consejo="${clave}" role="dialog" aria-modal="false"
            th:aria-labelledby="|consejo-${clave}-titulo|">
         <div class="consejo-cuerpo">
             <span class="consejo-icono" aria-hidden="true"><i class="ti" th:classappend="|ti-${icono}|"></i></span>
@@ -211,12 +237,20 @@
             </div>
             <button type="button" class="consejo-cerrar" aria-label="Cerrar el consejo"><i class="ti ti-x"></i></button>
         </div>
-    </aside>
+    </div>
     <button type="button" class="consejo-abrir" th:data-consejo-abrir="${clave}" hidden
             aria-label="Ver el consejo de esta página">
         <i class="ti ti-bulb"></i><span>Consejo</span>
     </button>
 </th:block>
+
+<!-- Medidor de la fuerza de una contraseña nueva, debajo de su campo (js/app.js, data-fuerza-de):
+     <div th:replace="~{fragments/layout :: fuerzaClave('password')}"></div> -->
+<div th:fragment="fuerzaClave(campo)" class="fuerza-clave" th:id="|fuerza-${campo}|" th:data-fuerza-de="${campo}"
+     data-nivel="0" aria-live="polite">
+    <span class="fuerza-pista" aria-hidden="true"><span class="fuerza-relleno"></span></span>
+    <span class="fuerza-texto">Al menos 8 caracteres; mejor con mayúsculas, números y símbolos</span>
+</div>
 
 <!-- Estado de un préstamo con su color:
      <span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span> -->

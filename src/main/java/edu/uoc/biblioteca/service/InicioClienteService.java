@@ -31,9 +31,12 @@ public class InicioClienteService {
     private final LibroRepository libroRepository;
     private final PrestamoRepository prestamoRepository;
     private final ReservaRepository reservaRepository;
+    private final PrestamoService prestamoService;
 
     public InicioClienteService(UsuarioService usuarioService, LibroService libroService, LibroRepository libroRepository,
-                                PrestamoRepository prestamoRepository, ReservaRepository reservaRepository) {
+                                PrestamoRepository prestamoRepository, ReservaRepository reservaRepository,
+                                PrestamoService prestamoService) {
+        this.prestamoService = prestamoService;
         this.usuarioService = usuarioService;
         this.libroService = libroService;
         this.libroRepository = libroRepository;
@@ -46,7 +49,8 @@ public class InicioClienteService {
         List<Prestamo> enCurso = prestamoRepository.findByUsuarioIdAndFechaDevolucionIsNullOrderByFechaDevolucionPrevistaAsc(usuarioId);
         List<ReservaActiva> reservas = reservaRepository.findByUsuarioIdOrderByFechaReservaDescIdDesc(usuarioId).stream()
                 .filter(Reserva::isActiva)
-                .map(reserva -> new ReservaActiva(reserva, libroService.ejemplaresDisponibles(reserva.getLibro()) > 0))
+                // Lista para pedir solo cuando le toca: los ejemplares libres van por orden de reserva
+                .map(reserva -> new ReservaActiva(reserva, prestamoService.ejemplaresParaUsuario(reserva.getLibro(), usuarioId) > 0))
                 .toList();
         List<LibroDisponible> favoritos = usuario.getFavoritos().stream().map(this::conDisponibles).toList();
         boolean bloqueado = prestamoRepository.existsByUsuarioIdAndFechaDevolucionIsNullAndFechaDevolucionPrevistaBefore(

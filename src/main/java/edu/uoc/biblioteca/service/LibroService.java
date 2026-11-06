@@ -13,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 @Service
@@ -36,12 +35,13 @@ public class LibroService {
         if (texto == null || texto.isBlank()) {
             return libros;
         }
-        String buscado = texto.trim().toLowerCase(Locale.ROOT);
+        // Sin distinguir mayúsculas ni tildes: «garcia» encuentra «García»
+        String buscado = BusquedaService.normalizar(texto);
         return libros.stream()
-                .filter(libro -> libro.getTitulo().toLowerCase(Locale.ROOT).contains(buscado)
-                        || libro.getIsbn().toLowerCase(Locale.ROOT).contains(buscado)
-                        || libro.getAutoresTexto().toLowerCase(Locale.ROOT).contains(buscado)
-                        || (libro.getGenero() != null && libro.getGenero().toLowerCase(Locale.ROOT).contains(buscado)))
+                .filter(libro -> BusquedaService.normalizar(libro.getTitulo()).contains(buscado)
+                        || BusquedaService.normalizar(libro.getIsbn()).contains(buscado)
+                        || BusquedaService.normalizar(libro.getAutoresTexto()).contains(buscado)
+                        || BusquedaService.normalizar(libro.getGenero()).contains(buscado))
                 .toList();
     }
 

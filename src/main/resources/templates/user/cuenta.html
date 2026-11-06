@@ -46,6 +46,48 @@
                 </dl>
             </section>
 
+            <!-- Seguridad: cambiar la contraseña (cualquier rol). Pide la actual para que nadie que encuentre
+                 la sesión abierta pueda cambiarla -->
+            <section class="bloque" id="seguridad" data-aparecer>
+                <header class="bloque-cabecera">
+                    <h2><i class="ti ti-shield-lock"></i> Seguridad</h2>
+                </header>
+                <form class="form-clave" method="post" th:action="@{/user/cuenta/password}" data-enviando novalidate>
+                    <div class="campo">
+                        <label for="actual" class="form-label">Contraseña actual</label>
+                        <div class="campo-control"><i class="ti ti-lock" aria-hidden="true"></i>
+                            <input type="password" class="form-control" id="actual" name="actual" required
+                                   autocomplete="current-password" th:classappend="${errorPassword != null and #strings.contains(errorPassword, 'actual')} ? 'is-invalid'">
+                            <button type="button" class="ver-clave" data-ver-clave="actual" aria-label="Mostrar la contraseña actual"><i class="ti ti-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6 campo">
+                            <label for="nueva" class="form-label">Contraseña nueva</label>
+                            <div class="campo-control"><i class="ti ti-key" aria-hidden="true"></i>
+                                <input type="password" class="form-control" id="nueva" name="nueva" required minlength="8" maxlength="72"
+                                       autocomplete="new-password" aria-describedby="fuerza-nueva" data-aviso-mayusculas>
+                                <button type="button" class="ver-clave" data-ver-clave="nueva" aria-label="Mostrar la contraseña nueva"><i class="ti ti-eye"></i></button>
+                            </div>
+                            <div th:replace="~{fragments/layout :: fuerzaClave('nueva')}"></div>
+                            <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>
+                        </div>
+                        <div class="col-md-6 campo">
+                            <label for="repetida" class="form-label">Repite la contraseña nueva</label>
+                            <div class="campo-control"><i class="ti ti-key" aria-hidden="true"></i>
+                                <input type="password" class="form-control" id="repetida" name="repetida" required
+                                       autocomplete="new-password" data-igual-que="nueva">
+                                <button type="button" class="ver-clave" data-ver-clave="repetida" aria-label="Mostrar la contraseña repetida"><i class="ti ti-eye"></i></button>
+                            </div>
+                            <p class="coincide" data-coincide-de="repetida" hidden></p>
+                        </div>
+                    </div>
+                    <div class="formulario-botones">
+                        <button type="submit" class="btn btn-primary btn-accion"><i class="ti ti-check"></i> Cambiar contraseña</button>
+                    </div>
+                </form>
+            </section>
+
             <!-- Cliente: su actividad -->
             <section class="bloque" sec:authorize="hasRole('USER')" data-aparecer>
                 <header class="bloque-cabecera">

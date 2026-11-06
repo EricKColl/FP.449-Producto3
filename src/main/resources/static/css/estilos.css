@@ -18,7 +18,7 @@
     --oro-fondo: #1f1a10;
     --marfil: #ede6d6;
     --gris-texto: #a9a08c;
-    --gris-tenue: #7f7765;
+    --gris-tenue: #928a78; /* contraste 4,5:1 o más en todos los fondos (WCAG AA) */
     --degradado-oro: linear-gradient(135deg, #f0d48a 0%, #d4a94a 45%, #b8862b 100%);
     --ancho-menu: 248px;
 

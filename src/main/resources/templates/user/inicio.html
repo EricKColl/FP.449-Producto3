@@ -14,7 +14,7 @@
             <h1 class="tablero-titulo">Hola, <span th:text="${u.nombre}">Laura</span></h1>
             <p class="tablero-fecha" th:text="'Con cuenta desde el ' + ${#temporals.format(u.fechaAlta, 'd ''de'' MMMM ''de'' yyyy')}">Con cuenta desde</p>
         </div>
-        <form class="buscador buscador-saludo" role="search" method="get" th:action="@{/libros}">
+        <form class="buscador buscador-saludo" role="search" method="get" th:action="@{/libros}" data-sugerencias>
             <i class="ti ti-search" aria-hidden="true"></i>
             <input type="search" name="q" class="form-control" placeholder="Busca tu próximo libro" aria-label="Buscar en el catálogo">
         </form>
@@ -116,7 +116,7 @@
                         <a th:href="@{/libros/{id}(id=${r.reserva.libro.id})}" th:text="${r.reserva.libro.titulo}">El capitán Alatriste</a>
                         <small th:text="'Reservado el ' + ${#temporals.format(r.reserva.fechaReserva, 'dd/MM/yyyy')}">Reservado</small>
                     </span>
-                    <form th:if="${r.disponible}" method="post" th:action="@{/user/prestamos}">
+                    <form th:if="${r.disponible}" method="post" th:action="@{/user/prestamos}" data-volar="mis-prestamos">
                         <input type="hidden" name="libroId" th:value="${r.reserva.libro.id}">
                         <button class="btn btn-sm btn-primary" type="submit"><i class="ti ti-book-download"></i> Pedir</button>
                     </form>

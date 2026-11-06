@@ -23,6 +23,11 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     long countByEstado(EstadoReserva estado);
 
+    /** Cola de un libro: sus reservas en un estado, la más antigua primero. */
+    List<Reserva> findByLibroIdAndEstadoOrderByFechaReservaAscIdAsc(Long libroId, EstadoReserva estado);
+
+    Optional<Reserva> findFirstByUsuarioIdAndLibroIdAndEstado(Long usuarioId, Long libroId, EstadoReserva estado);
+
     long countByUsuarioIdAndEstado(Long usuarioId, EstadoReserva estado);
 
     boolean existsByUsuarioIdAndLibroIdAndEstado(Long usuarioId, Long libroId, EstadoReserva estado);

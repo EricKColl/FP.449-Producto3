@@ -42,7 +42,8 @@ public class ReservaService {
     public Reserva reservar(Long usuarioId, Long libroId) {
         Usuario usuario = usuarioService.buscarPorId(usuarioId);
         Libro libro = libroService.buscarPorId(libroId);
-        if (libroService.ejemplaresDisponibles(libro) > 0) {
+        // Se puede reservar si no queda ningún ejemplar para este usuario (o los libres ya están apartados)
+        if (prestamoService.ejemplaresParaUsuario(libro, usuarioId) > 0) {
             throw new IllegalStateException("«" + libro.getTitulo() + "» tiene ejemplares disponibles: puedes pedirlo prestado");
         }
         if (prestamoService.tieneSinDevolver(usuarioId, libroId)) {

@@ -68,7 +68,7 @@
           </div>
           <div class="invalid-feedback d-block" th:errors="*{password}">Error</div>
           <div class="form-text" th:if="${usuario.id != null and !#fields.hasErrors('password')}">Déjala en blanco para conservar la actual.</div>
-          <div class="form-text" th:if="${usuario.id == null and !#fields.hasErrors('password')}">Al menos 8 caracteres.</div>
+          <th:block th:if="${!#fields.hasErrors('password')}"><div th:replace="~{fragments/layout :: fuerzaClave('password')}"></div></th:block>
           <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>
         </div>
       </div>

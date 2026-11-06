@@ -60,21 +60,25 @@
           <i class="ti ti-book-2"></i> Lo tienes prestado
         </a>
         <th:block th:unless="${loTienePrestado}">
-          <form method="post" th:action="@{/user/prestamos}" th:if="${disponibles > 0}" data-enviando>
+          <!--/* paraTi: los ejemplares libres van primero a quien lo reservó antes (PrestamoService.ejemplaresParaUsuario) */-->
+          <form method="post" th:action="@{/user/prestamos}" th:if="${paraTi > 0}" data-enviando data-volar="mis-prestamos">
             <input type="hidden" name="libroId" th:value="${libro.id}">
             <button class="btn btn-primary btn-accion" type="submit">
               <i class="ti ti-book-download"></i> Pedir prestado
             </button>
           </form>
-          <a class="btn btn-outline-primary" th:if="${disponibles <= 0 and loTieneReservado}" th:href="@{/user/reservas}">
+          <a class="btn btn-outline-primary" th:if="${paraTi <= 0 and loTieneReservado}" th:href="@{/user/reservas}">
             <i class="ti ti-bookmark"></i> Ya lo tienes reservado
           </a>
-          <form method="post" th:action="@{/user/reservas}" th:if="${disponibles <= 0 and not loTieneReservado}" data-enviando>
+          <form method="post" th:action="@{/user/reservas}" th:if="${paraTi <= 0 and not loTieneReservado}" data-enviando data-volar="mis-reservas">
             <input type="hidden" name="libroId" th:value="${libro.id}">
             <button class="btn btn-primary btn-accion" type="submit">
               <i class="ti ti-bookmark"></i> Reservar
             </button>
           </form>
+          <p class="nota-cola" th:if="${disponibles > 0 and paraTi <= 0}">
+            <i class="ti ti-users"></i> Los ejemplares libres están apartados para quien lo reservó antes.
+          </p>
         </th:block>
         <form method="post" th:action="@{/user/favoritos/{id}(id=${libro.id})}" th:unless="${esFavorito}">
           <button class="btn btn-sesion" type="submit"><i class="ti ti-heart"></i> Añadir a favoritos</button>
@@ -95,7 +99,7 @@
         </form>
       </div>
 
-      <a class="enlace-sesion" sec:authorize="!isAuthenticated()" th:href="@{/login}">
+      <a class="enlace-sesion" sec:authorize="!isAuthenticated()" th:href="@{/login(volver=|/libros/${libro.id}|)}">
         <i class="ti ti-login-2"></i> Inicia sesión para pedirlo, reservarlo o guardarlo en favoritos
       </a>
     </div>

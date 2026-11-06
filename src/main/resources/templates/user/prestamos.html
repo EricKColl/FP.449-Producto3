@@ -34,10 +34,22 @@
                               th:text="${p.diasRestantes == 0} ? 'Vence hoy' : ('Quedan ' + ${p.diasRestantes} + (${p.diasRestantes == 1} ? ' día' : ' días'))">Quedan 10 días</span>
                     </div>
                 </div>
-                <span class="prestamo-fecha">
-                    <small th:text="'Desde el ' + ${#temporals.format(p.fechaPrestamo, 'dd/MM')}">Desde el 01/11</small>
-                    <strong th:text="${#temporals.format(p.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/11/2026</strong>
-                </span>
+                <div class="prestamo-lado">
+                    <span class="prestamo-fecha">
+                        <small th:text="'Desde el ' + ${#temporals.format(p.fechaPrestamo, 'dd/MM')}">Desde el 01/11</small>
+                        <strong th:text="${#temporals.format(p.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/11/2026</strong>
+                        <span class="insignia-renovado" th:if="${p.renovado}"><i class="ti ti-refresh"></i> Renovado</span>
+                    </span>
+                    <!-- Renovar: una vez, dentro de plazo y si nadie lo espera; si no, se explica por qué -->
+                    <form method="post" th:if="${renovacion.get(p.id) == ''}" th:action="@{/user/prestamos/{id}/renovar(id=${p.id})}" data-enviando>
+                        <button class="btn btn-sm btn-sesion btn-renovar" type="submit"
+                                th:title="|Alarga el plazo ${diasRenovacion} días más|">
+                            <i class="ti ti-refresh"></i> Renovar <span th:text="|+${diasRenovacion} días|">+15 días</span>
+                        </button>
+                    </form>
+                    <small class="motivo-renovar" th:unless="${renovacion.get(p.id) == '' or p.renovado}"
+                           th:text="${renovacion.get(p.id)}">Otros socios esperan este libro</small>
+                </div>
             </li>
             <li th:if="${#lists.isEmpty(prestamos)}" class="vacio-grande">
                 <i class="ti ti-books"></i>

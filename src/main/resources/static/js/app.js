@@ -190,6 +190,379 @@
         campo.addEventListener('blur', () => { aviso.hidden = true; });
     });
 
+    // --- Aviso antes de que la sesión caduque por inactividad: <meta name="sesion-caduca" content="segundos">.
+    // Dos minutos antes sale un aviso con «Seguir conectado»; si nadie lo pulsa, al acabar el plazo se ofrece
+    // volver a entrar. Las pestañas se avisan entre sí (localStorage), así renovar en una vale para todas ---
+    const metaSesion = document.querySelector('meta[name="sesion-caduca"]');
+    if (metaSesion) {
+        const duracion = parseInt(metaSesion.content, 10) * 1000;
+        const margen = Math.min(120000, duracion / 4);
+        let ultimaActividad = Date.now();
+        let avisoSesion = null;
+        let temporizador = 0;
+        let cuenta = 0;
+        const formato = (ms) => {
+            const s = Math.max(0, Math.ceil(ms / 1000));
+            return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+        };
+        const cerrarAviso = () => {
+            clearInterval(cuenta);
+            avisoSesion?.remove();
+            avisoSesion = null;
+        };
+        const programar = () => {
+            clearTimeout(temporizador);
+            temporizador = setTimeout(mostrarAviso, Math.max(0, ultimaActividad + duracion - margen - Date.now()));
+        };
+        const marcarActividad = (momento) => {
+            ultimaActividad = momento;
+            cerrarAviso();
+            programar();
+        };
+        const renovar = async () => {
+            try {
+                const respuesta = await fetch('/sesion/renovar', { credentials: 'same-origin', redirect: 'manual' });
+                if (respuesta.status !== 204) throw new Error('caducada');
+                const ahora = Date.now();
+                try { localStorage.setItem('backlord-sesion', String(ahora)); } catch { /* sin almacenamiento */ }
+                marcarActividad(ahora);
+            } catch {
+                location.href = `/login?caducada&volver=${encodeURIComponent(location.pathname + location.search)}`;
+            }
+        };
+        const mostrarAviso = () => {
+            if (avisoSesion) return;
+            avisoSesion = document.createElement('div');
+            avisoSesion.className = 'aviso-sesion';
+            avisoSesion.setAttribute('role', 'alertdialog');
+            avisoSesion.setAttribute('aria-labelledby', 'aviso-sesion-texto');
+            avisoSesion.innerHTML = '<span class="aviso-sesion-icono" aria-hidden="true"><i class="ti ti-clock-hour-4"></i></span>'
+                + '<p id="aviso-sesion-texto"></p><button type="button" class="btn btn-primary btn-sm"></button>';
+            const texto = avisoSesion.querySelector('p');
+            const boton = avisoSesion.querySelector('button');
+            boton.textContent = 'Seguir conectado';
+            boton.addEventListener('click', renovar);
+            document.body.appendChild(avisoSesion);
+            boton.focus({ preventScroll: true });
+            const actualizar = () => {
+                const queda = ultimaActividad + duracion - Date.now();
+                if (queda > 0) {
+                    texto.textContent = `Por inactividad, tu sesión se cerrará en ${formato(queda)}`;
+                    return;
+                }
+                clearInterval(cuenta);
+                texto.textContent = 'Tu sesión se ha cerrado por inactividad';
+                boton.textContent = 'Volver a entrar';
+                boton.onclick = () => {
+                    location.href = `/login?caducada&volver=${encodeURIComponent(location.pathname + location.search)}`;
+                };
+                boton.removeEventListener('click', renovar);
+            };
+            actualizar();
+            cuenta = setInterval(actualizar, 1000);
+        };
+        try { localStorage.setItem('backlord-sesion', String(ultimaActividad)); } catch { /* sin almacenamiento */ }
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'backlord-sesion' && e.newValue) marcarActividad(parseInt(e.newValue, 10));
+        });
+        programar();
+    }
+
+    // --- Campanita de avisos: el navegador recuerda qué avisos ya se vieron (por su clave) y solo cuenta los
+    // nuevos. Al abrir el menú quedan todos vistos. Los avisos que ya no existen se olvidan solos ---
+    const campana = document.querySelector('[data-campana]');
+    if (campana) {
+        const items = [...campana.querySelectorAll('[data-aviso]')];
+        let vistos = [];
+        try { vistos = JSON.parse(localStorage.getItem('backlord-avisos-vistos') || '[]'); } catch { vistos = []; }
+        const nuevos = items.filter((item) => !vistos.includes(item.dataset.aviso));
+        nuevos.forEach((item) => item.classList.add('nuevo'));
+        const cuenta = campana.querySelector('.campana-cuenta');
+        if (cuenta) cuenta.textContent = String(nuevos.length);
+        campana.classList.toggle('todo-visto', nuevos.length === 0);
+        campana.classList.toggle('con-nuevos', nuevos.length > 0);
+        const boton = campana.querySelector('.campana-boton');
+        if (nuevos.length) boton.setAttribute('aria-label', `Avisos: ${nuevos.length} sin ver de ${items.length}`);
+        boton.addEventListener('shown.bs.dropdown', () => {
+            try {
+                localStorage.setItem('backlord-avisos-vistos', JSON.stringify(items.map((i) => i.dataset.aviso)));
+            } catch { /* sin almacenamiento */ }
+            campana.classList.add('todo-visto');
+            campana.classList.remove('con-nuevos');
+        });
+    }
+
+    // --- Buscador con sugerencias: <form data-sugerencias> con un <input name="q">. Mientras se escribe pide
+    // /libros/sugerencias (JSON) y enseña libros y autores en una lista accesible (combobox de ARIA): flechas para
+    // moverse, Intro para abrir, Escape para cerrar. Los datos se pintan con textContent, nunca como HTML ---
+    const sinTildes = (texto) => texto.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    const resaltar = (destino, texto, buscado) => {
+        const normal = sinTildes(texto);
+        const desde = normal.length === texto.length ? normal.indexOf(sinTildes(buscado)) : -1;
+        if (desde < 0) {
+            destino.textContent = texto;
+            return;
+        }
+        const marca = document.createElement('mark');
+        marca.textContent = texto.slice(desde, desde + buscado.length);
+        destino.append(texto.slice(0, desde), marca, texto.slice(desde + buscado.length));
+    };
+    document.querySelectorAll('form[data-sugerencias]').forEach((formulario, n) => {
+        const campo = formulario.querySelector('input[name="q"]');
+        if (!campo) return;
+        const lista = document.createElement('div');
+        lista.className = 'sugerencias';
+        lista.id = `sugerencias-${n}`;
+        lista.setAttribute('role', 'listbox');
+        lista.setAttribute('aria-label', 'Sugerencias del catálogo');
+        lista.hidden = true;
+        formulario.appendChild(lista);
+        formulario.classList.add('con-sugerencias');
+        campo.setAttribute('role', 'combobox');
+        campo.setAttribute('aria-autocomplete', 'list');
+        campo.setAttribute('aria-expanded', 'false');
+        campo.setAttribute('aria-controls', lista.id);
+        campo.setAttribute('autocomplete', 'off');
+
+        let opciones = [];
+        let activa = -1;
+        let pedido = 0;
+        let espera = 0;
+        const cerrar = () => {
+            lista.hidden = true;
+            campo.setAttribute('aria-expanded', 'false');
+            campo.removeAttribute('aria-activedescendant');
+            activa = -1;
+        };
+        const marcar = (i) => {
+            opciones.forEach((op, j) => {
+                op.classList.toggle('activa', j === i);
+                op.setAttribute('aria-selected', String(j === i));
+            });
+            activa = i;
+            if (i >= 0) {
+                campo.setAttribute('aria-activedescendant', opciones[i].id);
+                opciones[i].scrollIntoView({ block: 'nearest' });
+            } else campo.removeAttribute('aria-activedescendant');
+        };
+        const opcion = (href, clase) => {
+            const enlace = document.createElement('a');
+            enlace.href = href;
+            enlace.className = `sugerencia ${clase}`;
+            enlace.setAttribute('role', 'option');
+            enlace.id = `${lista.id}-${opciones.length}`;
+            enlace.tabIndex = -1;
+            opciones.push(enlace);
+            return enlace;
+        };
+        const grupo = (titulo) => {
+            const p = document.createElement('p');
+            p.className = 'sugerencias-grupo';
+            p.setAttribute('role', 'presentation');
+            p.textContent = titulo;
+            lista.appendChild(p);
+        };
+        const pintar = (datos, texto) => {
+            lista.replaceChildren();
+            opciones = [];
+            if (datos.libros.length) grupo('Libros');
+            datos.libros.forEach((libro) => {
+                const op = opcion(`/libros/${libro.id}`, 'sugerencia-libro');
+                const lomo = document.createElement('span');
+                lomo.className = `lomo lomo-mini tono-${libro.tono}`;
+                lomo.setAttribute('aria-hidden', 'true');
+                const datosLibro = document.createElement('span');
+                datosLibro.className = 'sugerencia-datos';
+                const titulo = document.createElement('strong');
+                resaltar(titulo, libro.titulo, texto);
+                const detalle = document.createElement('small');
+                resaltar(detalle, [libro.autores, libro.anio].filter(Boolean).join(' · '), texto);
+                datosLibro.append(titulo, detalle);
+                const estado = document.createElement('span');
+                estado.className = `disponibilidad ${libro.disponibles > 0 ? 'si' : 'no'}`;
+                estado.textContent = libro.disponibles > 0 ? 'Disponible' : 'Prestado';
+                op.append(lomo, datosLibro, estado);
+                lista.appendChild(op);
+            });
+            if (datos.autores.length) grupo('Autores');
+            datos.autores.forEach((autor) => {
+                const op = opcion(`/autores/${autor.id}`, 'sugerencia-autor');
+                const icono = document.createElement('span');
+                icono.className = 'sugerencia-icono';
+                icono.setAttribute('aria-hidden', 'true');
+                icono.innerHTML = '<i class="ti ti-feather"></i>';
+                const datosAutor = document.createElement('span');
+                datosAutor.className = 'sugerencia-datos';
+                const nombre = document.createElement('strong');
+                resaltar(nombre, autor.nombre, texto);
+                const detalle = document.createElement('small');
+                detalle.textContent = [autor.nacionalidad, autor.libros === 1 ? '1 libro' : `${autor.libros} libros`]
+                    .filter(Boolean).join(' · ');
+                datosAutor.append(nombre, detalle);
+                op.append(icono, datosAutor);
+                lista.appendChild(op);
+            });
+            if (!datos.libros.length && !datos.autores.length) {
+                const vacio = document.createElement('p');
+                vacio.className = 'sugerencias-vacio';
+                vacio.textContent = `Nada coincide con «${texto}».`;
+                lista.appendChild(vacio);
+            }
+            const todos = opcion(`${formulario.action}?q=${encodeURIComponent(texto)}`, 'sugerencia-todos');
+            todos.append('Ver todos los resultados de ');
+            const fuerte = document.createElement('strong');
+            fuerte.textContent = `«${texto}»`;
+            todos.append(fuerte);
+            lista.appendChild(todos);
+            lista.hidden = false;
+            campo.setAttribute('aria-expanded', 'true');
+            marcar(-1);
+        };
+        campo.addEventListener('input', () => {
+            clearTimeout(espera);
+            const texto = campo.value.trim();
+            if (texto.length < 2) {
+                pedido++;
+                cerrar();
+                return;
+            }
+            espera = setTimeout(async () => {
+                const mio = ++pedido;
+                try {
+                    const respuesta = await fetch(`/libros/sugerencias?q=${encodeURIComponent(texto)}`,
+                        { headers: { Accept: 'application/json' } });
+                    if (!respuesta.ok) return;
+                    const datos = await respuesta.json();
+                    if (mio === pedido) pintar(datos, texto);
+                } catch { /* sin conexión: el buscador sigue funcionando sin sugerencias */ }
+            }, 140);
+        });
+        campo.addEventListener('keydown', (e) => {
+            if (lista.hidden || !opciones.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                marcar((activa + 1) % opciones.length);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                marcar(activa <= 0 ? opciones.length - 1 : activa - 1);
+            } else if (e.key === 'Enter' && activa >= 0) {
+                e.preventDefault();
+                location.href = opciones[activa].href;
+            } else if (e.key === 'Escape') {
+                cerrar();
+            }
+        });
+        campo.addEventListener('focus', () => {
+            if (opciones.length && campo.value.trim().length >= 2) {
+                lista.hidden = false;
+                campo.setAttribute('aria-expanded', 'true');
+            }
+        });
+        document.addEventListener('pointerdown', (e) => {
+            if (!formulario.contains(e.target)) cerrar();
+        });
+        formulario.addEventListener('focusout', (e) => {
+            if (!formulario.contains(e.relatedTarget)) cerrar();
+        });
+    });
+
+    // --- Al pedir o reservar, el libro «vuela» hasta Mis préstamos o Mis reservas del menú: <form data-volar="mis-prestamos">.
+    // Después el formulario se envía con normalidad; en la página siguiente, esa entrada del menú se ilumina.
+    // Sin GSAP o con «reducir movimiento», se envía directamente ---
+    const llegada = (() => { try { return sessionStorage.getItem('backlord-llegada'); } catch { return null; } })();
+    if (llegada) {
+        try { sessionStorage.removeItem('backlord-llegada'); } catch { /* sin almacenamiento */ }
+        document.querySelector(`.menu-enlace[href="${llegada}"]`)?.classList.add('llega');
+    }
+    document.querySelectorAll('form[data-volar]').forEach((formulario) => {
+        formulario.addEventListener('submit', (e) => {
+            if (reducido || !gsap || formulario.dataset.volando === 'si') return;
+            const ruta = formulario.dataset.volar === 'mis-reservas' ? '/user/reservas' : '/user/prestamos';
+            const enlace = document.querySelector(`.menu-enlace[href="${ruta}"]`);
+            // En el móvil el menú está plegado: el libro va hacia el botón de la cuenta
+            const destino = enlace && enlace.offsetParent ? enlace : document.querySelector('.cabecera .perfil');
+            const origen = formulario.closest('.estante-libro')?.querySelector('.cubierta-libro')
+                || formulario.closest('li')?.querySelector('.lomo')
+                || document.querySelector('.ficha-portada .cubierta-libro')
+                || formulario.querySelector('button');
+            if (!destino || !origen) return;
+            e.preventDefault();
+            try { sessionStorage.setItem('backlord-llegada', ruta); } catch { /* sin almacenamiento */ }
+            const desde = origen.getBoundingClientRect();
+            const hasta = destino.getBoundingClientRect();
+            const copia = origen.cloneNode(true);
+            copia.classList.add('libro-volador');
+            copia.setAttribute('aria-hidden', 'true');
+            Object.assign(copia.style, { left: `${desde.left}px`, top: `${desde.top}px`, width: `${desde.width}px`, height: `${desde.height}px` });
+            document.body.appendChild(copia);
+            const enviar = () => {
+                formulario.dataset.volando = 'si';
+                formulario.requestSubmit();
+            };
+            gsap.timeline({ onComplete: enviar })
+                .to(copia, { y: -40, scale: 1.06, rotation: -4, duration: 0.22, ease: 'power2.out' })
+                .to(copia, {
+                    x: hasta.left + hasta.width / 2 - (desde.left + desde.width / 2),
+                    y: hasta.top + hasta.height / 2 - (desde.top + desde.height / 2),
+                    scale: Math.max(0.08, 28 / Math.max(desde.width, desde.height)),
+                    rotation: -18, opacity: 0.25, duration: 0.6, ease: 'power3.in'
+                })
+                .add(() => destino.classList.add('recibe'));
+        });
+    });
+
+    // --- Medidor de fuerza de la contraseña: <div data-fuerza-de="id-del-campo"> (fragmento fuerzaClave).
+    // Orienta mientras se escribe; la regla que manda es la del servidor (UsuarioService.problemaPassword) ---
+    const nivelesClave = ['', 'Muy débil', 'Débil', 'Aceptable', 'Fuerte', 'Muy fuerte'];
+    const fuerzaDe = (clave) => {
+        if (!clave) return 0;
+        let puntos = 0;
+        if (clave.length >= 8) puntos++;
+        if (clave.length >= 12) puntos++;
+        if (/\p{Ll}/u.test(clave) && /\p{Lu}/u.test(clave)) puntos++;
+        if (/\d/.test(clave)) puntos++;
+        if (/[^\p{L}\d]/u.test(clave)) puntos++;
+        // Repeticiones y comienzos típicos valen poco aunque sean largos
+        if (/^(.)\1+$/u.test(clave) || /^(1234|abcd|qwerty|password|contrase|usuario|admin|biblioteca)/i.test(clave)) {
+            puntos = Math.min(puntos, 1);
+        }
+        return clave.length < 8 ? Math.min(puntos, 1) : Math.max(1, puntos);
+    };
+    document.querySelectorAll('[data-fuerza-de]').forEach((medidor) => {
+        const campo = document.getElementById(medidor.dataset.fuerzaDe);
+        if (!campo) return;
+        const texto = medidor.querySelector('.fuerza-texto');
+        const inicial = texto.textContent;
+        campo.addEventListener('input', () => {
+            const clave = campo.value;
+            const nivel = fuerzaDe(clave);
+            medidor.dataset.nivel = String(nivel);
+            if (!clave) texto.textContent = inicial;
+            else if (clave.length < 8) {
+                const faltan = 8 - clave.length;
+                texto.textContent = `Te ${faltan === 1 ? 'falta 1 carácter' : `faltan ${faltan} caracteres`}`;
+            } else texto.textContent = `Seguridad: ${nivelesClave[nivel].toLowerCase()}`;
+        });
+    });
+
+    // --- Confirmación de la contraseña: <input data-igual-que="id"> y <p data-coincide-de="id-de-este-campo"> ---
+    document.querySelectorAll('[data-igual-que]').forEach((campo) => {
+        const original = document.getElementById(campo.dataset.igualQue);
+        const aviso = document.querySelector(`[data-coincide-de="${campo.id}"]`);
+        if (!original || !aviso) return;
+        const comprobar = () => {
+            aviso.hidden = !campo.value;
+            const iguales = campo.value === original.value;
+            aviso.classList.toggle('si', iguales);
+            aviso.innerHTML = '';
+            const icono = document.createElement('i');
+            icono.className = iguales ? 'ti ti-circle-check' : 'ti ti-circle-x';
+            aviso.append(icono, iguales ? ' Coinciden' : ' Todavía no coinciden');
+        };
+        campo.addEventListener('input', comprobar);
+        original.addEventListener('input', () => { if (campo.value) comprobar(); });
+    });
+
     // --- Formularios <form data-enviando>: el botón muestra que se está enviando y no admite un segundo clic ---
     document.querySelectorAll('form[data-enviando]').forEach((formulario) => {
         formulario.addEventListener('submit', () => {

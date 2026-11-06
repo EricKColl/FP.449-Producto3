@@ -11,6 +11,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDate;
@@ -51,5 +54,22 @@ public class CuentaController {
         model.addAttribute("favoritos", usuario.getFavoritos().size());
         model.addAttribute("diasConCuenta", ChronoUnit.DAYS.between(usuario.getFechaAlta(), LocalDate.now()));
         return "user/cuenta";
+    }
+
+    // Cualquier cuenta (cliente o administrador) cambia aquí su propia contraseña: el id sale de la sesión
+    @PostMapping("/cuenta/password")
+    public String cambiarPassword(@AuthenticationPrincipal CuentaUsuario cuenta,
+                                  @RequestParam(defaultValue = "") String actual,
+                                  @RequestParam(defaultValue = "") String nueva,
+                                  @RequestParam(defaultValue = "") String repetida,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            usuarioService.cambiarPassword(cuenta.getId(), actual, nueva, repetida);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Contraseña cambiada. La próxima vez entra con la nueva");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorPassword", e.getMessage());
+        }
+        return "redirect:/user/cuenta#seguridad";
     }
 }
