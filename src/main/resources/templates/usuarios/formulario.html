@@ -6,67 +6,92 @@
 
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-  <h1 class="h3 mb-3" th:text="${usuario.id == null} ? 'Nuevo usuario' : 'Editar usuario'">Nuevo usuario</h1>
+  <a class="volver" th:href="${usuario.id == null} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${usuario.id})}">
+    <i class="ti ti-arrow-left"></i> <span th:text="${usuario.id == null} ? 'Volver a usuarios' : 'Volver a la ficha'">Volver</span></a>
 
-  <form class="card card-body" method="post" novalidate th:object="${usuario}"
-     th:action="${usuario.id == null} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${usuario.id})}">
-    <div class="row g-3">
-      <div class="col-md-4">
-        <label for="nombre" class="form-label">Nombre *</label>
-        <input type="text" class="form-control" th:field="*{nombre}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{nombre}">Error</div>
+  <div class="formulario-panel">
+    <form class="bloque formulario-cuerpo" method="post" novalidate th:object="${usuario}" data-vista-previa="usuario" data-enviando
+          th:action="${usuario.id == null} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${usuario.id})}">
+      <h1 class="formulario-titulo" th:text="${usuario.id == null} ? 'Nuevo usuario' : 'Editar usuario'">Nuevo usuario</h1>
+      <p class="formulario-ayuda">Los campos con * son obligatorios.</p>
+      <div class="row g-3">
+        <div class="col-md-5 campo">
+          <label for="nombre" class="form-label">Nombre *</label>
+          <div class="campo-control"><i class="ti ti-user" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{nombre}" th:errorclass="is-invalid" data-previa="nombre"></div>
+          <div class="invalid-feedback d-block" th:errors="*{nombre}">Error</div>
+        </div>
+        <div class="col-md-7 campo">
+          <label for="apellidos" class="form-label">Apellidos *</label>
+          <div class="campo-control"><i class="ti ti-users" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{apellidos}" th:errorclass="is-invalid" data-previa="apellidos"></div>
+          <div class="invalid-feedback d-block" th:errors="*{apellidos}">Error</div>
+        </div>
+        <div class="col-md-5 campo">
+          <label for="dni" class="form-label">DNI/NIE *</label>
+          <div class="campo-control"><i class="ti ti-id" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{dni}" th:errorclass="is-invalid" placeholder="12345678Z" maxlength="9"></div>
+          <div class="invalid-feedback d-block" th:errors="*{dni}">Error</div>
+        </div>
+        <div class="col-md-7 campo">
+          <label for="email" class="form-label">Email *</label>
+          <div class="campo-control"><i class="ti ti-mail" aria-hidden="true"></i>
+            <input type="email" class="form-control" th:field="*{email}" th:errorclass="is-invalid" placeholder="nombre@example.com" data-previa="email"></div>
+          <div class="invalid-feedback d-block" th:errors="*{email}">Error</div>
+        </div>
+        <div class="col-md-4 campo">
+          <label for="telefono" class="form-label">Teléfono</label>
+          <div class="campo-control"><i class="ti ti-phone" aria-hidden="true"></i>
+            <input type="tel" class="form-control" th:field="*{telefono}" th:errorclass="is-invalid"></div>
+          <div class="invalid-feedback d-block" th:errors="*{telefono}">Error</div>
+        </div>
+        <div class="col-md-4 campo">
+          <label for="fechaAlta" class="form-label">Fecha de alta *</label>
+          <div class="campo-control"><i class="ti ti-calendar" aria-hidden="true"></i>
+            <input type="date" class="form-control" th:field="*{fechaAlta}" th:errorclass="is-invalid"></div>
+          <div class="invalid-feedback d-block" th:errors="*{fechaAlta}">Error</div>
+        </div>
+        <div class="col-md-4 campo">
+          <label for="rol" class="form-label">Rol *</label>
+          <div class="campo-control"><i class="ti ti-shield" aria-hidden="true"></i>
+            <select class="form-select campo-select" th:field="*{rol}" th:errorclass="is-invalid" data-previa="rol">
+              <option th:each="opcion : ${roles}" th:value="${opcion}" th:text="${opcion.name() == 'ADMIN'} ? 'Administrador' : 'Cliente'">Cliente</option>
+            </select></div>
+          <div class="invalid-feedback d-block" th:errors="*{rol}">Error</div>
+        </div>
+        <div class="col-12 campo">
+          <label for="password" class="form-label" th:text="${usuario.id == null} ? 'Contraseña *' : 'Nueva contraseña'">Contraseña *</label>
+          <div class="campo-control"><i class="ti ti-key" aria-hidden="true"></i>
+            <input type="password" class="form-control" th:field="*{password}" th:errorclass="is-invalid"
+                   autocomplete="new-password" minlength="8" maxlength="72" data-aviso-mayusculas>
+            <button type="button" class="ver-clave" data-ver-clave="password" aria-label="Mostrar la contraseña"><i class="ti ti-eye"></i></button>
+          </div>
+          <div class="invalid-feedback d-block" th:errors="*{password}">Error</div>
+          <div class="form-text" th:if="${usuario.id != null and !#fields.hasErrors('password')}">Déjala en blanco para conservar la actual.</div>
+          <th:block th:if="${!#fields.hasErrors('password')}"><div th:replace="~{fragments/layout :: fuerzaClave('password')}"></div></th:block>
+          <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>
+        </div>
       </div>
-      <div class="col-md-8">
-        <label for="apellidos" class="form-label">Apellidos *</label>
-        <input type="text" class="form-control" th:field="*{apellidos}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{apellidos}">Error</div>
+      <div class="formulario-botones">
+        <button type="submit" class="btn btn-primary btn-accion"><i class="ti ti-check"></i> Guardar</button>
+        <a class="btn btn-sesion" th:href="${usuario.id == null} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${usuario.id})}">Cancelar</a>
       </div>
-      <div class="col-md-4">
-        <label for="dni" class="form-label">DNI/NIE *</label>
-        <input type="text" class="form-control" th:field="*{dni}" th:errorclass="is-invalid"
-           placeholder="12345678Z" maxlength="9">
-        <div class="invalid-feedback" th:errors="*{dni}">Error</div>
-      </div>
-      <div class="col-md-8">
-        <label for="email" class="form-label">Email *</label>
-        <input type="email" class="form-control" th:field="*{email}" th:errorclass="is-invalid"
-           placeholder="nombre@example.com">
-        <div class="invalid-feedback" th:errors="*{email}">Error</div>
-      </div>
-      <div class="col-md-4">
-        <label for="telefono" class="form-label">Teléfono</label>
-        <input type="tel" class="form-control" th:field="*{telefono}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{telefono}">Error</div>
-      </div>
-      <div class="col-md-4">
-        <label for="fechaAlta" class="form-label">Fecha de alta *</label>
-        <input type="date" class="form-control" th:field="*{fechaAlta}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{fechaAlta}">Error</div>
-      </div>
-      <div class="col-md-4">
-        <label for="rol" class="form-label">Rol *</label>
-        <select class="form-select" th:field="*{rol}" th:errorclass="is-invalid">
-          <option th:each="opcion : ${roles}" th:value="${opcion}" th:text="${opcion.etiqueta}">Usuario</option>
-        </select>
-        <div class="invalid-feedback" th:errors="*{rol}">Error</div>
-      </div>
-      <div class="col-md-8">
-        <label for="password" class="form-label" th:text="${usuario.id == null} ? 'Contraseña *' : 'Nueva contraseña'">Contraseña *</label>
-        <input type="password" class="form-control" th:field="*{password}" th:errorclass="is-invalid"
-           autocomplete="new-password" minlength="8" maxlength="72">
-        <div class="form-text" th:if="${usuario.id != null}">Déjala en blanco para conservar la actual.</div>
-        <div class="invalid-feedback" th:errors="*{password}">Error</div>
-      </div>
-    </div>
+    </form>
 
-    <div class="d-flex gap-2 mt-4">
-      <button type="submit" class="btn btn-primary">
-        <i class="ti ti-check"></i> Guardar
-      </button>
-      <a class="btn btn-outline-secondary"
-       th:href="${usuario.id == null} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${usuario.id})}">Cancelar</a>
-    </div>
-  </form>
+    <aside class="vista-previa" aria-label="Vista previa de la cuenta">
+      <p class="seccion-etiqueta">Vista previa</p>
+      <section class="perfil-tarjeta tarjeta-previa">
+        <div class="perfil-portada" aria-hidden="true"></div>
+        <span class="avatar avatar-xl" data-previa-ver="iniciales"
+              th:text="${usuario.id == null} ? '—' : ${#strings.substring(usuario.nombre, 0, 1)} + ${#strings.substring(usuario.apellidos, 0, 1)}">—</span>
+        <span class="perfil-tarjeta-nombre" data-previa-ver="nombreCompleto"
+              th:text="${usuario.id == null} ? 'Nombre y apellidos' : ${usuario.nombreCompleto}">Nombre y apellidos</span>
+        <span class="insignia-rol" data-previa-ver="rol" th:classappend="${usuario.rol != null and usuario.rol.name() == 'ADMIN'} ? 'rol-admin'"
+              th:text="${usuario.rol != null and usuario.rol.name() == 'ADMIN'} ? 'Administrador' : 'Cliente'">Cliente</span>
+        <p class="perfil-tarjeta-email" data-previa-ver="email" th:text="${usuario.email} ?: 'email@ejemplo.com'">email</p>
+      </section>
+    </aside>
+  </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

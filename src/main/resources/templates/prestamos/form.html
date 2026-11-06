@@ -3,54 +3,95 @@
 <head th:replace="~{fragments/layout :: head('Nuevo préstamo')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('prestamos')}"></nav>
-
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-    <a class="btn btn-link px-0 mb-2" th:href="@{/admin/prestamos}">
-        <i class="ti ti-arrow-left"></i> Volver a préstamos
-    </a>
-    <h1 class="h3 mb-3">Nuevo préstamo</h1>
+    <a class="volver" th:href="@{/admin/prestamos}"><i class="ti ti-arrow-left"></i> Volver a préstamos</a>
+    <h1 class="visually-hidden">Nuevo préstamo</h1>
 
-    <form class="card card-body" method="post" th:action="@{/admin/prestamos}">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label for="usuarioId" class="form-label">Usuario *</label>
-                <select id="usuarioId" name="usuarioId" class="form-select" required>
-                    <option value="" disabled selected>Selecciona un usuario</option>
-                    <option th:each="item : ${usuarios}" th:value="${item.usuario.id}"
-                            th:disabled="${!item.puedePedir}"
-                            th:text="${item.usuario.nombreCompleto} + (${item.puedePedir} ? '' : ' · ' + ${item.motivo})">Usuario</option>
-                </select>
-                <div class="form-text" th:text="|Máximo ${maxPrestamos} préstamos sin devolver por usuario y ninguno nuevo con préstamos vencidos.|">
-                    Máximo 3 préstamos sin devolver por usuario y ninguno nuevo con préstamos vencidos.
+    <!-- Dos pasos (usuario y libro) y un resumen que se actualiza al elegir (js/app.js, data-prestamo).
+         Sin JavaScript también funciona: son botones de opción normales y el servidor vuelve a comprobar las reglas. -->
+    <form class="nuevo-prestamo" method="post" th:action="@{/admin/prestamos}" data-prestamo data-enviando>
+        <div class="pasos-prestamo">
+            <!-- Paso 1: usuario -->
+            <fieldset class="bloque paso-prestamo" data-catalogo>
+                <legend class="paso-titulo"><span class="paso-numero">1</span> ¿Para quién es?</legend>
+                <p class="paso-ayuda" th:text="|Cada usuario puede tener hasta ${maxPrestamos} préstamos sin devolver, y ninguno nuevo si tiene alguno fuera de plazo.|">
+                    Cada usuario puede tener hasta 3 préstamos sin devolver.</p>
+                <div class="buscador-catalogo mb-3">
+                    <i class="ti ti-search" aria-hidden="true"></i>
+                    <input type="search" placeholder="Buscar usuario" aria-label="Buscar usuario" data-filtro-texto>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <label for="libroId" class="form-label">Libro *</label>
-                <select id="libroId" name="libroId" class="form-select" required>
-                    <option value="" disabled selected>Selecciona un libro</option>
-                    <option th:each="item : ${libros}" th:value="${item.libro.id}"
-                            th:disabled="${!item.prestable}"
-                            th:text="${item.libro.titulo} + ' · ' + (${item.prestable}
+                <div class="opciones" data-lista>
+                    <label class="opcion" th:each="item : ${usuarios}" data-item
+                           th:classappend="${item.puedePedir} ? '' : 'bloqueada'"
+                           th:attr="data-texto=${#strings.toLowerCase(item.usuario.nombreCompleto + ' ' + item.usuario.email + ' ' + item.usuario.dni)}">
+                        <input type="radio" name="usuarioId" th:value="${item.usuario.id}" required
+                               th:disabled="${!item.puedePedir}" th:data-nombre="${item.usuario.nombreCompleto}">
+                        <!-- Texto completo para lectores de pantalla; lo visual va aparte -->
+                        <span class="visually-hidden" th:text="${item.usuario.nombreCompleto} + (${item.puedePedir} ? '' : ' · ' + ${item.motivo})">Usuario</span>
+                        <span class="avatar avatar-mini" aria-hidden="true"
+                              th:text="${#strings.substring(item.usuario.nombre, 0, 1)} + ${#strings.substring(item.usuario.apellidos, 0, 1)}">LM</span>
+                        <span class="opcion-datos" aria-hidden="true">
+                            <span class="opcion-nombre" th:text="${item.usuario.nombreCompleto}">Laura Martínez Soler</span>
+                            <span class="opcion-detalle" th:text="${item.usuario.email}">laura@example.com</span>
+                        </span>
+                        <span class="opcion-estado" aria-hidden="true" th:classappend="${item.puedePedir} ? 'ok' : 'no'"
+                              th:title="${item.puedePedir} ? null : ${#strings.capitalize(item.motivo)}"
+                              th:text="${item.puedePedir} ? (${item.abiertos} + ' de ' + ${maxPrestamos}) : 'Bloqueado'">1 de 3</span>
+                    </label>
+                </div>
+                <div class="vacio d-none" data-vacio>Ningún usuario coincide con la búsqueda.</div>
+            </fieldset>
+
+            <!-- Paso 2: libro -->
+            <fieldset class="bloque paso-prestamo" data-catalogo>
+                <legend class="paso-titulo"><span class="paso-numero">2</span> ¿Qué libro se lleva?</legend>
+                <p class="paso-ayuda">Los libros sin ejemplares libres no se pueden prestar: se pueden reservar desde su ficha.</p>
+                <div class="buscador-catalogo mb-3">
+                    <i class="ti ti-search" aria-hidden="true"></i>
+                    <input type="search" placeholder="Buscar libro o autor" aria-label="Buscar libro" data-filtro-texto>
+                </div>
+                <div class="opciones" data-lista>
+                    <label class="opcion" th:each="item : ${libros}" data-item
+                           th:classappend="${item.prestable} ? '' : 'bloqueada'"
+                           th:attr="data-texto=${#strings.toLowerCase(item.libro.titulo + ' ' + item.libro.autoresTexto)}">
+                        <input type="radio" name="libroId" th:value="${item.libro.id}" required
+                               th:disabled="${!item.prestable}" th:data-nombre="${item.libro.titulo}">
+                        <span class="visually-hidden" th:text="${item.libro.titulo} + ' · ' + (${item.prestable}
                                 ? (${item.disponibles} == 1 ? '1 disponible' : ${item.disponibles} + ' disponibles')
-                                : 'sin ejemplares')">Libro · 1 disponible</option>
-                </select>
-                <div class="form-text">Los libros sin ejemplares disponibles no se pueden prestar.</div>
-            </div>
+                                : 'sin ejemplares')">Libro · 1 disponible</span>
+                        <span class="lomo lomo-mini" th:classappend="|tono-${item.libro.id % 6}|" aria-hidden="true"></span>
+                        <span class="opcion-datos" aria-hidden="true">
+                            <span class="opcion-nombre" th:text="${item.libro.titulo}">El hobbit</span>
+                            <span class="opcion-detalle" th:text="${item.libro.autoresTexto}">J. R. R. Tolkien</span>
+                        </span>
+                        <span class="opcion-estado" aria-hidden="true" th:classappend="${item.prestable} ? 'ok' : 'no'"
+                              th:text="${item.prestable} ? (${item.disponibles} == 1 ? '1 libre' : ${item.disponibles} + ' libres') : 'Sin ejemplares'">1 libre</span>
+                    </label>
+                </div>
+                <div class="vacio d-none" data-vacio>Ningún libro coincide con la búsqueda.</div>
+            </fieldset>
         </div>
-        <p class="text-body-secondary small mt-3 mb-0">
-            La devolución prevista es a los 15 días de la fecha de préstamo.
-        </p>
-        <div class="d-flex gap-2 mt-4">
-            <button type="submit" class="btn btn-primary">
+
+        <!-- Resumen -->
+        <aside class="bloque resumen-prestamo" aria-live="polite">
+            <h2 class="resumen-titulo"><i class="ti ti-receipt"></i> Resumen</h2>
+            <dl class="resumen-datos">
+                <div><dt>Usuario</dt><dd data-resumen="usuarioId">Sin elegir</dd></div>
+                <div><dt>Libro</dt><dd data-resumen="libroId">Sin elegir</dd></div>
+                <div><dt>Fecha del préstamo</dt><dd th:text="${#temporals.format(hoy, 'd ''de'' MMMM ''de'' yyyy')}">hoy</dd></div>
+                <div><dt>Devolución prevista</dt>
+                    <dd><strong th:text="${#temporals.format(devolucion, 'd ''de'' MMMM ''de'' yyyy')}">dentro de 15 días</strong>
+                        <small th:text="|(${diasPrestamo} días)|">(15 días)</small></dd></div>
+            </dl>
+            <button type="submit" class="btn btn-primary btn-lg btn-accion w-100" data-confirmar-prestamo>
                 <i class="ti ti-check"></i> Registrar préstamo
             </button>
-            <a class="btn btn-outline-secondary" th:href="@{/admin/prestamos}">Cancelar</a>
-        </div>
+            <a class="btn btn-sesion w-100 mt-2" th:href="@{/admin/prestamos}">Cancelar</a>
+        </aside>
     </form>
 </main>
-
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

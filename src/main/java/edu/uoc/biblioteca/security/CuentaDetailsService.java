@@ -13,15 +13,18 @@ import java.util.Locale;
 public class CuentaDetailsService implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
+    private final IntentosDeAcceso intentos;
 
-    public CuentaDetailsService(UsuarioRepository usuarioRepository) {
+    public CuentaDetailsService(UsuarioRepository usuarioRepository, IntentosDeAcceso intentos) {
         this.usuarioRepository = usuarioRepository;
+        this.intentos = intentos;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) {
         return usuarioRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT))
-                .map(CuentaUsuario::new)
+                // Tras demasiados intentos fallidos la cuenta queda bloqueada unos minutos (IntentosDeAcceso)
+                .map(usuario -> new CuentaUsuario(usuario, intentos.bloqueado(email)))
                 .orElseThrow(() -> new UsernameNotFoundException("No existe la cuenta " + email));
     }
 }

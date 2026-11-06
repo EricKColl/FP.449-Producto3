@@ -6,64 +6,82 @@
 
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-  <h1 class="h3 mb-3" th:text="${libro.id == null} ? 'Nuevo libro' : 'Editar libro'">Nuevo libro</h1>
+  <a class="volver" th:href="${libro.id == null} ? @{/libros} : @{/libros/{id}(id=${libro.id})}">
+    <i class="ti ti-arrow-left"></i> <span th:text="${libro.id == null} ? 'Volver al catálogo' : 'Volver a la ficha'">Volver</span></a>
 
-  <form class="card card-body" method="post" novalidate th:object="${libro}"
-     th:action="${libro.id == null} ? @{/admin/libros} : @{/admin/libros/{id}(id=${libro.id})}">
-    <div class="row g-3">
-      <div class="col-md-8">
-        <label for="titulo" class="form-label">Título *</label>
-        <input type="text" class="form-control" th:field="*{titulo}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{titulo}">Error</div>
+  <div class="formulario-panel">
+    <form class="bloque formulario-cuerpo" method="post" novalidate th:object="${libro}" data-vista-previa="libro" data-enviando
+          th:action="${libro.id == null} ? @{/admin/libros} : @{/admin/libros/{id}(id=${libro.id})}">
+      <h1 class="formulario-titulo" th:text="${libro.id == null} ? 'Nuevo libro' : 'Editar libro'">Nuevo libro</h1>
+      <p class="formulario-ayuda">Los campos con * son obligatorios.</p>
+      <div class="row g-3">
+        <div class="col-md-8 campo">
+          <label for="titulo" class="form-label">Título *</label>
+          <div class="campo-control"><i class="ti ti-book" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{titulo}" th:errorclass="is-invalid" data-previa="titulo"></div>
+          <div class="invalid-feedback d-block" th:errors="*{titulo}">Error</div>
+        </div>
+        <div class="col-md-4 campo">
+          <label for="isbn" class="form-label">ISBN *</label>
+          <div class="campo-control"><i class="ti ti-barcode" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{isbn}" th:errorclass="is-invalid" placeholder="978-84-376-2405-1"></div>
+          <div class="invalid-feedback d-block" th:errors="*{isbn}">Error</div>
+        </div>
+        <div class="col-md-5 campo">
+          <label for="editorial" class="form-label">Editorial</label>
+          <div class="campo-control"><i class="ti ti-building" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{editorial}" th:errorclass="is-invalid"></div>
+          <div class="invalid-feedback d-block" th:errors="*{editorial}">Error</div>
+        </div>
+        <div class="col-md-3 campo">
+          <label for="genero" class="form-label">Género</label>
+          <div class="campo-control"><i class="ti ti-category" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{genero}" th:errorclass="is-invalid" data-previa="genero" list="generos-conocidos"></div>
+          <datalist id="generos-conocidos">
+            <option th:each="g : ${@libroService.generos()}" th:value="${g.etiqueta}"></option>
+          </datalist>
+          <div class="invalid-feedback d-block" th:errors="*{genero}">Error</div>
+        </div>
+        <div class="col-6 col-md-2 campo">
+          <label for="anioPublicacion" class="form-label">Año</label>
+          <div class="campo-control"><i class="ti ti-calendar" aria-hidden="true"></i>
+            <input type="number" class="form-control" th:field="*{anioPublicacion}" th:errorclass="is-invalid"></div>
+          <div class="invalid-feedback d-block" th:errors="*{anioPublicacion}">Error</div>
+        </div>
+        <div class="col-6 col-md-2 campo">
+          <label for="ejemplares" class="form-label">Ejemplares *</label>
+          <div class="campo-control"><i class="ti ti-copy" aria-hidden="true"></i>
+            <input type="number" min="1" class="form-control" th:field="*{ejemplares}" th:errorclass="is-invalid"></div>
+          <div class="invalid-feedback d-block" th:errors="*{ejemplares}">Error</div>
+        </div>
+        <fieldset class="col-12 campo">
+          <legend class="form-label">Autores *</legend>
+          <div class="casillas-autores" th:classappend="${#fields.hasErrors('autores')} ? 'con-error'">
+            <label class="casilla-autor" th:each="autor : ${todosLosAutores}">
+              <input type="checkbox" th:field="*{autores}" th:value="${autor.id}" th:data-nombre="${autor.nombreCompleto}" data-previa="autor">
+              <span><i class="ti ti-check" aria-hidden="true"></i> <span th:text="${autor.nombreCompleto}">Autor</span></span>
+            </label>
+          </div>
+          <div class="invalid-feedback d-block" th:errors="*{autores}">Error</div>
+        </fieldset>
       </div>
-      <div class="col-md-4">
-        <label for="isbn" class="form-label">ISBN *</label>
-        <input type="text" class="form-control" th:field="*{isbn}" th:errorclass="is-invalid"
-           placeholder="978-84-376-2405-1">
-        <div class="invalid-feedback" th:errors="*{isbn}">Error</div>
+      <div class="formulario-botones">
+        <button type="submit" class="btn btn-primary btn-accion"><i class="ti ti-check"></i> Guardar</button>
+        <a class="btn btn-sesion" th:href="${libro.id == null} ? @{/libros} : @{/libros/{id}(id=${libro.id})}">Cancelar</a>
       </div>
-      <div class="col-md-5">
-        <label for="editorial" class="form-label">Editorial</label>
-        <input type="text" class="form-control" th:field="*{editorial}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{editorial}">Error</div>
-      </div>
-      <div class="col-md-3">
-        <label for="genero" class="form-label">Género</label>
-        <input type="text" class="form-control" th:field="*{genero}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{genero}">Error</div>
-      </div>
-      <div class="col-6 col-md-2">
-        <label for="anioPublicacion" class="form-label">Año</label>
-        <input type="number" class="form-control" th:field="*{anioPublicacion}"
-           th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{anioPublicacion}">Error</div>
-      </div>
-      <div class="col-6 col-md-2">
-        <label for="ejemplares" class="form-label">Ejemplares *</label>
-        <input type="number" min="1" class="form-control" th:field="*{ejemplares}"
-           th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{ejemplares}">Error</div>
-      </div>
-      <div class="col-12">
-        <label for="autores" class="form-label">Autores *</label>
-        <select class="form-select" multiple size="6" th:field="*{autores}"
-            th:errorclass="is-invalid">
-          <option th:each="autor : ${todosLosAutores}" th:value="${autor.id}"
-              th:text="${autor.nombreCompleto}">Autor</option>
-        </select>
-        <div class="invalid-feedback" th:errors="*{autores}">Error</div>
-        <div class="form-text">Para elegir varios, mantén pulsada la tecla Ctrl (Cmd en Mac).</div>
-      </div>
-    </div>
+    </form>
 
-    <div class="d-flex gap-2 mt-4">
-      <button type="submit" class="btn btn-primary">
-        <i class="ti ti-check"></i> Guardar
-      </button>
-      <a class="btn btn-outline-secondary"
-       th:href="${libro.id == null} ? @{/libros} : @{/libros/{id}(id=${libro.id})}">Cancelar</a>
-    </div>
-  </form>
+    <!-- Vista previa de la portada, que cambia al escribir -->
+    <aside class="vista-previa" aria-label="Vista previa de la portada">
+      <p class="seccion-etiqueta">Vista previa</p>
+      <span class="cubierta-libro cubierta-grande" th:classappend="|tono-${libro.id != null ? libro.id % 6 : 0}|">
+        <span class="cubierta-genero" data-previa-ver="genero" th:text="${libro.genero} ?: 'Género'">Género</span>
+        <span class="cubierta-corona"><i class="ti ti-crown"></i></span>
+        <span class="cubierta-titulo" data-previa-ver="titulo" th:text="${libro.titulo} ?: 'Título del libro'">Título del libro</span>
+        <span class="cubierta-autor" data-previa-ver="autor" th:text="${libro.autores == null or #lists.isEmpty(libro.autores)} ? 'Autor' : ${libro.autoresTexto}">Autor</span>
+      </span>
+    </aside>
+  </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

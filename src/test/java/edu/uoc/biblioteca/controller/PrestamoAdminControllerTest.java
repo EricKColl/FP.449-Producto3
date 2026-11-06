@@ -149,7 +149,7 @@ class PrestamoAdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Javier López Ferrer · tiene préstamos vencidos")))
                 .andExpect(content().string(matchesPattern(
-                        "(?s).*<option value=\"2\"\\s+disabled=\"disabled\">Javier López Ferrer.*")))
+                        "(?s).*name=\"usuarioId\" value=\"2\" required[^>]*disabled=\"disabled\".*")))
                 .andExpect(content().string(not(containsString("Laura Martínez Soler ·"))));
     }
 
@@ -160,7 +160,7 @@ class PrestamoAdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("La casa de los espíritus · sin ejemplares")))
                 .andExpect(content().string(matchesPattern(
-                        "(?s).*<option value=\"3\"\\s+disabled=\"disabled\">La casa de los espíritus.*")))
+                        "(?s).*name=\"libroId\" value=\"3\" required[^>]*disabled=\"disabled\".*")))
                 .andExpect(content().string(containsString("El juego del ángel · 1 disponible")));
     }
 }

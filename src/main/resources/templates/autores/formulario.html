@@ -6,42 +6,58 @@
 
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-  <h1 class="h3 mb-3" th:text="${autor.id == null} ? 'Nuevo autor' : 'Editar autor'">Nuevo autor</h1>
+  <a class="volver" th:href="${autor.id == null} ? @{/autores} : @{/autores/{id}(id=${autor.id})}">
+    <i class="ti ti-arrow-left"></i> <span th:text="${autor.id == null} ? 'Volver a autores' : 'Volver a la ficha'">Volver</span></a>
 
-  <form class="card card-body" method="post" novalidate th:object="${autor}"
-     th:action="${autor.id == null} ? @{/admin/autores} : @{/admin/autores/{id}(id=${autor.id})}">
-    <div class="row g-3">
-      <div class="col-md-5">
-        <label for="nombre" class="form-label">Nombre *</label>
-        <input type="text" class="form-control" th:field="*{nombre}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{nombre}">Error</div>
+  <div class="formulario-panel">
+    <form class="bloque formulario-cuerpo" method="post" novalidate th:object="${autor}" data-vista-previa="autor" data-enviando
+          th:action="${autor.id == null} ? @{/admin/autores} : @{/admin/autores/{id}(id=${autor.id})}">
+      <h1 class="formulario-titulo" th:text="${autor.id == null} ? 'Nuevo autor' : 'Editar autor'">Nuevo autor</h1>
+      <p class="formulario-ayuda">Los campos con * son obligatorios.</p>
+      <div class="row g-3">
+        <div class="col-md-5 campo">
+          <label for="nombre" class="form-label">Nombre *</label>
+          <div class="campo-control"><i class="ti ti-user" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{nombre}" th:errorclass="is-invalid" data-previa="nombre"></div>
+          <div class="invalid-feedback d-block" th:errors="*{nombre}">Error</div>
+        </div>
+        <div class="col-md-7 campo">
+          <label for="apellidos" class="form-label">Apellidos *</label>
+          <div class="campo-control"><i class="ti ti-users" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{apellidos}" th:errorclass="is-invalid" data-previa="apellidos"></div>
+          <div class="invalid-feedback d-block" th:errors="*{apellidos}">Error</div>
+        </div>
+        <div class="col-md-6 campo">
+          <label for="nacionalidad" class="form-label">Nacionalidad</label>
+          <div class="campo-control"><i class="ti ti-world" aria-hidden="true"></i>
+            <input type="text" class="form-control" th:field="*{nacionalidad}" th:errorclass="is-invalid" placeholder="Española" data-previa="nacionalidad"></div>
+          <div class="invalid-feedback d-block" th:errors="*{nacionalidad}">Error</div>
+        </div>
+        <div class="col-md-6 campo">
+          <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+          <div class="campo-control"><i class="ti ti-cake" aria-hidden="true"></i>
+            <input type="date" class="form-control" th:field="*{fechaNacimiento}" th:errorclass="is-invalid"></div>
+          <div class="invalid-feedback d-block" th:errors="*{fechaNacimiento}">Error</div>
+        </div>
       </div>
-      <div class="col-md-7">
-        <label for="apellidos" class="form-label">Apellidos *</label>
-        <input type="text" class="form-control" th:field="*{apellidos}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{apellidos}">Error</div>
+      <div class="formulario-botones">
+        <button type="submit" class="btn btn-primary btn-accion"><i class="ti ti-check"></i> Guardar</button>
+        <a class="btn btn-sesion" th:href="${autor.id == null} ? @{/autores} : @{/autores/{id}(id=${autor.id})}">Cancelar</a>
       </div>
-      <div class="col-md-5">
-        <label for="nacionalidad" class="form-label">Nacionalidad</label>
-        <input type="text" class="form-control" th:field="*{nacionalidad}" th:errorclass="is-invalid"
-           placeholder="Española">
-        <div class="invalid-feedback" th:errors="*{nacionalidad}">Error</div>
-      </div>
-      <div class="col-md-4">
-        <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
-        <input type="date" class="form-control" th:field="*{fechaNacimiento}" th:errorclass="is-invalid">
-        <div class="invalid-feedback" th:errors="*{fechaNacimiento}">Error</div>
-      </div>
-    </div>
+    </form>
 
-    <div class="d-flex gap-2 mt-4">
-      <button type="submit" class="btn btn-primary">
-        <i class="ti ti-check"></i> Guardar
-      </button>
-      <a class="btn btn-outline-secondary"
-       th:href="${autor.id == null} ? @{/autores} : @{/autores/{id}(id=${autor.id})}">Cancelar</a>
-    </div>
-  </form>
+    <aside class="vista-previa" aria-label="Vista previa del autor">
+      <p class="seccion-etiqueta">Vista previa</p>
+      <article class="autor-tarjeta tarjeta-previa">
+        <span class="autor-enlace">
+          <span class="monograma monograma-grande" data-previa-ver="iniciales"
+                th:text="${autor.id == null} ? '—' : ${#strings.substring(autor.nombre, 0, 1)} + ${#strings.substring(autor.apellidos, 0, 1)}">—</span>
+          <span class="autor-tarjeta-nombre" data-previa-ver="nombreCompleto" th:text="${autor.id == null} ? 'Nombre del autor' : ${autor.nombreCompleto}">Nombre del autor</span>
+          <span class="autor-tarjeta-datos" data-previa-ver="nacionalidad" th:text="${autor.nacionalidad} ?: 'Nacionalidad'">Nacionalidad</span>
+        </span>
+      </article>
+    </aside>
+  </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

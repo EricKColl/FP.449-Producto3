@@ -56,8 +56,7 @@ public class RegistroController {
         if (password == null || password.isBlank()) {
             resultado.rejectValue("password", "password.vacia", "La contraseña es obligatoria");
         } else if (!UsuarioService.passwordValida(password)) {
-            resultado.rejectValue("password", "password.longitud",
-                    "La contraseña debe tener al menos 8 caracteres y no superar 72 bytes en UTF-8");
+            resultado.rejectValue("password", "password.longitud", UsuarioService.problemaPassword(password));
         } else if (!password.equals(confirmarPassword)) {
             resultado.rejectValue("password", "password.confirmacion", "Las contraseñas no coinciden");
         }

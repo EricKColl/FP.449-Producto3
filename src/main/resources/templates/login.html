@@ -4,38 +4,84 @@
 <body>
 <nav th:replace="~{fragments/layout :: navbar('login')}"></nav>
 
-<main class="container py-5">
-  <div class="caja-acceso">
-    <img class="marca-icono" th:src="@{/img/corona-backlord.webp}" alt="" width="72" height="72">
-    <h1 class="titulo-panel titulo-oro">Iniciar sesión</h1>
+<main class="pantalla-acceso">
+    <!-- Escena: el catálogo girando y por qué merece la pena entrar -->
+    <section class="acceso-escena">
+        <div th:replace="~{fragments/layout :: anilloLibros}"></div>
+        <div class="acceso-lema">
+            <p class="seccion-etiqueta">Tu biblioteca te espera</p>
+            <h2 class="acceso-titulo">Vuelve a donde lo dejaste</h2>
+            <ul class="acceso-ventajas">
+                <li><i class="ti ti-book-download"></i> Pide un libro en un clic y sigue su plazo</li>
+                <li><i class="ti ti-bookmark"></i> Reserva los que estén prestados</li>
+                <li><i class="ti ti-heart"></i> Guarda tus favoritos para después</li>
+            </ul>
+        </div>
+    </section>
 
-    <div th:if="${param.error}" class="alert alert-danger" role="alert">
-      <i class="ti ti-alert-triangle me-1"></i> El email o la contraseña no son correctos.
-    </div>
-    <div th:if="${param.salida}" class="alert alert-success" role="alert">
-      <i class="ti ti-circle-check me-1"></i> Has cerrado la sesión.
-    </div>
+    <!-- Formulario -->
+    <section class="acceso-lado">
+        <div class="marco-dorado">
+            <div class="acceso-tarjeta">
+                <span class="acceso-icono"><i class="ti ti-lock-open"></i></span>
+                <h1 class="acceso-encabezado">Iniciar sesión</h1>
+                <p class="acceso-subtitulo">Entra con el email y la contraseña de tu cuenta.</p>
 
-    <div th:if="${param.registrado}" class="alert alert-success" role="alert">
-      <i class="ti ti-circle-check me-1"></i> Cuenta creada correctamente. Ya puedes iniciar sesión.
-    </div>
+                <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                    <i class="ti ti-alert-triangle me-1"></i> El email o la contraseña no son correctos.
+                </div>
+                <div th:if="${param.bloqueado}" class="alert alert-danger" role="alert">
+                    <i class="ti ti-lock me-1"></i> Demasiados intentos fallidos con este email. Por seguridad, espera
+                    <span th:text="${minutosBloqueo} + (${minutosBloqueo == 1} ? ' minuto' : ' minutos')">5 minutos</span> y vuelve a intentarlo.
+                </div>
+                <div th:if="${param.caducada}" class="alert alert-warning" role="alert">
+                    <i class="ti ti-clock-x me-1"></i> Tu sesión se cerró por inactividad. Vuelve a entrar para seguir.
+                </div>
+                <div th:if="${param.salida}" class="alert alert-success" role="alert">
+                    <i class="ti ti-circle-check me-1"></i> Has cerrado la sesión.
+                </div>
+                <div th:if="${param.registrado}" class="alert alert-success" role="alert">
+                    <i class="ti ti-circle-check me-1"></i> Cuenta creada correctamente. Ya puedes iniciar sesión.
+                </div>
 
-    <form class="card card-body" method="post" th:action="@{/login}">
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" autocomplete="username" required autofocus>
-      </div>
-      <div class="mb-4">
-        <label for="password" class="form-label">Contraseña</label>
-        <input type="password" class="form-control" id="password" name="password"
-               autocomplete="current-password" required>
-      </div>
-      <button type="submit" class="btn btn-primary w-100">
-        <i class="ti ti-login-2"></i> Entrar
-      </button>
-    </form>
-    <p class="mt-3">¿Todavía no tienes cuenta? <a th:href="@{/registro}">Crear cuenta</a></p>
-  </div>
+                <form method="post" th:action="@{/login}" data-enviando>
+                    <!-- Página a la que volver después de entrar (solo rutas de la aplicación: AccesoCorrecto) -->
+                    <input type="hidden" name="volver" th:if="${param.volver}" th:value="${param.volver}">
+                    <div class="campo">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="campo-control">
+                            <i class="ti ti-mail" aria-hidden="true"></i>
+                            <input type="email" class="form-control" id="email" name="email" autocomplete="username"
+                                   placeholder="tu@email.com" required autofocus>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <div class="campo-control">
+                            <i class="ti ti-key" aria-hidden="true"></i>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   autocomplete="current-password" placeholder="Tu contraseña" required data-aviso-mayusculas>
+                            <button type="button" class="ver-clave" data-ver-clave="password" aria-label="Mostrar la contraseña">
+                                <i class="ti ti-eye"></i>
+                            </button>
+                        </div>
+                        <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>
+                    </div>
+                    <label class="interruptor recordarme">
+                        <input type="checkbox" name="recordarme" value="true">
+                        <span class="interruptor-pista" aria-hidden="true"></span>
+                        <span>Recordarme en este equipo <small>(14 días)</small></span>
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-lg btn-accion w-100">
+                        <i class="ti ti-login-2"></i> Entrar
+                    </button>
+                </form>
+
+                <div class="acceso-separador"><span>¿Todavía no tienes cuenta?</span></div>
+                <a class="btn btn-sesion w-100" th:href="@{/registro}"><i class="ti ti-user-plus"></i> Crear cuenta</a>
+            </div>
+        </div>
+    </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

@@ -7,58 +7,96 @@
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <div class="cabecera-panel">
-    <h1 class="titulo-panel">Usuarios</h1>
-    <a class="btn btn-primary" th:href="@{/admin/usuarios/nuevo}">
+  <div class="cabecera-pestana">
+    <h1 class="visually-hidden">Usuarios</h1>
+    <a class="btn btn-primary btn-accion" th:href="@{/admin/usuarios/nuevo}">
       <i class="ti ti-plus"></i> Nuevo usuario
     </a>
   </div>
 
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-        <tr>
-          <th>Nombre</th>
-          <th>DNI</th>
-          <th>Email</th>
-          <th class="d-none d-xl-table-cell">Teléfono</th>
-          <th class="d-none d-xl-table-cell">Alta</th>
-          <th class="text-end">Préstamos</th>
-          <th class="text-end">Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="usuario : ${usuarios}">
-          <td>
-            <a th:href="@{/admin/usuarios/{id}(id=${usuario.id})}" th:text="${usuario.nombreCompleto}">Nombre</a>
-          </td>
-          <td th:text="${usuario.dni}">DNI</td>
-          <td th:text="${usuario.email}">Email</td>
-          <td class="d-none d-xl-table-cell" th:text="${usuario.telefono} ?: '—'">Teléfono</td>
-          <td class="d-none d-xl-table-cell" th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</td>
-          <td class="text-end">
-            <span class="badge text-bg-secondary" th:text="${#lists.size(usuario.prestamos)}">0</span>
-          </td>
-          <td class="text-end text-nowrap">
-            <a class="btn btn-sm btn-outline-primary" title="Editar"
-             th:href="@{/admin/usuarios/{id}/editar(id=${usuario.id})}">
-              <i class="ti ti-pencil"></i>
-            </a>
-            <form class="d-inline" method="post"
-               th:action="@{/admin/usuarios/{id}/eliminar(id=${usuario.id})}"
-               th:data-nombre="${usuario.nombreCompleto}"
-               onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
-              <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">
-                <i class="ti ti-trash"></i>
-              </button>
-            </form>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+  <section class="catalogo" data-catalogo>
+    <div class="barra-catalogo">
+      <div class="buscador-catalogo">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="search" placeholder="Nombre, email o DNI" aria-label="Buscar usuarios" data-filtro-texto>
+      </div>
+      <div class="controles-catalogo">
+        <label class="interruptor">
+          <input type="checkbox" data-filtro-disponible>
+          <span class="interruptor-pista" aria-hidden="true"></span>
+          <span>Solo con préstamos fuera de plazo</span>
+        </label>
+      </div>
     </div>
-  </div>
+
+    <div class="filtros-genero" role="group" aria-label="Filtrar por rol">
+      <button type="button" class="chip-genero activo" data-filtro-genero="">Todos
+        <span class="chip-cuenta" th:text="${#lists.size(usuarios)}">7</span></button>
+      <button type="button" class="chip-genero" data-filtro-genero="Cliente">Clientes
+        <span class="chip-cuenta" th:text="${#lists.size(usuarios.?[usuario.rol.name() == 'USER'])}">6</span></button>
+      <button type="button" class="chip-genero" data-filtro-genero="Administrador">Administradores
+        <span class="chip-cuenta" th:text="${#lists.size(usuarios.?[usuario.rol.name() == 'ADMIN'])}">1</span></button>
+    </div>
+
+    <p class="contador-catalogo" aria-live="polite"><strong data-contador th:text="${#lists.size(usuarios)}">7</strong> usuarios</p>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla-panel">
+          <thead class="table-light">
+          <tr>
+            <th>Usuario</th>
+            <th class="d-none d-xl-table-cell">DNI</th>
+            <th>Rol</th>
+            <th>Préstamos</th>
+            <th class="d-none d-xl-table-cell">Alta</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+          </thead>
+          <tbody data-lista>
+          <tr th:each="item : ${usuarios}" th:with="u=${item.usuario}" data-item
+              th:attr="data-texto=${#strings.toLowerCase(u.nombreCompleto + ' ' + u.email + ' ' + u.dni)},
+                       data-genero=${u.rol.name() == 'ADMIN' ? 'Administrador' : 'Cliente'},
+                       data-disponible=${item.vencidos > 0}">
+            <td>
+              <span class="celda-libro">
+                <span class="avatar avatar-mini" aria-hidden="true"
+                      th:text="${#strings.substring(u.nombre, 0, 1)} + ${#strings.substring(u.apellidos, 0, 1)}">LM</span>
+                <span class="celda-usuario">
+                  <a th:href="@{/admin/usuarios/{id}(id=${u.id})}" th:text="${u.nombreCompleto}">Laura Martínez Soler</a>
+                  <small th:text="${u.email}">laura@example.com</small>
+                </span>
+              </span>
+            </td>
+            <td class="d-none d-xl-table-cell text-nowrap" th:text="${u.dni}">12345678Z</td>
+            <td><span class="insignia-rol" th:classappend="${u.rol.name() == 'ADMIN'} ? 'rol-admin'"
+                      th:text="${u.rol.name() == 'ADMIN'} ? 'Administrador' : 'Cliente'">Cliente</span></td>
+            <td class="text-nowrap">
+              <span class="text-body-secondary" th:if="${u.rol.name() == 'ADMIN'}">—</span>
+              <span class="chip-prestamos" th:unless="${u.rol.name() == 'ADMIN'}" th:text="${item.enCurso} + ' en curso'">1 en curso</span>
+              <span class="chip-prestamos vencidos" th:if="${item.vencidos > 0}"
+                    th:text="${item.vencidos} + (${item.vencidos == 1} ? ' vencido' : ' vencidos')">1 vencido</span>
+            </td>
+            <td class="d-none d-xl-table-cell text-nowrap" th:text="${#temporals.format(u.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</td>
+            <td class="text-end text-nowrap">
+              <a class="btn btn-sm btn-icono-sutil" th:href="@{/admin/usuarios/{id}/editar(id=${u.id})}"
+                 th:aria-label="|Editar a ${u.nombreCompleto}|" title="Editar"><i class="ti ti-pencil"></i></a>
+              <form class="d-inline" method="post" th:action="@{/admin/usuarios/{id}/eliminar(id=${u.id})}"
+                    th:data-confirmar="|¿Eliminar a «${u.nombreCompleto}»?|">
+                <button class="btn btn-sm btn-icono-sutil peligro" type="submit" title="Eliminar"
+                        th:aria-label="|Eliminar a ${u.nombreCompleto}|"><i class="ti ti-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="vacio-grande d-none" data-vacio>
+      <i class="ti ti-user-search"></i>
+      <span>Ningún usuario coincide con la búsqueda.</span>
+    </div>
+  </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

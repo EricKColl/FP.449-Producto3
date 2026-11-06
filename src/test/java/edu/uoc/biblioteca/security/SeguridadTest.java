@@ -73,7 +73,7 @@ class SeguridadTest {
     void entraConEmailYContrasenaCorrectos() throws Exception {
         mockMvc.perform(formLogin("/login").userParameter("email").user(ADMIN).password("Admin1234"))
                 .andExpect(authenticated().withRoles("ADMIN"))
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/inicio"));
         mockMvc.perform(formLogin("/login").userParameter("email").user(SOCIA).password("Usuario1234"))
                 .andExpect(authenticated().withRoles("USER"));
     }
@@ -104,7 +104,7 @@ class SeguridadTest {
     @Test
     @WithMockUser
     void conSesionIniciadaElLoginRedirigeAlInicio() throws Exception {
-        mockMvc.perform(get("/login")).andExpect(redirectedUrl("/"));
+        mockMvc.perform(get("/login")).andExpect(redirectedUrl("/inicio"));
     }
 
     // --- Sin sesión ---
@@ -181,12 +181,27 @@ class SeguridadTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void unAdministradorVeElMenuYElPanelCompletos() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(model().attributeExists("ultimos"))
+        mockMvc.perform(get("/admin/panel"))
+                .andExpect(model().attributeExists("panel"))
                 .andExpect(content().string(allOf(
                         containsString("Administración"),
                         containsString("Últimos préstamos"),
                         containsString("Cerrar sesión"))));
+    }
+
+    @Test
+    void elAdministradorNoTienePrestamosReservasNiFavoritosPropios() throws Exception {
+        var admin = user(cuentas.loadUserByUsername(ADMIN));
+        // Mi cuenta es de cualquier sesión; el resto de /user/* es del cliente
+        mockMvc.perform(get("/user/cuenta").with(admin))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Permisos del administrador")));
+        for (String ruta : new String[] {"/user/inicio", "/user/prestamos", "/user/reservas", "/user/favoritos"}) {
+            mockMvc.perform(get(ruta).with(admin)).andExpect(status().isForbidden());
+        }
+        mockMvc.perform(get("/libros/14").with(admin))
+                .andExpect(content().string(allOf(not(containsString("Pedir prestado")),
+                        not(containsString("/user/favoritos")), not(containsString("Mis préstamos")))));
     }
 
     @Test

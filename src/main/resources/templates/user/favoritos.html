@@ -5,37 +5,40 @@
 <nav th:replace="~{fragments/layout :: navbar('mis-favoritos')}"></nav>
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-    <div class="cabecera-panel">
-        <h1 class="titulo-panel">Mis favoritos</h1>
-    </div>
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>Libro</th>
-                    <th>Autores</th>
-                    <th class="text-end">Acción</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="libro : ${favoritos}">
-                    <td><a th:href="@{/libros/{id}(id=${libro.id})}" th:text="${libro.titulo}">Libro</a></td>
-                    <td th:text="${libro.autoresTexto}">Autores</td>
-                    <td class="text-end">
-                        <form method="post" th:action="@{/user/favoritos/{id}/quitar(id=${libro.id})}">
-                            <button class="btn btn-sm btn-outline-secondary" type="submit">
-                                <i class="ti ti-heart-off"></i> Quitar
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(favoritos)}">
-                    <td colspan="3" class="text-center text-body-secondary py-4">Aún no has marcado ningún libro.</td>
-                </tr>
-                </tbody>
-            </table>
+    <h1 class="visually-hidden">Mis favoritos</h1>
+    <th:block th:replace="~{fragments/layout :: consejo('favoritos', 'heart', 'Guarda lo que te interese',
+        'Desde la ficha de cualquier libro, pulsa «Añadir a favoritos» y lo tendrás siempre a mano aquí, con su disponibilidad.')}"></th:block>
+
+    <p class="contador-catalogo" th:unless="${#lists.isEmpty(favoritos)}">
+        <strong th:text="${#lists.size(favoritos)}">2</strong> libros guardados ·
+        <strong th:text="${#lists.size(favoritos.?[prestable])}">1</strong> disponibles ahora</p>
+
+    <!-- Estante: cada portada con sus acciones a mano -->
+    <div class="rejilla-libros estante-favoritos" th:unless="${#lists.isEmpty(favoritos)}">
+        <div class="estante-libro" th:each="f : ${favoritos}" data-aparecer>
+            <a th:replace="~{fragments/layout :: cubierta(${f.libro}, ${f.disponibles})}"></a>
+            <div class="estante-acciones">
+                <form th:if="${f.prestable}" method="post" th:action="@{/user/prestamos}" data-enviando data-volar="mis-prestamos">
+                    <input type="hidden" name="libroId" th:value="${f.libro.id}">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="ti ti-book-download"></i> Pedir</button>
+                </form>
+                <form th:unless="${f.prestable}" method="post" th:action="@{/user/reservas}" data-enviando data-volar="mis-reservas">
+                    <input type="hidden" name="libroId" th:value="${f.libro.id}">
+                    <button class="btn btn-sm btn-sesion" type="submit"><i class="ti ti-bookmark"></i> Reservar</button>
+                </form>
+                <form method="post" th:action="@{/user/favoritos/{id}/quitar(id=${f.libro.id})}">
+                    <button class="btn btn-sm btn-sesion" type="submit" title="Quitar de favoritos"
+                            th:aria-label="|Quitar «${f.libro.titulo}» de favoritos|">
+                        <i class="ti ti-heart-off"></i> Quitar
+                    </button>
+                </form>
+            </div>
         </div>
+    </div>
+
+    <div class="bloque vacio-grande" th:if="${#lists.isEmpty(favoritos)}">
+        <i class="ti ti-heart"></i>
+        <span>Aún no has marcado ningún libro. <a th:href="@{/libros}">Busca en el catálogo</a> y guarda los que te apetezcan.</span>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

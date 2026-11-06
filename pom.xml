@@ -19,6 +19,9 @@
 		<tabler-icons.version>3.28.1</tabler-icons.version>
 		<inter.version>5.2.5</inter.version>
 		<playfair-display.version>4.2.2</playfair-display.version>
+		<three.version>0.186.1</three.version>
+		<gsap.version>3.12.7</gsap.version>
+		<echarts.version>6.1.0</echarts.version>
 	</properties>
 	<dependencies>
 		<!-- Web y vistas -->
@@ -95,6 +98,22 @@
 			<artifactId>fontsource__playfair-display</artifactId>
 			<version>${playfair-display.version}</version>
 		</dependency>
+		<!-- Efectos de la interfaz: 3D (Three.js), animación (GSAP) y gráficas del panel (ECharts) -->
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>three</artifactId>
+			<version>${three.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>gsap</artifactId>
+			<version>${gsap.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>echarts</artifactId>
+			<version>${echarts.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -131,6 +150,49 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- Cobertura de los tests (JaCoCo): informe en target/site/jacoco/index.html al hacer "verify".
+			     La compilación falla si la cobertura de líneas baja del mínimo: así no se cuela código sin probar -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.13</version>
+				<executions>
+					<execution>
+						<id>preparar-cobertura</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>informe-cobertura</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>minimo-cobertura</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.90</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

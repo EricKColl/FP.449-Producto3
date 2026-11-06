@@ -4,81 +4,92 @@
 <body>
 <nav th:replace="~{fragments/layout :: navbar('usuarios')}"></nav>
 
-<main class="container py-4">
+<main class="container py-4 tablero">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <a class="btn btn-link px-0 mb-2" th:href="@{/admin/usuarios}">
-    <i class="ti ti-arrow-left"></i> Volver a usuarios
-  </a>
-  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-    <h1 class="h3 mb-0" th:text="${usuario.nombreCompleto}">Usuario</h1>
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-primary" th:href="@{/admin/usuarios/{id}/editar(id=${usuario.id})}">
-        <i class="ti ti-pencil"></i> Editar
-      </a>
-      <form method="post" th:action="@{/admin/usuarios/{id}/eliminar(id=${usuario.id})}"
-         th:data-nombre="${usuario.nombreCompleto}"
-         onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
-        <button class="btn btn-outline-danger" type="submit">
-          <i class="ti ti-trash"></i> Eliminar
-        </button>
-      </form>
-    </div>
-  </div>
+  <a class="volver" th:href="@{/admin/usuarios}"><i class="ti ti-arrow-left"></i> Volver a usuarios</a>
 
-  <div class="row g-3">
-    <div class="col-xl-5">
-      <div class="card">
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-4">Rol</dt>
-            <dd class="col-sm-8" th:text="${usuario.rol.etiqueta}">Usuario</dd>
-            <dt class="col-sm-4">DNI</dt>
-            <dd class="col-sm-8" th:text="${usuario.dni}">DNI</dd>
-            <dt class="col-sm-4">Email</dt>
-            <dd class="col-sm-8 text-break" th:text="${usuario.email}">Email</dd>
-            <dt class="col-sm-4">Teléfono</dt>
-            <dd class="col-sm-8" th:text="${usuario.telefono} ?: '—'">Teléfono</dd>
-            <dt class="col-sm-4">Alta</dt>
-            <dd class="col-sm-8 mb-0"
-             th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</dd>
-          </dl>
-        </div>
+  <div class="cuenta">
+    <!-- Tarjeta de perfil con su estado -->
+    <section class="perfil-tarjeta">
+      <div class="perfil-portada" aria-hidden="true"></div>
+      <span class="avatar avatar-xl"
+            th:text="${#strings.substring(usuario.nombre, 0, 1)} + ${#strings.substring(usuario.apellidos, 0, 1)}">LM</span>
+      <h1 class="perfil-tarjeta-nombre" th:text="${usuario.nombreCompleto}">Laura Martínez Soler</h1>
+      <span class="insignia-rol" th:classappend="${usuario.rol.name() == 'ADMIN'} ? 'rol-admin'">
+        <i class="ti" th:classappend="${usuario.rol.name() == 'ADMIN'} ? 'ti-shield-check' : 'ti-user'"></i>
+        <span th:text="${usuario.rol.name() == 'ADMIN'} ? 'Administrador' : 'Cliente'">Cliente</span>
+      </span>
+      <p class="estado-cuenta" th:classappend="${vencidos > 0} ? 'bloqueada' : 'al-dia'">
+        <i class="ti" th:classappend="${vencidos > 0} ? 'ti-alarm' : 'ti-circle-check'"></i>
+        <span th:text="${vencidos > 0} ? 'Bloqueado: tiene préstamos fuera de plazo' : 'Al día con sus préstamos'">Al día</span>
+      </p>
+      <div class="perfil-tarjeta-pie">
+        <div><strong th:text="${enCurso}">1</strong><small>en curso</small></div>
+        <div><strong th:text="${#lists.size(historial)}">3</strong><small>en total</small></div>
       </div>
-    </div>
+      <div class="ficha-acciones justify-content-center mt-3">
+        <a class="btn btn-sesion btn-sm" th:href="@{/admin/usuarios/{id}/editar(id=${usuario.id})}">
+          <i class="ti ti-pencil"></i> Editar
+        </a>
+        <form method="post" th:action="@{/admin/usuarios/{id}/eliminar(id=${usuario.id})}"
+              th:data-confirmar="|¿Eliminar a «${usuario.nombreCompleto}»?|">
+          <button class="btn btn-outline-danger btn-sm btn-redondo" type="submit"><i class="ti ti-trash"></i> Eliminar</button>
+        </form>
+      </div>
+    </section>
 
-    <div class="col-xl-7">
-      <div class="card">
-        <div class="card-header fw-semibold">Historial de préstamos</div>
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead class="table-light">
-            <tr>
-              <th>Libro</th>
-              <th>Prestado</th>
-              <th>Devolución prevista</th>
-              <th>Estado</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="prestamo : ${usuario.prestamos}">
-              <td>
-                <a th:href="@{/libros/{id}(id=${prestamo.libro.id})}"
-                 th:text="${prestamo.libro.titulo}">Libro</a>
-              </td>
-              <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
-              <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/10/2026</td>
-              <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(usuario.prestamos)}">
-              <td colspan="4" class="text-center text-body-secondary py-4">
-                Este usuario todavía no ha tomado ningún libro en préstamo.
-              </td>
-            </tr>
-            </tbody>
-          </table>
+    <div class="cuenta-detalle">
+      <section class="bloque">
+        <header class="bloque-cabecera"><h2><i class="ti ti-id"></i> Datos</h2></header>
+        <dl class="datos-cuenta">
+          <div><dt>DNI</dt><dd th:text="${usuario.dni}">12345678Z</dd></div>
+          <div><dt>Teléfono</dt><dd th:text="${usuario.telefono} ?: '—'">612345678</dd></div>
+          <div class="dato-ancho"><dt>Email</dt><dd class="text-break" th:text="${usuario.email}">laura@example.com</dd></div>
+          <div><dt>Alta</dt><dd th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</dd></div>
+          <div><dt>Rol</dt><dd th:text="${usuario.rol.name() == 'ADMIN'} ? 'Administrador' : 'Cliente'">Cliente</dd></div>
+        </dl>
+      </section>
+
+      <section class="bloque">
+        <header class="bloque-cabecera"><h2><i class="ti ti-history"></i> Historial de préstamos</h2></header>
+        <ol class="linea-tiempo">
+          <li th:each="prestamo : ${historial}" th:classappend="|hito-${#strings.toLowerCase(prestamo.estado.name())}|">
+            <span class="hito-punto" aria-hidden="true"></span>
+            <div class="hito-cuerpo">
+              <a class="hito-titulo" th:href="@{/libros/{id}(id=${prestamo.libro.id})}" th:text="${prestamo.libro.titulo}">Libro</a>
+              <span class="hito-fechas">
+                <span th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</span>
+                <i class="ti ti-arrow-right"></i>
+                <span th:text="${prestamo.devuelto} ? ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')}
+                      : ('prevista ' + ${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')})">15/10/2026</span>
+              </span>
+            </div>
+            <span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span>
+          </li>
+          <li class="vacio" th:if="${#lists.isEmpty(historial)}">Este usuario todavía no ha tomado ningún libro en préstamo.</li>
+        </ol>
+      </section>
+
+      <section class="bloque" th:if="${usuario.rol.name() == 'USER'}">
+        <header class="bloque-cabecera"><h2><i class="ti ti-bookmark"></i> Reservas y favoritos</h2></header>
+        <ul class="lista-panel">
+          <li th:each="reserva : ${reservas}">
+            <span class="lomo lomo-mini" th:classappend="|tono-${reserva.libro.id % 6}|" aria-hidden="true"></span>
+            <span class="lista-datos">
+              <a th:href="@{/libros/{id}(id=${reserva.libro.id})}" th:text="${reserva.libro.titulo}">Libro</a>
+              <small th:text="'Reservado el ' + ${#temporals.format(reserva.fechaReserva, 'dd/MM/yyyy')}">Reservado</small>
+            </span>
+            <span class="estado estado-activo">Reserva activa</span>
+          </li>
+          <li class="vacio" th:if="${#lists.isEmpty(reservas)}">No tiene reservas activas.</li>
+        </ul>
+        <p class="agotados-titulo mt-3" th:unless="${#sets.isEmpty(usuario.favoritos)}">Favoritos</p>
+        <div class="favoritos-mini" th:unless="${#sets.isEmpty(usuario.favoritos)}">
+          <a class="etiqueta" th:each="libro : ${usuario.favoritos}" th:href="@{/libros/{id}(id=${libro.id})}">
+            <i class="ti ti-heart"></i> <span th:text="${libro.titulo}">1984</span></a>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </main>

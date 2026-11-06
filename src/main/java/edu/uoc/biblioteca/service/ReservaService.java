@@ -5,6 +5,7 @@ import edu.uoc.biblioteca.model.Libro;
 import edu.uoc.biblioteca.model.Reserva;
 import edu.uoc.biblioteca.model.Usuario;
 import edu.uoc.biblioteca.repository.ReservaRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,9 +21,12 @@ public class ReservaService {
     private final UsuarioService usuarioService;
     private final LibroService libroService;
     private final PrestamoService prestamoService;
+    private final ApplicationEventPublisher eventos;
 
     public ReservaService(ReservaRepository reservaRepository, UsuarioService usuarioService,
-                          LibroService libroService, PrestamoService prestamoService) {
+                          LibroService libroService, PrestamoService prestamoService,
+                          ApplicationEventPublisher eventos) {
+        this.eventos = eventos;
         this.reservaRepository = reservaRepository;
         this.usuarioService = usuarioService;
         this.libroService = libroService;
@@ -42,7 +46,8 @@ public class ReservaService {
     public Reserva reservar(Long usuarioId, Long libroId) {
         Usuario usuario = usuarioService.buscarPorId(usuarioId);
         Libro libro = libroService.buscarPorId(libroId);
-        if (libroService.ejemplaresDisponibles(libro) > 0) {
+        // Se puede reservar si no queda ningún ejemplar para este usuario (o los libres ya están apartados)
+        if (prestamoService.ejemplaresParaUsuario(libro, usuarioId) > 0) {
             throw new IllegalStateException("«" + libro.getTitulo() + "» tiene ejemplares disponibles: puedes pedirlo prestado");
         }
         if (prestamoService.tieneSinDevolver(usuarioId, libroId)) {
@@ -51,7 +56,9 @@ public class ReservaService {
         if (tieneReservaActiva(usuarioId, libroId)) {
             throw new IllegalStateException("Ya tienes una reserva activa de «" + libro.getTitulo() + "»");
         }
-        return reservaRepository.save(new Reserva(usuario, libro));
+        Reserva reserva = reservaRepository.save(new Reserva(usuario, libro));
+        eventos.publishEvent(new AvisosCambiados(libroId, usuarioId));
+        return reserva;
     }
 
     /** Busca por id y por usuario: la reserva de otro se comporta como si no existiera (404). */
@@ -63,6 +70,8 @@ public class ReservaService {
             throw new IllegalStateException("Esa reserva ya estaba cancelada");
         }
         reserva.cancelar();
+        // Los que iban detrás en la cola suben un puesto
+        eventos.publishEvent(new AvisosCambiados(reserva.getLibro().getId(), usuarioId));
         return reserva;
     }
 }

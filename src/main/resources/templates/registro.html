@@ -4,66 +4,115 @@
 <body>
 <nav th:replace="~{fragments/layout :: navbar('registro')}"></nav>
 
-<main class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-9 col-xl-8">
-      <div class="cabecera-panel">
-        <h1 class="titulo-panel titulo-oro">Crear cuenta</h1>
-      </div>
-      <p class="text-body-secondary">Regístrate como socio de la biblioteca. Los campos con * son obligatorios.</p>
-
-      <form class="card card-body" method="post" novalidate th:action="@{/registro}" th:object="${usuario}">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="nombre" class="form-label">Nombre *</label>
-            <input type="text" class="form-control" th:field="*{nombre}" th:errorclass="is-invalid"
-                   autocomplete="given-name" maxlength="80" required autofocus>
-            <div class="invalid-feedback" th:errors="*{nombre}">Error</div>
-          </div>
-          <div class="col-md-6">
-            <label for="apellidos" class="form-label">Apellidos *</label>
-            <input type="text" class="form-control" th:field="*{apellidos}" th:errorclass="is-invalid"
-                   autocomplete="family-name" maxlength="120" required>
-            <div class="invalid-feedback" th:errors="*{apellidos}">Error</div>
-          </div>
-          <div class="col-md-4">
-            <label for="dni" class="form-label">DNI/NIE *</label>
-            <input type="text" class="form-control" th:field="*{dni}" th:errorclass="is-invalid"
-                   placeholder="12345678Z" maxlength="9" required>
-            <div class="invalid-feedback" th:errors="*{dni}">Error</div>
-          </div>
-          <div class="col-md-8">
-            <label for="email" class="form-label">Email *</label>
-            <input type="email" class="form-control" th:field="*{email}" th:errorclass="is-invalid"
-                   autocomplete="email" maxlength="120" required>
-            <div class="invalid-feedback" th:errors="*{email}">Error</div>
-          </div>
-          <div class="col-12">
-            <label for="telefono" class="form-label">Teléfono</label>
-            <input type="tel" class="form-control" th:field="*{telefono}" th:errorclass="is-invalid"
-                   autocomplete="tel" maxlength="20">
-            <div class="invalid-feedback" th:errors="*{telefono}">Error</div>
-          </div>
-          <div class="col-md-6">
-            <label for="password" class="form-label">Contraseña *</label>
-            <input type="password" class="form-control" th:field="*{password}" th:errorclass="is-invalid"
-                   autocomplete="new-password" minlength="8" maxlength="72" required aria-describedby="ayuda-password">
-            <div class="invalid-feedback" th:errors="*{password}">Error</div>
-            <div id="ayuda-password" class="form-text">Usa al menos 8 caracteres.</div>
-          </div>
-          <div class="col-md-6">
-            <label for="confirmarPassword" class="form-label">Repetir contraseña *</label>
-            <input type="password" class="form-control" id="confirmarPassword" name="confirmarPassword"
-                   autocomplete="new-password" minlength="8" maxlength="72" required>
-          </div>
+<main class="pantalla-acceso acceso-registro">
+    <!-- Escena: el catálogo girando y lo que se consigue con una cuenta -->
+    <section class="acceso-escena">
+        <div th:replace="~{fragments/layout :: anilloLibros}"></div>
+        <div class="acceso-lema">
+            <p class="seccion-etiqueta">Hazte socio en un minuto</p>
+            <h2 class="acceso-titulo">Todo el catálogo, a tu alcance</h2>
+            <ul class="acceso-ventajas">
+                <li><i class="ti ti-books"></i> Hasta 3 libros a la vez, 15 días cada uno</li>
+                <li><i class="ti ti-bell-ringing"></i> Reserva lo que esté prestado y te avisamos</li>
+                <li><i class="ti ti-shield-lock"></i> Tu contraseña se guarda cifrada con BCrypt</li>
+            </ul>
         </div>
-        <button type="submit" class="btn btn-primary align-self-start mt-4">
-          <i class="ti ti-user-plus"></i> Crear cuenta
-        </button>
-      </form>
-      <p class="mt-3">¿Ya tienes una cuenta? <a th:href="@{/login}">Iniciar sesión</a></p>
-    </div>
-  </div>
+    </section>
+
+    <!-- Formulario -->
+    <section class="acceso-lado">
+        <div class="marco-dorado">
+            <div class="acceso-tarjeta">
+                <span class="acceso-icono"><i class="ti ti-user-plus"></i></span>
+                <h1 class="acceso-encabezado">Crear cuenta</h1>
+                <p class="acceso-subtitulo">Los campos con * son obligatorios.</p>
+
+                <form method="post" novalidate th:action="@{/registro}" th:object="${usuario}" data-enviando>
+                    <div class="row g-3">
+                        <div class="col-md-6 campo">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <div class="campo-control">
+                                <i class="ti ti-user" aria-hidden="true"></i>
+                                <input type="text" class="form-control" th:field="*{nombre}" th:errorclass="is-invalid"
+                                       autocomplete="given-name" maxlength="80" required autofocus>
+                            </div>
+                            <div class="invalid-feedback d-block" th:errors="*{nombre}">Error</div>
+                        </div>
+                        <div class="col-md-6 campo">
+                            <label for="apellidos" class="form-label">Apellidos *</label>
+                            <div class="campo-control">
+                                <i class="ti ti-users" aria-hidden="true"></i>
+                                <input type="text" class="form-control" th:field="*{apellidos}" th:errorclass="is-invalid"
+                                       autocomplete="family-name" maxlength="120" required>
+                            </div>
+                            <div class="invalid-feedback d-block" th:errors="*{apellidos}">Error</div>
+                        </div>
+                        <div class="col-md-5 campo">
+                            <label for="dni" class="form-label">DNI/NIE *</label>
+                            <div class="campo-control">
+                                <i class="ti ti-id" aria-hidden="true"></i>
+                                <input type="text" class="form-control" th:field="*{dni}" th:errorclass="is-invalid"
+                                       placeholder="12345678Z" maxlength="9" required>
+                            </div>
+                            <div class="invalid-feedback d-block" th:errors="*{dni}">Error</div>
+                        </div>
+                        <div class="col-md-7 campo">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <div class="campo-control">
+                                <i class="ti ti-phone" aria-hidden="true"></i>
+                                <input type="tel" class="form-control" th:field="*{telefono}" th:errorclass="is-invalid"
+                                       autocomplete="tel" maxlength="20" placeholder="Opcional">
+                            </div>
+                            <div class="invalid-feedback d-block" th:errors="*{telefono}">Error</div>
+                        </div>
+                        <div class="col-12 campo">
+                            <label for="email" class="form-label">Email *</label>
+                            <div class="campo-control">
+                                <i class="ti ti-mail" aria-hidden="true"></i>
+                                <input type="email" class="form-control" th:field="*{email}" th:errorclass="is-invalid"
+                                       autocomplete="email" maxlength="120" placeholder="Con él iniciarás sesión" required>
+                            </div>
+                            <div class="invalid-feedback d-block" th:errors="*{email}">Error</div>
+                        </div>
+                        <div class="col-md-6 campo">
+                            <label for="password" class="form-label">Contraseña *</label>
+                            <div class="campo-control">
+                                <i class="ti ti-key" aria-hidden="true"></i>
+                                <input type="password" class="form-control" th:field="*{password}" th:errorclass="is-invalid"
+                                       autocomplete="new-password" minlength="8" maxlength="72" required
+                                       aria-describedby="fuerza-password" data-aviso-mayusculas>
+                                <button type="button" class="ver-clave" data-ver-clave="password" aria-label="Mostrar la contraseña">
+                                    <i class="ti ti-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback d-block" th:errors="*{password}">Error</div>
+                            <th:block th:unless="${#fields.hasErrors('password')}"><div th:replace="~{fragments/layout :: fuerzaClave('password')}"></div></th:block>
+                        </div>
+                        <div class="col-md-6 campo">
+                            <label for="confirmarPassword" class="form-label">Repetir contraseña *</label>
+                            <div class="campo-control">
+                                <i class="ti ti-key" aria-hidden="true"></i>
+                                <input type="password" class="form-control" id="confirmarPassword" name="confirmarPassword"
+                                       autocomplete="new-password" minlength="8" maxlength="72" required data-aviso-mayusculas
+                                       data-igual-que="password">
+                                <button type="button" class="ver-clave" data-ver-clave="confirmarPassword" aria-label="Mostrar la contraseña repetida">
+                                    <i class="ti ti-eye"></i>
+                                </button>
+                            </div>
+                            <p class="coincide" data-coincide-de="confirmarPassword" hidden></p>
+                        </div>
+                    </div>
+                    <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>
+                    <button type="submit" class="btn btn-primary btn-lg btn-accion w-100 mt-4">
+                        <i class="ti ti-user-plus"></i> Crear cuenta
+                    </button>
+                </form>
+
+                <div class="acceso-separador"><span>¿Ya tienes una cuenta?</span></div>
+                <a class="btn btn-sesion w-100" th:href="@{/login}"><i class="ti ti-login-2"></i> Iniciar sesión</a>
+            </div>
+        </div>
+    </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

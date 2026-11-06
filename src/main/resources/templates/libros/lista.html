@@ -8,67 +8,126 @@
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <div class="cabecera-panel">
-    <h1 class="titulo-panel">Libros</h1>
-    <a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/libros/nuevo}">
+  <div class="cabecera-pestana">
+    <h1 class="visually-hidden">Libros</h1>
+    <a class="btn btn-primary btn-accion" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/libros/nuevo}">
       <i class="ti ti-plus"></i> Nuevo libro
     </a>
   </div>
 
-  <form class="mb-3" method="get" th:action="@{/libros}">
-    <div class="input-group">
-      <input class="form-control" type="search" aria-label="Buscar por título, ISBN o autor" name="q" th:value="${q}"
-         placeholder="Buscar por título, ISBN o autor">
-      <button class="btn btn-outline-secondary" type="submit">
-        <i class="ti ti-search"></i> Buscar
+  <!-- Catálogo: el buscador filtra mientras se escribe (js/app.js) y, al pulsar Intro, busca en el servidor -->
+  <section class="catalogo" data-catalogo th:attr="data-vista-inicial=${#authorization.expression('hasRole(''ADMIN'')')} ? 'tabla' : 'estante'">
+    <div class="barra-catalogo">
+      <form class="buscador-catalogo" role="search" method="get" th:action="@{/libros}">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="search" name="q" th:value="${q}" placeholder="Título, autor, ISBN o género"
+               aria-label="Buscar por título, autor, ISBN o género" data-filtro-texto>
+      </form>
+      <div class="controles-catalogo">
+        <label class="interruptor">
+          <input type="checkbox" data-filtro-disponible>
+          <span class="interruptor-pista" aria-hidden="true"></span>
+          <span>Solo disponibles</span>
+        </label>
+        <select class="form-select form-select-sm orden-catalogo" aria-label="Ordenar" data-orden>
+          <option value="titulo">Título (A-Z)</option>
+          <option value="autor">Autor (A-Z)</option>
+          <option value="anio-desc">Más recientes</option>
+          <option value="anio">Más antiguos</option>
+        </select>
+        <div class="selector-vista" role="group" aria-label="Forma de ver el catálogo">
+          <button type="button" class="btn" data-vista="estante" aria-label="Ver como estante"><i class="ti ti-layout-grid"></i></button>
+          <button type="button" class="btn" data-vista="tabla" aria-label="Ver como tabla"><i class="ti ti-list"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filtros-genero" role="group" aria-label="Filtrar por género">
+      <button type="button" class="chip-genero activo" data-filtro-genero="">Todos
+        <span class="chip-cuenta" th:text="${#lists.size(libros)}">14</span></button>
+      <button type="button" class="chip-genero" th:each="genero : ${generos}" th:data-filtro-genero="${genero.etiqueta}">
+        <span th:text="${genero.etiqueta}">Novela</span> <span class="chip-cuenta" th:text="${genero.valor}">4</span>
       </button>
     </div>
-  </form>
 
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-        <tr>
-          <th>Título</th>
-          <th>Autores</th>
-          <th>ISBN</th>
-          <th>Año</th>
-          <th class="text-end" sec:authorize="hasRole('ADMIN')">Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="libro : ${libros}">
-          <td>
-            <a th:href="@{/libros/{id}(id=${libro.id})}" th:text="${libro.titulo}">Título</a>
-          </td>
-          <td th:text="${libro.autoresTexto}">Autores</td>
-          <td class="text-nowrap" th:text="${libro.isbn}">ISBN</td>
-          <td th:text="${libro.anioPublicacion}">Año</td>
-          <td class="text-end text-nowrap" sec:authorize="hasRole('ADMIN')">
-            <a class="btn btn-sm btn-outline-primary" title="Editar"
-             th:href="@{/admin/libros/{id}/editar(id=${libro.id})}">
-              <i class="ti ti-pencil"></i>
-            </a>
-            <form class="d-inline" method="post"
-               th:action="@{/admin/libros/{id}/eliminar(id=${libro.id})}"
-               th:data-titulo="${libro.titulo}"
-               onsubmit="return confirm('¿Eliminar «' + this.dataset.titulo + '»?')">
-              <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">
-                <i class="ti ti-trash"></i>
-              </button>
-            </form>
-          </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(libros)}">
-          <td colspan="5" class="text-center text-body-secondary py-4">
-            No hay libros que coincidan con la búsqueda.
-          </td>
-        </tr>
-        </tbody>
-      </table>
+    <p class="contador-catalogo" aria-live="polite">
+      <strong data-contador th:text="${#lists.size(libros)}">14</strong>
+      <span data-contador-texto>títulos</span>
+    </p>
+
+    <!-- Vista de estante: portadas -->
+    <div class="rejilla-catalogo vista-estante" data-lista data-vista-contenido="estante">
+      <article class="libro-tarjeta" th:each="item : ${libros}" data-item
+               th:attr="data-texto=${#strings.toLowerCase(item.libro.titulo + ' ' + item.libro.autoresTexto + ' ' + item.libro.isbn + ' ' + (item.libro.genero ?: ''))},
+                        data-genero=${item.libro.genero ?: ''}, data-disponible=${item.prestable()},
+                        data-titulo=${#strings.toLowerCase(item.libro.titulo)}, data-autor=${#strings.toLowerCase(item.libro.autoresTexto)},
+                        data-anio=${item.libro.anioPublicacion ?: 0}">
+        <a th:replace="~{fragments/layout :: cubierta(${item.libro}, ${item.disponibles})}"></a>
+        <div class="tarjeta-acciones" sec:authorize="hasRole('ADMIN')">
+          <a class="btn btn-sm btn-icono-sutil" th:href="@{/admin/libros/{id}/editar(id=${item.libro.id})}"
+             th:aria-label="|Editar ${item.libro.titulo}|"><i class="ti ti-pencil"></i></a>
+          <form method="post" th:action="@{/admin/libros/{id}/eliminar(id=${item.libro.id})}"
+                th:data-confirmar="|¿Eliminar «${item.libro.titulo}»?|">
+            <button class="btn btn-sm btn-icono-sutil peligro" type="submit" th:aria-label="|Eliminar ${item.libro.titulo}|">
+              <i class="ti ti-trash"></i></button>
+          </form>
+        </div>
+      </article>
     </div>
-  </div>
+
+    <!-- Vista de tabla -->
+    <div class="card vista-tabla" data-vista-contenido="tabla">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+          <tr>
+            <th>Título</th>
+            <th>Autores</th>
+            <th class="d-none d-lg-table-cell">Género</th>
+            <th class="d-none d-xl-table-cell">ISBN</th>
+            <th>Año</th>
+            <th>Disponibles</th>
+            <th class="text-end" sec:authorize="hasRole('ADMIN')">Acciones</th>
+          </tr>
+          </thead>
+          <tbody data-lista>
+          <tr th:each="item : ${libros}" data-item
+              th:attr="data-texto=${#strings.toLowerCase(item.libro.titulo + ' ' + item.libro.autoresTexto + ' ' + item.libro.isbn + ' ' + (item.libro.genero ?: ''))},
+                       data-genero=${item.libro.genero ?: ''}, data-disponible=${item.prestable()},
+                       data-titulo=${#strings.toLowerCase(item.libro.titulo)}, data-autor=${#strings.toLowerCase(item.libro.autoresTexto)},
+                       data-anio=${item.libro.anioPublicacion ?: 0}">
+            <td>
+              <span class="celda-libro">
+                <span class="lomo lomo-mini" th:classappend="|tono-${item.libro.id % 6}|" aria-hidden="true"></span>
+                <a th:href="@{/libros/{id}(id=${item.libro.id})}" th:text="${item.libro.titulo}">Título</a>
+              </span>
+            </td>
+            <td th:text="${item.libro.autoresTexto}">Autores</td>
+            <td class="d-none d-lg-table-cell" th:text="${item.libro.genero} ?: '—'">Novela</td>
+            <td class="d-none d-xl-table-cell text-nowrap" th:text="${item.libro.isbn}">ISBN</td>
+            <td th:text="${item.libro.anioPublicacion}">Año</td>
+            <td><span class="disponibilidad" th:classappend="${item.prestable()} ? 'si' : 'no'"
+                      th:text="${item.disponibles} + ' de ' + ${item.libro.ejemplares}">1 de 2</span></td>
+            <td class="text-end text-nowrap" sec:authorize="hasRole('ADMIN')">
+              <a class="btn btn-sm btn-icono-sutil" th:href="@{/admin/libros/{id}/editar(id=${item.libro.id})}"
+                 th:aria-label="|Editar ${item.libro.titulo}|" title="Editar"><i class="ti ti-pencil"></i></a>
+              <form class="d-inline" method="post" th:action="@{/admin/libros/{id}/eliminar(id=${item.libro.id})}"
+                    th:data-confirmar="|¿Eliminar «${item.libro.titulo}»?|">
+                <button class="btn btn-sm btn-icono-sutil peligro" type="submit" title="Eliminar"
+                        th:aria-label="|Eliminar ${item.libro.titulo}|"><i class="ti ti-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="vacio-grande" data-vacio th:classappend="${#lists.isEmpty(libros)} ? '' : 'd-none'">
+      <i class="ti ti-books-off"></i>
+      <span>No hay libros que coincidan con la búsqueda.</span>
+    </div>
+  </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

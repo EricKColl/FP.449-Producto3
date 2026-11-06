@@ -3,48 +3,73 @@
 <head th:replace="~{fragments/layout :: head('Mis reservas')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('mis-reservas')}"></nav>
-<main class="container py-4">
+<main class="container py-4" th:with="activas=${reservas.?[activa]}, pasadas=${reservas.?[!activa]}">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-    <div class="cabecera-panel">
-        <h1 class="titulo-panel">Mis reservas</h1>
-    </div>
-    <p class="text-body-secondary">Se reserva desde la ficha de un libro que no tiene ejemplares disponibles.</p>
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>Libro</th>
-                    <th>Reservado</th>
-                    <th>Estado</th>
-                    <th class="text-end">Acción</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="reserva : ${reservas}">
-                    <td><a th:href="@{/libros/{id}(id=${reserva.libro.id})}"
-                           th:text="${reserva.libro.titulo}">Libro</a></td>
-                    <td th:text="${#temporals.format(reserva.fechaReserva, 'dd/MM/yyyy')}">01/10/2026</td>
-                    <td>
-                        <span class="estado" th:classappend="${reserva.activa} ? 'estado-activo' : 'estado-devuelto'"
-                              th:text="${reserva.estado.etiqueta}">Activa</span>
-                    </td>
-                    <td class="text-end">
-                        <form method="post" th:if="${reserva.activa}"
-                              th:action="@{/user/reservas/{id}/cancelar(id=${reserva.id})}">
-                            <button class="btn btn-sm btn-outline-danger" type="submit">
+    <h1 class="visually-hidden">Mis reservas</h1>
+    <th:block th:replace="~{fragments/layout :: consejo('reservas', 'bookmark', '¿Cómo se reserva un libro?',
+        'Desde la ficha de un libro que no tenga ejemplares disponibles, con el botón «Reservar». En cuanto vuelva un ejemplar lo verás en tu inicio, listo para pedirlo.')}"></th:block>
+
+    <article class="bloque" data-aparecer>
+        <header class="bloque-cabecera">
+            <h2><i class="ti ti-bookmark"></i> Reservas activas</h2>
+            <span class="chip-cuenta" th:text="${#lists.size(activas)}">1</span>
+        </header>
+        <ul class="tarjetas-reserva">
+            <li class="tarjeta-reserva" th:each="r : ${activas}" th:with="libres=${disponibles.get(r.libro.id)}, puesto=${puestos.get(r.id)}"
+                th:classappend="${libres > 0} ? 'lista'">
+                <span class="lomo" th:classappend="|tono-${r.libro.id % 6}|"><i class="ti ti-crown"></i></span>
+                <div class="reserva-datos">
+                    <a class="prestamo-titulo" th:href="@{/libros/{id}(id=${r.libro.id})}" th:text="${r.libro.titulo}">El capitán Alatriste</a>
+                    <span class="prestamo-autor" th:text="${r.libro.autoresTexto}">Arturo Pérez-Reverte</span>
+                    <span class="reserva-fecha" th:text="'Reservado el ' + ${#temporals.format(r.fechaReserva, 'd ''de'' MMMM')}">Reservado el 1 de noviembre</span>
+                    <!-- Puesto en la cola del libro: los ejemplares que vuelven se reparten por orden de reserva -->
+                    <span class="puesto-cola" th:if="${puesto > 0}">
+                        <span class="puesto-numero" th:text="|${puesto}.º|">1.º</span>
+                        <span th:text="${puesto == 1} ? 'Eres el primero de la cola' : |Hay ${puesto - 1} ${puesto == 2 ? 'persona' : 'personas'} antes que tú|">Eres el primero de la cola</span>
+                    </span>
+                </div>
+                <div class="reserva-estado">
+                    <span class="estado" th:classappend="${libres > 0} ? 'estado-listo' : 'estado-activo'"
+                          th:text="${libres > 0} ? '¡Ya hay ejemplar!' : 'En espera'">En espera</span>
+                    <div class="reserva-acciones">
+                        <form th:if="${libres > 0}" method="post" th:action="@{/user/prestamos}" data-enviando data-volar="mis-prestamos">
+                            <input type="hidden" name="libroId" th:value="${r.libro.id}">
+                            <button class="btn btn-sm btn-primary" type="submit"><i class="ti ti-book-download"></i> Pedir</button>
+                        </form>
+                        <form method="post" th:action="@{/user/reservas/{id}/cancelar(id=${r.id})}"
+                              th:data-confirmar="|¿Cancelar la reserva de «${r.libro.titulo}»?|" data-confirmar-boton="Sí, cancelarla">
+                            <button class="btn btn-sm btn-texto-peligro" type="submit">
                                 <i class="ti ti-x"></i> Cancelar
                             </button>
                         </form>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(reservas)}">
-                    <td colspan="4" class="text-center text-body-secondary py-4">No tienes reservas.</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+                    </div>
+                </div>
+            </li>
+            <li th:if="${#lists.isEmpty(activas)}" class="vacio-grande">
+                <i class="ti ti-bookmark-off"></i>
+                <span th:text="${#lists.isEmpty(reservas)} ? 'No tienes reservas. Si un libro no tiene ejemplares, resérvalo desde su ficha.'
+                               : 'No tienes reservas activas ahora mismo.'">No tienes reservas.</span>
+            </li>
+        </ul>
+    </article>
+
+    <article class="bloque mt-4" th:unless="${#lists.isEmpty(pasadas)}" data-aparecer>
+        <header class="bloque-cabecera">
+            <h2><i class="ti ti-history"></i> Reservas anteriores</h2>
+            <span class="chip-cuenta" th:text="${#lists.size(pasadas)}">1</span>
+        </header>
+        <ul class="lista-panel lista-historial">
+            <li th:each="r : ${pasadas}">
+                <span class="lomo lomo-mini" th:classappend="|tono-${r.libro.id % 6}|" aria-hidden="true"></span>
+                <span class="lista-datos">
+                    <a th:href="@{/libros/{id}(id=${r.libro.id})}" th:text="${r.libro.titulo}">Libro</a>
+                    <small th:text="'Reservado el ' + ${#temporals.format(r.fechaReserva, 'dd/MM/yyyy')}">Reservado</small>
+                </span>
+                <span class="estado" th:classappend="${atendidas.contains(r.id)} ? 'estado-devuelto' : 'estado-neutro'"
+                      th:text="${atendidas.contains(r.id)} ? 'Atendida' : ${r.estado.etiqueta}">Cancelada</span>
+            </li>
+        </ul>
+    </article>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

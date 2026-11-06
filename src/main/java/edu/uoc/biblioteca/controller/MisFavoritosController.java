@@ -3,6 +3,7 @@ package edu.uoc.biblioteca.controller;
 import edu.uoc.biblioteca.model.Libro;
 import edu.uoc.biblioteca.security.CuentaUsuario;
 import edu.uoc.biblioteca.service.FavoritoService;
+import edu.uoc.biblioteca.service.LibroService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,20 +14,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 /** Los libros favoritos del usuario de la sesión. */
 @Controller
 @RequestMapping("/user/favoritos")
 public class MisFavoritosController {
 
     private final FavoritoService favoritoService;
+    private final LibroService libroService;
 
-    public MisFavoritosController(FavoritoService favoritoService) {
+    public MisFavoritosController(FavoritoService favoritoService, LibroService libroService) {
         this.favoritoService = favoritoService;
+        this.libroService = libroService;
     }
 
     @GetMapping
     public String listar(@AuthenticationPrincipal CuentaUsuario cuenta, Model model) {
-        model.addAttribute("favoritos", favoritoService.listar(cuenta.getId()));
+        // Con los ejemplares libres de cada uno, para ofrecer «Pedir» o «Reservar» desde el estante
+        model.addAttribute("favoritos", libroService.conDisponibles(List.copyOf(favoritoService.listar(cuenta.getId()))));
         return "user/favoritos";
     }
 

@@ -1,0 +1,24 @@
+# Dependabot revisa una vez al mes si hay versiones nuevas de las dependencias (Maven, las acciones de GitHub
+# y las imágenes de Docker) y propone una sola pull request por tipo. Los avisos de seguridad llegan aparte,
+# en cuanto se publican, en la pestaña «Security» del repositorio.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      maven:
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      acciones:
+        patterns: ['*']
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly

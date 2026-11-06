@@ -8,58 +8,53 @@
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <a class="btn btn-link px-0 mb-2" th:href="@{/autores}">
-    <i class="ti ti-arrow-left"></i> Volver a autores
-  </a>
-  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-    <h1 class="h3 mb-0" th:text="${autor.nombreCompleto}">Autor</h1>
-    <div class="d-flex gap-2" sec:authorize="hasRole('ADMIN')">
-      <a class="btn btn-outline-primary" th:href="@{/admin/autores/{id}/editar(id=${autor.id})}">
-        <i class="ti ti-pencil"></i> Editar
-      </a>
-      <form method="post" th:action="@{/admin/autores/{id}/eliminar(id=${autor.id})}"
-         th:data-nombre="${autor.nombreCompleto}"
-         onsubmit="return confirm('¿Eliminar a «' + this.dataset.nombre + '»?')">
-        <button class="btn btn-outline-danger" type="submit">
-          <i class="ti ti-trash"></i> Eliminar
-        </button>
-      </form>
-    </div>
-  </div>
+  <a class="volver" th:href="@{/autores}"><i class="ti ti-arrow-left"></i> Volver a autores</a>
 
-  <div class="row g-3">
-    <div class="col-lg-5 col-xl-4">
-      <div class="card">
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-6">Nacionalidad</dt>
-            <dd class="col-6" th:text="${autor.nacionalidad} ?: '—'">Nacionalidad</dd>
-            <dt class="col-6">Nacimiento</dt>
-            <dd class="col-6 mb-0" th:text="${autor.fechaNacimiento != null}
-              ? ${#temporals.format(autor.fechaNacimiento, 'dd/MM/yyyy')} : '—'">01/01/1900</dd>
-          </dl>
-        </div>
+  <!-- Cabecera del autor -->
+  <section class="ficha-autor">
+    <span class="monograma monograma-grande"
+          th:text="${#strings.substring(autor.nombre, 0, 1)} + ${#strings.substring(autor.apellidos, 0, 1)}">GM</span>
+    <div class="ficha-autor-datos">
+      <p class="seccion-etiqueta">Autor del catálogo</p>
+      <h1 class="ficha-titulo" th:text="${autor.nombreCompleto}">Gabriel García Márquez</h1>
+      <div class="ficha-etiquetas">
+        <span class="etiqueta"><i class="ti ti-world"></i>
+          <span th:text="${autor.nacionalidad} ?: 'Nacionalidad sin indicar'">Colombiana</span></span>
+        <span class="etiqueta" th:if="${autor.fechaNacimiento != null}"><i class="ti ti-cake"></i>
+          <span th:text="'Nació el ' + ${#temporals.format(autor.fechaNacimiento, 'd ''de'' MMMM ''de'' yyyy')}">Nació</span></span>
+        <span class="etiqueta"><i class="ti ti-books"></i>
+          <span th:text="${#lists.size(libros)} + (${#lists.size(libros) == 1} ? ' libro en el catálogo' : ' libros en el catálogo')">2 libros</span></span>
+      </div>
+      <div class="ficha-acciones" sec:authorize="hasRole('ADMIN')">
+        <a class="btn btn-sesion" th:href="@{/admin/autores/{id}/editar(id=${autor.id})}">
+          <i class="ti ti-pencil"></i> Editar
+        </a>
+        <form method="post" th:action="@{/admin/autores/{id}/eliminar(id=${autor.id})}"
+              th:data-confirmar="|¿Eliminar a «${autor.nombreCompleto}»?|">
+          <button class="btn btn-outline-danger btn-redondo" type="submit"><i class="ti ti-trash"></i> Eliminar</button>
+        </form>
       </div>
     </div>
+  </section>
 
-    <div class="col-lg-7 col-xl-8">
-      <div class="card">
-        <div class="card-header fw-semibold">Libros en el catálogo</div>
-        <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action"
-           th:each="libro : ${autor.libros}"
-           th:href="@{/libros/{id}(id=${libro.id})}">
-            <span th:text="${libro.titulo}">Título</span>
-            <span class="text-body-secondary small" th:if="${libro.anioPublicacion != null}"
-             th:text="|(${libro.anioPublicacion})|">(1900)</span>
-          </a>
-          <div class="list-group-item text-body-secondary" th:if="${#sets.isEmpty(autor.libros)}">
-            Este autor no tiene libros en el catálogo.
-          </div>
-        </div>
+  <!-- Bibliografía -->
+  <section class="seccion-tablero">
+    <div class="seccion-cabecera">
+      <div>
+        <p class="seccion-etiqueta">Bibliografía</p>
+        <h2 class="seccion-titulo">Sus libros en la biblioteca</h2>
       </div>
     </div>
-  </div>
+    <div class="rejilla-catalogo" th:unless="${#lists.isEmpty(libros)}">
+      <th:block th:each="item : ${libros}">
+        <a th:replace="~{fragments/layout :: cubierta(${item.libro}, ${item.disponibles})}"></a>
+      </th:block>
+    </div>
+    <div class="vacio-grande" th:if="${#lists.isEmpty(libros)}">
+      <i class="ti ti-feather"></i>
+      <span>Este autor no tiene libros en el catálogo.</span>
+    </div>
+  </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

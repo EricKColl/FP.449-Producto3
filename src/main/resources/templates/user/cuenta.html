@@ -1,34 +1,122 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Mi cuenta')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('cuenta')}"></nav>
 
-<main class="container py-4">
-  <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-  <h1 class="h3 mb-3" th:text="${usuario.nombreCompleto}">Nombre</h1>
+<main class="container py-4 tablero">
+    <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <div class="row g-3">
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-4">Rol</dt>
-            <dd class="col-sm-8" th:text="${usuario.rol.etiqueta}">Usuario</dd>
-            <dt class="col-sm-4">DNI</dt>
-            <dd class="col-sm-8" th:text="${usuario.dni}">DNI</dd>
-            <dt class="col-sm-4">Email</dt>
-            <dd class="col-sm-8 text-break" th:text="${usuario.email}">Email</dd>
-            <dt class="col-sm-4">Teléfono</dt>
-            <dd class="col-sm-8" th:text="${usuario.telefono} ?: '—'">Teléfono</dd>
-            <dt class="col-sm-4">Alta</dt>
-            <dd class="col-sm-8 mb-0"
-                th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/01/2026</dd>
-          </dl>
+    <div class="cuenta">
+        <!-- Tarjeta de perfil -->
+        <section class="perfil-tarjeta" data-aparecer>
+            <div class="perfil-portada" aria-hidden="true"></div>
+            <span class="avatar avatar-xl"
+                  th:text="${#strings.substring(usuario.nombre, 0, 1)} + ${#strings.substring(usuario.apellidos, 0, 1)}">LM</span>
+            <h1 class="perfil-tarjeta-nombre" th:text="${usuario.nombreCompleto}">Laura Martínez Soler</h1>
+            <span class="insignia-rol" th:classappend="${usuario.rol.name() == 'ADMIN'} ? 'rol-admin'">
+                <i class="ti" th:classappend="${usuario.rol.name() == 'ADMIN'} ? 'ti-shield-check' : 'ti-user'"></i>
+                <span th:text="${usuario.rol.name() == 'ADMIN'} ? 'Administrador' : 'Cliente'">Cliente</span>
+            </span>
+            <p class="perfil-tarjeta-email" th:text="${usuario.email}">laura.martinez@example.com</p>
+            <div class="perfil-tarjeta-pie">
+                <div>
+                    <strong th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}">01/10/2025</strong>
+                    <small>Alta</small>
+                </div>
+                <div>
+                    <strong th:text="${diasConCuenta}">400</strong>
+                    <small th:text="${diasConCuenta == 1} ? 'día con cuenta' : 'días con cuenta'">días con cuenta</small>
+                </div>
+            </div>
+        </section>
+
+        <div class="cuenta-detalle">
+            <!-- Datos personales -->
+            <section class="bloque" data-aparecer>
+                <header class="bloque-cabecera"><h2><i class="ti ti-id"></i> Datos de la cuenta</h2></header>
+                <dl class="datos-cuenta">
+                    <div><dt>Nombre</dt><dd th:text="${usuario.nombre}">Laura</dd></div>
+                    <div><dt>Apellidos</dt><dd th:text="${usuario.apellidos}">Martínez Soler</dd></div>
+                    <div><dt>DNI</dt><dd th:text="${usuario.dni}">12345678Z</dd></div>
+                    <div><dt>Teléfono</dt><dd th:text="${usuario.telefono} ?: '—'">612345678</dd></div>
+                    <div class="dato-ancho"><dt>Email (para iniciar sesión)</dt><dd class="text-break" th:text="${usuario.email}">laura.martinez@example.com</dd></div>
+                    <div><dt>Rol</dt><dd th:text="${usuario.rol.name() == 'ADMIN'} ? 'Administrador' : 'Cliente'">Cliente</dd></div>
+                    <div><dt>Contraseña</dt><dd><i class="ti ti-lock"></i> Guardada cifrada con BCrypt</dd></div>
+                </dl>
+            </section>
+
+            <!-- Seguridad: cambiar la contraseña (cualquier rol). Pide la actual para que nadie que encuentre
+                 la sesión abierta pueda cambiarla -->
+            <section class="bloque" id="seguridad" data-aparecer>
+                <header class="bloque-cabecera">
+                    <h2><i class="ti ti-shield-lock"></i> Seguridad</h2>
+                </header>
+                <form class="form-clave" method="post" th:action="@{/user/cuenta/password}" data-enviando novalidate>
+                    <div class="campo">
+                        <label for="actual" class="form-label">Contraseña actual</label>
+                        <div class="campo-control"><i class="ti ti-lock" aria-hidden="true"></i>
+                            <input type="password" class="form-control" id="actual" name="actual" required
+                                   autocomplete="current-password" th:classappend="${errorPassword != null and #strings.contains(errorPassword, 'actual')} ? 'is-invalid'">
+                            <button type="button" class="ver-clave" data-ver-clave="actual" aria-label="Mostrar la contraseña actual"><i class="ti ti-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6 campo">
+                            <label for="nueva" class="form-label">Contraseña nueva</label>
+                            <div class="campo-control"><i class="ti ti-key" aria-hidden="true"></i>
+                                <input type="password" class="form-control" id="nueva" name="nueva" required minlength="8" maxlength="72"
+                                       autocomplete="new-password" aria-describedby="fuerza-nueva" data-aviso-mayusculas>
+                                <button type="button" class="ver-clave" data-ver-clave="nueva" aria-label="Mostrar la contraseña nueva"><i class="ti ti-eye"></i></button>
+                            </div>
+                            <div th:replace="~{fragments/layout :: fuerzaClave('nueva')}"></div>
+                            <p class="aviso-mayusculas" hidden><i class="ti ti-arrow-big-up-lines"></i> Tienes las mayúsculas activadas</p>
+                        </div>
+                        <div class="col-md-6 campo">
+                            <label for="repetida" class="form-label">Repite la contraseña nueva</label>
+                            <div class="campo-control"><i class="ti ti-key" aria-hidden="true"></i>
+                                <input type="password" class="form-control" id="repetida" name="repetida" required
+                                       autocomplete="new-password" data-igual-que="nueva">
+                                <button type="button" class="ver-clave" data-ver-clave="repetida" aria-label="Mostrar la contraseña repetida"><i class="ti ti-eye"></i></button>
+                            </div>
+                            <p class="coincide" data-coincide-de="repetida" hidden></p>
+                        </div>
+                    </div>
+                    <div class="formulario-botones">
+                        <button type="submit" class="btn btn-primary btn-accion"><i class="ti ti-check"></i> Cambiar contraseña</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Cliente: su actividad -->
+            <section class="bloque" sec:authorize="hasRole('USER')" data-aparecer>
+                <header class="bloque-cabecera">
+                    <h2><i class="ti ti-chart-dots"></i> Mi actividad</h2>
+                    <a class="enlace-mas" th:href="@{/user/inicio}">Mi inicio <i class="ti ti-arrow-right"></i></a>
+                </header>
+                <div class="mini-cifras">
+                    <a th:href="@{/user/prestamos}"><strong th:text="${prestamosEnCurso}">1</strong><span>en casa</span></a>
+                    <a th:href="@{/user/prestamos}"><strong th:text="${prestamosTotales}">3</strong><span>préstamos en total</span></a>
+                    <a th:href="@{/user/reservas}"><strong th:text="${reservasActivas}">1</strong><span>reservas activas</span></a>
+                    <a th:href="@{/user/favoritos}"><strong th:text="${favoritos}">2</strong><span>favoritos</span></a>
+                </div>
+            </section>
+
+            <!-- Administrador: lo que permite su rol -->
+            <section class="bloque" sec:authorize="hasRole('ADMIN')" data-aparecer>
+                <header class="bloque-cabecera">
+                    <h2><i class="ti ti-shield-check"></i> Permisos del administrador</h2>
+                    <a class="enlace-mas" th:href="@{/admin/panel}">Panel <i class="ti ti-arrow-right"></i></a>
+                </header>
+                <ul class="permisos mb-0">
+                    <li><i class="ti ti-books"></i> Alta, edición y borrado de libros y autores</li>
+                    <li><i class="ti ti-users-group"></i> Gestión de usuarios, contraseñas y roles</li>
+                    <li><i class="ti ti-arrows-exchange"></i> Préstamos de cualquier usuario y devoluciones</li>
+                    <li><i class="ti ti-chart-bar"></i> Panel con la actividad de toda la biblioteca</li>
+                </ul>
+            </section>
         </div>
-      </div>
     </div>
-  </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

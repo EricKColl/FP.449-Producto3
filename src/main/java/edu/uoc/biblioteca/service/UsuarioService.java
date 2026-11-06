@@ -31,6 +31,22 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /** Cada usuario con sus préstamos en curso y los que están fuera de plazo, para el listado. */
+    public List<UsuarioConPrestamos> listarConPrestamos() {
+        LocalDate hoy = LocalDate.now();
+        return listar().stream().map(usuario -> new UsuarioConPrestamos(usuario,
+                prestamoRepository.countByUsuarioIdAndFechaDevolucionIsNull(usuario.getId()),
+                prestamoRepository.countByUsuarioIdAndFechaDevolucionIsNullAndFechaDevolucionPrevistaBefore(usuario.getId(), hoy)))
+                .toList();
+    }
+
+    public record UsuarioConPrestamos(Usuario usuario, long enCurso, long vencidos) {
+
+        public boolean alDia() {
+            return vencidos == 0;
+        }
+    }
+
     public List<Usuario> listar() {
         return usuarioRepository.findAllByOrderByApellidosAscNombreAsc();
     }
@@ -56,9 +72,45 @@ public class UsuarioService {
 
     /** Regla común para las contraseñas nuevas: mínimo de 8 caracteres y límite de BCrypt en bytes. */
     public static boolean passwordValida(String password) {
-        return password != null && !password.isBlank()
-                && password.length() >= 8
-                && password.getBytes(StandardCharsets.UTF_8).length <= 72;
+        return problemaPassword(password) == null;
+    }
+
+    /**
+     * Qué le falta a una contraseña nueva, con un mensaje para quien la escribe, o null si es válida.
+     * BCrypt solo usa los primeros 72 bytes: una letra con tilde ocupa dos, de ahí que se cuenten bytes.
+     */
+    public static String problemaPassword(String password) {
+        if (password == null || password.isBlank() || password.length() < 8) {
+            return "La contraseña debe tener al menos 8 caracteres";
+        }
+        if (password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            return "La contraseña es demasiado larga: usa como máximo 72 caracteres";
+        }
+        return null;
+    }
+
+    /**
+     * El propio usuario cambia su contraseña desde Mi cuenta. Debe escribir la actual (así nadie que encuentre
+     * la sesión abierta puede cambiarla) y repetir la nueva. Si algo falla, lanza IllegalArgumentException con
+     * un mensaje para quien la escribe.
+     */
+    @Transactional
+    public void cambiarPassword(Long id, String actual, String nueva, String repetida) {
+        Usuario usuario = buscarPorId(id);
+        if (actual == null || !passwordEncoder.matches(actual, usuario.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual no es correcta");
+        }
+        String problema = problemaPassword(nueva);
+        if (problema != null) {
+            throw new IllegalArgumentException(problema);
+        }
+        if (!nueva.equals(repetida)) {
+            throw new IllegalArgumentException("Las dos contraseñas nuevas no coinciden");
+        }
+        if (passwordEncoder.matches(nueva, usuario.getPassword())) {
+            throw new IllegalArgumentException("La contraseña nueva debe ser distinta de la actual");
+        }
+        usuario.setPassword(passwordEncoder.encode(nueva));
     }
 
     /** El registro público siempre crea un socio con rol USER y fecha de alta de hoy. */

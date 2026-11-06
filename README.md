@@ -1,5 +1,11 @@
 # Biblioteca · Producto 3
 
+[![CI](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/ci.yml/badge.svg)](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/codeql.yml/badge.svg)](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/codeql.yml)
+![Cobertura mínima](https://img.shields.io/badge/cobertura%20m%C3%ADnima-90%25-brightgreen)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F)
+
 Aplicación web de gestión de una biblioteca: catálogo de libros y autores, usuarios y préstamos.
 Proyecto en equipo de la asignatura FP065 *Aplicación backend con tecnología Java en servidores de aplicaciones* (UOC).
 
@@ -84,11 +90,13 @@ Las crea `02-datos.sql` y solo sirven para desarrollar y hacer la demostración.
 
 | Rutas | Quién entra |
 |---|---|
-| `/`, `/login`, `/registro`, consulta de `/libros` y `/autores` | Cualquiera, sin cuenta |
-| `/user/*`: mi cuenta, mis préstamos, mis reservas y mis favoritos | Cualquier usuario con la sesión iniciada |
+| `/` (portada), `/login`, `/registro`, consulta de `/libros` y `/autores` | Cualquiera, sin cuenta |
+| `/inicio` y `/user/cuenta` | Cualquier cuenta: `/inicio` lleva al administrador a `/admin/panel` y al cliente a `/user/inicio` |
+| `/user/*`: inicio, mis préstamos, mis reservas y mis favoritos | Solo el rol USER (el administrador no pide préstamos ni reserva) |
 | `/admin/*`: alta, edición y borrado de libros, autores y usuarios, y gestión de préstamos; y todo lo demás | Solo el rol ADMIN |
 
 Una ruta que no aparezca en `SecurityConfig` queda reservada a ADMIN. El menú y las vistas cambian según el rol.
+Además, la aplicación envía una política de seguridad de contenidos (CSP) que solo ejecuta los scripts servidos por ella misma.
 
 ### Tests
 
@@ -98,6 +106,18 @@ Una ruta que no aparezca en `SecurityConfig` queda reservada a ADMIN. El menú y
 
 No necesitan Docker: se ejecutan sobre H2 con los scripts de MariaDB, y fallan si alguna entidad no coincide con las tablas.
 GitHub Actions los pasa en cada pull request y además levanta el `docker compose` completo.
+
+### Calidad del código
+
+Cada subida a GitHub pasa tres controles automáticos, y sus resultados se ven en el propio repositorio:
+
+| Control | Qué comprueba | Dónde se ve |
+|---|---|---|
+| **Tests y cobertura** (JaCoCo) | Todos los tests y que cubran al menos el **90 % de las líneas**: si baja, la compilación falla | Insignia *CI*, resumen de cada ejecución y el informe descargable `informe-cobertura` |
+| **CodeQL** | Análisis de seguridad del código Java y JavaScript: inyecciones, XSS, redirecciones abiertas… | Insignia *CodeQL* y pestaña *Security* |
+| **Dependabot** | Avisos de seguridad de las dependencias y, una vez al mes, si hay versiones nuevas | Pestaña *Security* y sus pull requests |
+
+En local, el informe de cobertura queda en `target/site/jacoco/index.html` después de `./mvnw verify`.
 
 ## Qué hay en Docker
 
