@@ -1,5 +1,5 @@
 # Etapa 1: compilación con Maven y JDK 21
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-26 AS build
 WORKDIR /app
 
 # Se descargan primero las dependencias para aprovechar la caché de capas
