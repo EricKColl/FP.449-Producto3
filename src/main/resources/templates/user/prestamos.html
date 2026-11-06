@@ -5,9 +5,9 @@
 <nav th:replace="~{fragments/layout :: navbar('mis-prestamos')}"></nav>
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-    <div class="cabecera-panel">
-        <h1 class="titulo-panel">Mis préstamos</h1>
-        <a class="btn btn-primary" th:href="@{/libros}">
+    <div class="cabecera-pestana">
+        <h1 class="visually-hidden">Mis préstamos</h1>
+        <a class="btn btn-primary btn-accion" th:href="@{/libros}">
             <i class="ti ti-books"></i> Ver el catálogo
         </a>
     </div>

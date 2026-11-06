@@ -58,7 +58,9 @@
             </form>
         </div>
 
-        <a class="cabecera-marca" th:href="@{/}" aria-label="Biblioteca BackLord, ir a la portada">
+        <!-- En la portada, la cabecera da la bienvenida; en el resto, el logo lleva a la portada -->
+        <p class="cabecera-bienvenida" th:if="${seccion == 'portada'}">Bienvenidos</p>
+        <a class="cabecera-marca" th:unless="${seccion == 'portada'}" th:href="@{/}" aria-label="Biblioteca BackLord, ir a la portada">
             <img class="cabecera-corona" th:src="@{/img/corona-backlord.webp}" alt="" width="46" height="46">
             <span class="cabecera-texto">
                 <span class="cabecera-nombre">Biblioteca</span>
@@ -171,7 +173,6 @@
                 <i class="ti ti-user-circle"></i> Mi cuenta
             </a>
         </nav>
-        <div class="barra-lateral-pie">FP065 · UOC · BackLord</div>
     </aside>
 </th:block>
 
@@ -216,11 +217,9 @@
     </span>
 </a>
 
+<!-- Pie: una franja de lado a lado de la pantalla, por debajo del menú y del contenido -->
 <footer th:fragment="footer" class="pie">
-    <div class="container pie-contenido">
-        <span class="pie-marca"><i class="ti ti-crown"></i> Biblioteca BackLord</span>
-        <span>FP065 · UOC · Proyecto Biblioteca</span>
-    </div>
+    <p class="pie-texto">FP065 · UOC · Proyecto Biblioteca</p>
     <script th:src="@{/webjars/bootstrap/dist/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/webjars/gsap/dist/gsap.min.js}"></script>
     <script th:src="@{/webjars/gsap/dist/ScrollTrigger.min.js}"></script>

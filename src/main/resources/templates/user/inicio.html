@@ -11,7 +11,6 @@
     <header class="saludo" data-aparecer>
         <span class="avatar avatar-grande" th:text="${#strings.substring(u.nombre, 0, 1)} + ${#strings.substring(u.apellidos, 0, 1)}">LM</span>
         <div class="saludo-texto">
-            <p class="seccion-etiqueta">Mi biblioteca</p>
             <h1 class="tablero-titulo">Hola, <span th:text="${u.nombre}">Laura</span></h1>
             <p class="tablero-fecha" th:text="'Con cuenta desde el ' + ${#temporals.format(u.fechaAlta, 'd ''de'' MMMM ''de'' yyyy')}">Con cuenta desde</p>
         </div>

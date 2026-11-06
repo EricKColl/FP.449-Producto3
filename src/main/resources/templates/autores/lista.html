@@ -8,9 +8,9 @@
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <div class="cabecera-panel">
-    <h1 class="titulo-panel">Autores</h1>
-    <a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/autores/nuevo}">
+  <div class="cabecera-pestana">
+    <h1 class="visually-hidden">Autores</h1>
+    <a class="btn btn-primary btn-accion" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/autores/nuevo}">
       <i class="ti ti-plus"></i> Nuevo autor
     </a>
   </div>

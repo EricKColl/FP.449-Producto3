@@ -7,9 +7,9 @@
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <div class="cabecera-panel">
-    <h1 class="titulo-panel">Usuarios</h1>
-    <a class="btn btn-primary" th:href="@{/admin/usuarios/nuevo}">
+  <div class="cabecera-pestana">
+    <h1 class="visually-hidden">Usuarios</h1>
+    <a class="btn btn-primary btn-accion" th:href="@{/admin/usuarios/nuevo}">
       <i class="ti ti-plus"></i> Nuevo usuario
     </a>
   </div>

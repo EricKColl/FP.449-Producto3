@@ -8,6 +8,11 @@
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
     <!-- Presentación: la corona de BackLord en 3D (js/corona3d.js) con el título encima -->
+    <!-- Three.js empieza a descargarse ya, mientras se pinta el resto de la página -->
+    <link rel="modulepreload" href="/webjars/three/build/three.module.js">
+    <link rel="modulepreload" href="/webjars/three/build/three.core.js">
+    <link rel="modulepreload" th:href="@{/js/corona3d.js}">
+
     <section class="escena" aria-labelledby="titulo-portada">
         <div class="escena-fondo" aria-hidden="true"></div>
         <div class="escena-corona" aria-hidden="true">
@@ -15,7 +20,6 @@
             <canvas class="corona-lienzo" data-corona-3d></canvas>
         </div>
         <div class="escena-texto" data-inclinar>
-            <p class="escena-antetitulo">Catálogo abierto · Préstamos en línea</p>
             <h1 class="titulo-3d" id="titulo-portada" data-letras>Biblioteca</h1>
             <p class="titulo-grupo"><span>BackLord</span></p>
             <p class="escena-lema">El catálogo completo, tus préstamos y tus reservas en un mismo lugar.

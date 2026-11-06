@@ -45,7 +45,7 @@ body {
     padding: 0 clamp(0.75rem, 2vw, 1.75rem);
     background: rgba(11, 11, 13, 0.78);
     border-bottom: 1px solid rgba(212, 169, 74, 0.16);
-    backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(10px);
 }
 
 .cabecera::after {
@@ -130,10 +130,22 @@ body {
         height: 42px;
     }
 
-    .escena-antetitulo {
-        font-size: 0.68rem;
-        letter-spacing: 0.18em;
-    }
+}
+
+.cabecera-bienvenida {
+    margin: 0;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(1.45rem, 2.6vw, 2rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    background: linear-gradient(100deg, #f7e2a6 0%, #d4a94a 40%, #fff1c9 50%, #d4a94a 60%, #b8862b 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 14px rgba(212, 169, 74, 0.35));
+    animation: brillo-oro 6s linear infinite;
 }
 
 @keyframes brillo-oro {
@@ -388,19 +400,158 @@ body {
 }
 
 /* --- Pie --- */
-.pie-contenido {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding-top: 1.1rem;
-    padding-bottom: 1.1rem;
-    font-size: 0.82rem;
+.pie {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgba(212, 169, 74, 0.22);
+    background: linear-gradient(180deg, rgba(20, 18, 14, 0.96), rgba(10, 10, 12, 0.98));
 }
 
-.pie-marca {
-    color: var(--oro-claro);
-    font-family: "Playfair Display", Georgia, serif;
+.pie::before {
+    content: "";
+    position: absolute;
+    inset: -1px 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(240, 212, 138, 0.7), transparent);
+}
+
+.pie-texto {
+    margin: 0;
+    padding: 1.15rem 1rem;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    background: linear-gradient(100deg, #b8862b 0%, #f0d48a 35%, #fff4d6 50%, #f0d48a 65%, #b8862b 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: brillo-oro 7s linear infinite;
+}
+
+/* --- Página en cuadrícula desde 992 px: menú y contenido arriba, y el pie de lado a lado debajo.
+   El menú es sticky dentro de su columna, así que al llegar al final de la página deja paso al pie --- */
+@media (min-width: 992px) {
+    body:not(.pagina-portada) {
+        display: grid;
+        grid-template-columns: var(--ancho-menu) minmax(0, 1fr);
+        grid-template-rows: 1fr auto;
+        grid-template-areas: "menu contenido" "pie pie";
+        padding-left: 0;
+    }
+
+    body:not(.pagina-portada) > .barra-lateral.offcanvas-lg {
+        grid-area: menu;
+        position: sticky;
+        top: var(--alto-cabecera);
+        inset: auto;
+        align-self: start;
+        height: calc(100vh - var(--alto-cabecera)) !important;
+    }
+
+    body:not(.pagina-portada) > main {
+        grid-area: contenido;
+        width: 100%;
+    }
+
+    body:not(.pagina-portada) > .pie {
+        grid-area: pie;
+    }
+}
+
+/* --- Fondo: la luz dorada va en una capa fija propia; así el navegador no repinta toda la página al desplazarse --- */
+body {
+    background-image: none;
+    background-attachment: scroll;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(1100px 520px at 100% -10%, rgba(212, 169, 74, 0.10), transparent 60%),
+        radial-gradient(800px 480px at -10% 110%, rgba(184, 134, 43, 0.07), transparent 60%);
+}
+
+/* --- Cabeceras de las pestañas: sin título visible, con su botón en el centro --- */
+.cabecera-pestana {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.cabecera-pestana:not(:has(.btn)) {
+    margin: 0;
+}
+
+.acciones-centrales {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 0.25rem 0 1.5rem;
+}
+
+/* Botones de acción: se elevan, brillan y un destello de luz los cruza; además, de vez en cuando,
+   un reflejo dorado recorre la fila de botones uno detrás de otro */
+.btn-accion {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 999px;
+    padding-inline: 1.25rem;
+    transition: transform 0.35s var(--curva), box-shadow 0.35s var(--curva), border-color 0.35s ease, color 0.35s ease;
+}
+
+.btn-accion::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 30%, rgba(255, 244, 214, 0.45) 50%, transparent 70%);
+    transform: translateX(-120%);
+    animation: reflejo-boton 7s ease-in-out infinite;
+}
+
+.btn-accion:nth-child(2)::after { animation-delay: 0.25s; }
+.btn-accion:nth-child(3)::after { animation-delay: 0.5s; }
+.btn-accion:nth-child(4)::after { animation-delay: 0.75s; }
+.btn-accion:nth-child(5)::after { animation-delay: 1s; }
+
+.btn-accion i {
+    display: inline-block;
+    transition: transform 0.35s var(--curva);
+}
+
+.btn-accion:hover,
+.btn-accion:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px -12px rgba(212, 169, 74, 0.75), 0 0 0 1px rgba(240, 212, 138, 0.55);
+}
+
+.btn-accion:hover i {
+    transform: scale(1.18) rotate(-8deg);
+}
+
+.btn-accion:hover::after {
+    animation: reflejo-rapido 0.7s ease-out;
+}
+
+@keyframes reflejo-boton {
+    0%, 82% { transform: translateX(-120%); }
+    92%, 100% { transform: translateX(120%); }
+}
+
+@keyframes reflejo-rapido {
+    from { transform: translateX(-120%); }
+    to { transform: translateX(120%); }
 }
 
 /* ======================================================================
@@ -414,7 +565,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: clamp(1rem, 3vh, 2.5rem) 1rem 4.5rem;
+    padding: clamp(2rem, 6vh, 4.5rem) 1rem clamp(5rem, 10vh, 7rem);
     overflow: hidden;
     text-align: center;
 }
@@ -427,6 +578,7 @@ body {
         radial-gradient(60% 50% at 50% 32%, rgba(212, 169, 74, 0.22), transparent 70%),
         radial-gradient(40% 40% at 15% 80%, rgba(120, 30, 50, 0.22), transparent 70%),
         radial-gradient(40% 40% at 85% 75%, rgba(30, 60, 140, 0.18), transparent 70%);
+    will-change: transform;
     animation: aurora 18s ease-in-out infinite alternate;
 }
 
@@ -442,24 +594,47 @@ body {
     transform: perspective(520px) rotateX(62deg);
     transform-origin: top center;
     mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 85%);
-    animation: suelo 10s linear infinite;
+    will-change: transform;
+    animation: suelo 3.2s linear infinite;
 }
 
+/* Solo transform: la tarjeta gráfica lo mueve sin volver a pintar los degradados */
 @keyframes aurora {
-    from { filter: hue-rotate(0deg); transform: scale(1); }
-    to { filter: hue-rotate(-12deg); transform: scale(1.08); }
+    from { transform: scale(1) translateY(0); }
+    to { transform: scale(1.08) translateY(-2%); }
 }
 
 @keyframes suelo {
-    from { background-position: 0 0; }
-    to { background-position: 0 64px; }
+    from { transform: perspective(520px) rotateX(62deg) translateY(0); }
+    to { transform: perspective(520px) rotateX(62deg) translateY(64px); }
 }
 
 .escena-corona {
     position: relative;
-    width: min(600px, 94vw);
-    height: clamp(220px, 37svh, 430px);
-    margin-bottom: -1.25rem;
+    width: min(680px, 96vw);
+    height: clamp(280px, 48svh, 560px);
+    margin-bottom: clamp(1rem, 3vh, 2rem);
+}
+
+/* Mientras se prepara el 3D solo se ve un resplandor; la imagen plana es solo para equipos sin WebGL */
+.escena-corona::before {
+    content: "";
+    position: absolute;
+    inset: 15% 22%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 169, 74, 0.32), transparent 65%);
+    animation: resplandor 2.4s ease-in-out infinite alternate;
+    transition: opacity 0.8s ease;
+}
+
+.escena-corona.con-3d::before {
+    opacity: 0;
+    animation: none;
+}
+
+@keyframes resplandor {
+    from { transform: scale(0.85); opacity: 0.55; }
+    to { transform: scale(1.05); opacity: 1; }
 }
 
 .corona-lienzo,
@@ -477,12 +652,20 @@ body {
     border-radius: 28%;
     object-fit: contain;
     filter: drop-shadow(0 20px 50px rgba(212, 169, 74, 0.45));
+    opacity: 0;
     transition: opacity 0.8s ease;
+}
+
+.escena-corona.sin-3d .corona-respaldo {
+    opacity: 1;
 }
 
 .corona-lienzo {
     opacity: 0;
-    transition: opacity 1s ease;
+    transition: opacity 0.6s ease;
+    /* Bordes difuminados: el resplandor y el polvo se desvanecen en vez de cortarse en línea recta */
+    -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
+    mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
 }
 
 .escena-corona.con-3d .corona-lienzo {
@@ -496,18 +679,10 @@ body {
 .escena-texto {
     position: relative;
     transform: perspective(900px) rotateX(var(--giro-x, 0deg)) rotateY(var(--giro-y, 0deg));
-    transition: transform 0.25s ease-out;
-    transform-style: preserve-3d;
+    transition: transform 0.5s var(--curva);
+    will-change: transform;
 }
 
-.escena-antetitulo {
-    margin-bottom: 0.4rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: var(--oro);
-}
 
 /* Título dorado con relieve: el degradado rellena cada letra y las sombras apiladas dan el volumen */
 .titulo-3d {
@@ -519,9 +694,8 @@ body {
     filter:
         drop-shadow(0 1px 0 #a87a26)
         drop-shadow(0 2px 0 #8a6420)
-        drop-shadow(0 3px 0 #6c4d17)
-        drop-shadow(0 4px 0 #4f3810)
-        drop-shadow(0 18px 30px rgba(0, 0, 0, 0.7));
+        drop-shadow(0 3px 0 #5c4214)
+        drop-shadow(0 14px 18px rgba(0, 0, 0, 0.65));
     perspective: 600px;
 }
 
@@ -541,16 +715,6 @@ body {
 .titulo-3d .letra {
     display: inline-block;
     transform-origin: 50% 100%;
-    animation: reflejo 5s ease-in-out infinite;
-}
-
-.titulo-3d .letra:nth-child(2n) { animation-delay: 0.25s; }
-.titulo-3d .letra:nth-child(3n) { animation-delay: 0.5s; }
-.titulo-3d .letra:nth-child(5n) { animation-delay: 0.75s; }
-
-@keyframes reflejo {
-    0%, 100% { background-position: 0 0; }
-    50% { background-position: 0 100%; }
 }
 
 .titulo-grupo {
@@ -558,7 +722,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    margin: 0.9rem 0 1.2rem;
+    margin: 1.25rem 0 1.75rem;
     font-size: clamp(0.85rem, 1.6vw, 1.05rem);
     font-weight: 600;
     letter-spacing: 0.75em;
@@ -584,7 +748,7 @@ body {
 
 .escena-lema {
     max-width: 48ch;
-    margin: 0 auto 1.6rem;
+    margin: 0 auto 2.25rem;
     font-size: clamp(1rem, 1.6vw, 1.15rem);
     color: var(--gris-texto);
 }
@@ -594,7 +758,7 @@ body {
     align-items: center;
     gap: 0.5rem;
     width: min(640px, 100%);
-    margin: 0 auto 1.2rem;
+    margin: 0 auto 1.5rem;
     padding: 0.4rem 0.4rem 0.4rem 1.2rem;
     border-radius: 999px;
     background: rgba(18, 17, 21, 0.75);
@@ -2051,7 +2215,10 @@ body {
 /* Sin animaciones para quien las tenga desactivadas en el sistema */
 @media (prefers-reduced-motion: reduce) {
     .cabecera-nombre,
-    .titulo-3d .letra,
+    .cabecera-bienvenida,
+    .pie-texto,
+    .btn-accion::after,
+    .escena-corona::before,
     .escena-fondo,
     .escena-fondo::after,
     .escena-bajar,

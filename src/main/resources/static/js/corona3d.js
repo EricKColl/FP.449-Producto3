@@ -2,7 +2,8 @@
  * Corona de BackLord en 3D para la portada (Three.js, servido como WebJar).
  * Se construye por código: aro, puntas, perlas, piedras y terciopelo, con materiales físicos y un entorno de luz
  * propio para los reflejos del oro. Gira despacio, flota y se inclina hacia el ratón; alrededor flota polvo dorado.
- * Si el navegador no tiene WebGL se queda la imagen plana de la corona; con «reducir movimiento» no se anima.
+ * Los sombreadores se preparan antes del primer fotograma, así la corona aparece de golpe y gira sin tirones.
+ * Si el navegador no tiene WebGL se muestra la imagen plana de la corona; con «reducir movimiento» no se anima.
  */
 import * as THREE from '/webjars/three/build/three.module.js';
 
@@ -11,17 +12,13 @@ const escenaHtml = document.querySelector('.escena-corona');
 const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 if (lienzo && escenaHtml) {
-    try {
-        iniciar();
-    } catch (error) {
-        // Sin WebGL: se mantiene la corona en imagen
-        escenaHtml.classList.add('sin-3d');
-    }
+    iniciar().catch(() => escenaHtml.classList.add('sin-3d'));
 }
 
-function iniciar() {
+async function iniciar() {
     const render = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true, powerPreference: 'high-performance' });
-    let resolucion = Math.min(window.devicePixelRatio, 1.75);
+    // Resolución: nítida en pantallas normales sin llegar a la de las pantallas de muy alta densidad
+    let resolucion = Math.min(window.devicePixelRatio, 1.5);
     render.setPixelRatio(resolucion);
     render.outputColorSpace = THREE.SRGBColorSpace;
     render.toneMapping = THREE.ACESFilmicToneMapping;
@@ -45,8 +42,9 @@ function iniciar() {
     escena.add(polvo);
     escena.add(construirHalo());
 
-    // Inclinación hacia el ratón, suavizada
+    // Inclinación hacia el ratón, suavizada en cada fotograma
     const raton = { x: 0, y: 0 };
+    const giro = { x: 0, y: 0 };
     window.addEventListener('pointermove', (e) => {
         raton.x = (e.clientX / window.innerWidth) * 2 - 1;
         raton.y = (e.clientY / window.innerHeight) * 2 - 1;
@@ -62,63 +60,72 @@ function iniciar() {
     new ResizeObserver(ajustar).observe(lienzo);
     ajustar();
 
-    // Solo se dibuja mientras la portada está a la vista
+    // Se compilan todos los sombreadores antes de empezar: sin esto los primeros fotogramas se congelan
+    if (render.compileAsync) await render.compileAsync(escena, camara);
+
     let visible = true;
     new IntersectionObserver(([entrada]) => { visible = entrada.isIntersecting; }).observe(lienzo);
 
-    const inicio = performance.now();
-    let primero = true;
-    const dibujar = () => {
-        const t = (performance.now() - inicio) / 1000;
-        // Entrada: la corona crece y aparece durante el primer segundo y medio
-        const entrada = reducido ? 1 : Math.min(1, t / 1.6);
+    let inicio = 0;
+    let ultimo = 0;
+    let t = 0;
+    const dibujar = (ahora) => {
+        // El tiempo de la animación solo avanza mientras se dibuja: al volver a la portada sigue donde estaba
+        const paso = ultimo ? Math.min(0.05, (ahora - ultimo) / 1000) : 0;
+        ultimo = ahora;
+        t += paso;
+        const entrada = reducido ? 1 : Math.min(1, t / 1.4);
         const suave = 1 - Math.pow(1 - entrada, 3);
-        corona.scale.setScalar(1.12 * (0.72 + 0.28 * suave));
+        giro.x += (raton.x - giro.x) * 0.06;
+        giro.y += (raton.y - giro.y) * 0.06;
+        corona.scale.setScalar(1.12 * (0.8 + 0.2 * suave));
         corona.position.y = reducido ? 0 : Math.sin(t * 1.1) * 0.07;
-        corona.rotation.y = reducido ? -0.5 : t * 0.32 + raton.x * 0.35;
-        corona.rotation.x += ((reducido ? 0.18 : 0.16 + raton.y * 0.18) - corona.rotation.x) * 0.05;
-        corona.rotation.z += ((reducido ? 0 : -raton.x * 0.08) - corona.rotation.z) * 0.05;
+        corona.rotation.y = reducido ? -0.5 : t * 0.32 + giro.x * 0.35;
+        corona.rotation.x = reducido ? 0.18 : 0.16 + giro.y * 0.18;
+        corona.rotation.z = reducido ? 0 : -giro.x * 0.08;
         if (!reducido) {
             polvo.rotation.y = t * 0.05;
             polvo.material.opacity = 0.55 + Math.sin(t * 1.7) * 0.15;
         }
         render.render(escena, camara);
-        if (primero) {
-            primero = false;
+        if (!inicio) {
+            inicio = ahora;
             escenaHtml.classList.add('con-3d');
         }
     };
 
     if (reducido) {
-        dibujar();
-        new ResizeObserver(() => dibujar()).observe(lienzo);
-    } else {
-        // Si el equipo no llega a unos 30 fotogramas por segundo se baja la resolución; si aun así no llega,
-        // la corona se queda quieta y deja de consumir: la página tiene que ir fluida en cualquier ordenador
-        let anterior = performance.now();
-        let lentos = 0;
-        let rebajas = 0;
-        render.setAnimationLoop(() => {
-            if (!visible || document.hidden) {
-                anterior = performance.now();
-                return;
-            }
-            dibujar();
-            const ahora = performance.now();
-            lentos = ahora - anterior > 34 ? lentos + 1 : Math.max(0, lentos - 1);
-            anterior = ahora;
-            if (lentos > 20) {
-                lentos = 0;
-                if (rebajas++ < 2) {
-                    resolucion = Math.max(0.6, resolucion * 0.66);
+        dibujar(performance.now());
+        new ResizeObserver(() => dibujar(performance.now())).observe(lienzo);
+        return;
+    }
+
+    // La animación nunca se detiene. Si durante dos segundos seguidos el equipo va por debajo de unos 40
+    // fotogramas por segundo, se baja un poco la resolución (como mucho dos veces): el giro sigue siempre fluido
+    let muestras = 0;
+    let acumulado = 0;
+    let rebajas = 0;
+    render.setAnimationLoop((ahora) => {
+        if (!visible || document.hidden) {
+            ultimo = 0;
+            return;
+        }
+        const antes = ultimo;
+        dibujar(ahora);
+        if (antes && ahora - inicio > 2500 && rebajas < 2) {
+            acumulado += ahora - antes;
+            if (++muestras === 120) {
+                if (acumulado / muestras > 25) {
+                    rebajas++;
+                    resolucion = Math.max(1, resolucion * 0.8);
                     render.setPixelRatio(resolucion);
                     ajustar();
-                } else {
-                    render.setAnimationLoop(null);
                 }
+                muestras = 0;
+                acumulado = 0;
             }
-        });
-    }
+        }
+    });
 }
 
 // Sala con paneles de luz cálida: de ella salen los reflejos del metal (sin cargar ninguna imagen)

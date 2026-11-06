@@ -81,7 +81,7 @@
     gsap.from('.titulo-3d .letra', {
         yPercent: 110, rotateX: -80, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: 0.06, delay: 0.25
     });
-    gsap.from('.escena-antetitulo, .titulo-grupo, .escena-lema, .buscador-portada, .escena-acciones', {
+    gsap.from('.titulo-grupo, .escena-lema, .buscador-portada, .escena-acciones', {
         y: 24, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.12, delay: 0.7
     });
 

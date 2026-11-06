@@ -5,9 +5,7 @@
 <nav th:replace="~{fragments/layout :: navbar('mis-favoritos')}"></nav>
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-    <div class="cabecera-panel">
-        <h1 class="titulo-panel">Mis favoritos</h1>
-    </div>
+    <h1 class="visually-hidden">Mis favoritos</h1>
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">

@@ -7,20 +7,14 @@
 <main class="container py-4 tablero" th:with="i=${panel.indicadores}">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-    <!-- Saludo, fecha y acciones rápidas -->
-    <header class="tablero-cabecera" data-aparecer>
-        <div>
-            <p class="seccion-etiqueta">Panel de administración</p>
-            <h1 class="tablero-titulo">Así está la biblioteca hoy</h1>
-            <p class="tablero-fecha"><i class="ti ti-calendar"></i>
-                <span th:text="${#temporals.format(#temporals.createToday(), 'EEEE, d ''de'' MMMM ''de'' yyyy')}">jueves, 6 de noviembre de 2026</span></p>
-        </div>
-        <div class="tablero-acciones">
-            <a class="btn btn-primary" th:href="@{/admin/prestamos/nuevo}"><i class="ti ti-arrows-exchange"></i> Nuevo préstamo</a>
-            <a class="btn btn-sesion" th:href="@{/admin/libros/nuevo}"><i class="ti ti-book-upload"></i> Nuevo libro</a>
-            <a class="btn btn-sesion" th:href="@{/admin/usuarios/nuevo}"><i class="ti ti-user-plus"></i> Nuevo usuario</a>
-        </div>
-    </header>
+    <!-- Acciones rápidas en el centro, donde antes iba el título -->
+    <h1 class="visually-hidden">Panel de administración</h1>
+    <nav class="acciones-centrales" aria-label="Acciones rápidas">
+        <a class="btn btn-primary btn-accion" th:href="@{/admin/prestamos/nuevo}"><i class="ti ti-arrows-exchange"></i> Nuevo préstamo</a>
+        <a class="btn btn-sesion btn-accion" th:href="@{/admin/libros/nuevo}"><i class="ti ti-book-upload"></i> Nuevo libro</a>
+        <a class="btn btn-sesion btn-accion" th:href="@{/admin/autores/nuevo}"><i class="ti ti-feather"></i> Nuevo autor</a>
+        <a class="btn btn-sesion btn-accion" th:href="@{/admin/usuarios/nuevo}"><i class="ti ti-user-plus"></i> Nuevo usuario</a>
+    </nav>
 
     <!-- Aviso de préstamos fuera de plazo -->
     <a class="franja-alerta" th:if="${i.vencidos > 0}" th:href="@{/admin/prestamos(estado='VENCIDO')}" data-aparecer>

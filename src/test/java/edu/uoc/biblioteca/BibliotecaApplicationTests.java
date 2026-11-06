@@ -38,7 +38,7 @@ class BibliotecaApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("panel"))
                 .andExpect(content().string(allOf(
-                        containsString("Así está la biblioteca hoy"),
+                        containsString("Panel de administración"), containsString("Nuevo préstamo"),
                         containsString("2 préstamos fuera de plazo"),
                         containsString("Javier López Ferrer"))));
     }

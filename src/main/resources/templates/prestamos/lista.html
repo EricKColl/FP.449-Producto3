@@ -6,9 +6,9 @@
 
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
-    <div class="cabecera-panel">
-        <h1 class="titulo-panel">Préstamos</h1>
-        <a class="btn btn-primary" th:href="@{/admin/prestamos/nuevo}">
+    <div class="cabecera-pestana">
+        <h1 class="visually-hidden">Préstamos</h1>
+        <a class="btn btn-primary btn-accion" th:href="@{/admin/prestamos/nuevo}">
             <i class="ti ti-plus"></i> Nuevo préstamo
         </a>
     </div>
