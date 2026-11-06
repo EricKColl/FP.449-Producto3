@@ -38,6 +38,7 @@
     <link rel="stylesheet" th:href="@{/css/estilos.css}">
     <link rel="stylesheet" th:href="@{/css/backlord.css}">
     <link rel="icon" type="image/png" th:href="@{/img/favicon.png}">
+    <script th:src="@{/js/inicio.js}"></script>
 </head>
 
 <th:block th:fragment="navbar(seccion)">
@@ -53,7 +54,7 @@
             </button>
             <form class="buscador d-none d-md-flex" role="search" method="get" th:action="@{/libros}">
                 <i class="ti ti-search" aria-hidden="true"></i>
-                <input type="search" name="q" class="form-control" placeholder="Buscar título, autor o género"
+                <input type="search" name="q" class="form-control" placeholder="Buscar en el catálogo"
                        aria-label="Buscar en el catálogo">
             </form>
         </div>
@@ -190,6 +191,35 @@
             <button type="button" class="aviso-cerrar" aria-label="Cerrar el aviso"><i class="ti ti-x"></i></button>
         </div>
     </div>
+</th:block>
+
+<!-- Consejo de la página: ventana emergente abajo a la derecha que aparece al entrar. Al cerrarla se recuerda
+     en el navegador y queda una burbuja para volver a abrirla (js/app.js). Sin JavaScript se ve como un bloque.
+     <th:block th:replace="~{fragments/layout :: consejo('reservas', 'Título', 'Texto')}"></th:block> -->
+<th:block th:fragment="consejo(clave, titulo, texto)">
+    <aside class="consejo-emergente" th:data-consejo="${clave}" role="dialog" aria-modal="false"
+           th:aria-labelledby="|consejo-${clave}-titulo|">
+        <span class="consejo-esquina arriba izquierda" aria-hidden="true"></span>
+        <span class="consejo-esquina arriba derecha" aria-hidden="true"></span>
+        <span class="consejo-esquina abajo izquierda" aria-hidden="true"></span>
+        <span class="consejo-esquina abajo derecha" aria-hidden="true"></span>
+        <div class="consejo-cuerpo">
+            <span class="consejo-icono" aria-hidden="true"><i class="ti ti-bulb"></i></span>
+            <div class="consejo-contenido">
+                <p class="consejo-etiqueta">Consejo</p>
+                <h2 class="consejo-titulo" th:id="|consejo-${clave}-titulo|" th:text="${titulo}">Título</h2>
+                <p class="consejo-texto" th:text="${texto}">Texto</p>
+                <button type="button" class="btn btn-primary btn-sm consejo-entendido">
+                    <i class="ti ti-check"></i> Entendido
+                </button>
+            </div>
+            <button type="button" class="consejo-cerrar" aria-label="Cerrar el consejo"><i class="ti ti-x"></i></button>
+        </div>
+    </aside>
+    <button type="button" class="consejo-abrir" th:data-consejo-abrir="${clave}" hidden
+            aria-label="Ver el consejo de esta página">
+        <i class="ti ti-bulb"></i><span>Consejo</span>
+    </button>
 </th:block>
 
 <!-- Estado de un préstamo con su color:

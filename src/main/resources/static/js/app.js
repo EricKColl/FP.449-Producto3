@@ -30,6 +30,44 @@
         if (mensaje && !window.confirm(mensaje)) e.preventDefault();
     });
 
+    // --- Consejos emergentes: aparecen al entrar hasta que se cierran; después queda la burbuja para reabrirlos ---
+    // El navegador recuerda los consejos ya vistos; si no deja guardar nada, simplemente vuelven a salir
+    const recordado = (clave) => { try { return localStorage.getItem(`consejo-${clave}`) === 'visto'; } catch { return false; } };
+    const recordar = (clave) => { try { localStorage.setItem(`consejo-${clave}`, 'visto'); } catch { /* sin almacenamiento */ } };
+    document.querySelectorAll('.consejo-emergente').forEach((consejo) => {
+        const clave = consejo.dataset.consejo;
+        const burbuja = document.querySelector(`[data-consejo-abrir="${clave}"]`);
+        const abrir = () => {
+            consejo.classList.remove('saliendo');
+            consejo.classList.add('visible');
+            if (burbuja) burbuja.hidden = true;
+        };
+        const cerrar = () => {
+            if (!consejo.classList.contains('visible')) return;
+            consejo.classList.add('saliendo');
+            recordar(clave);
+            setTimeout(() => {
+                consejo.classList.remove('visible', 'saliendo');
+                if (burbuja) {
+                    burbuja.hidden = false;
+                    burbuja.focus({ preventScroll: true });
+                }
+            }, reducido ? 0 : 420);
+        };
+        consejo.querySelector('.consejo-entendido')?.addEventListener('click', cerrar);
+        consejo.querySelector('.consejo-cerrar')?.addEventListener('click', cerrar);
+        consejo.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrar(); });
+        burbuja?.addEventListener('click', () => {
+            abrir();
+            consejo.querySelector('.consejo-entendido')?.focus({ preventScroll: true });
+        });
+        if (recordado(clave)) {
+            if (burbuja) burbuja.hidden = false;
+        } else {
+            setTimeout(abrir, reducido ? 0 : 600);
+        }
+    });
+
     // --- Ver u ocultar la contraseña: <button data-ver-clave="id-del-campo"> ---
     document.querySelectorAll('[data-ver-clave]').forEach((boton) => {
         const campo = document.getElementById(boton.dataset.verClave);

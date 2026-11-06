@@ -6,11 +6,8 @@
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
     <h1 class="visually-hidden">Mis favoritos</h1>
-    <aside class="consejo" role="note">
-        <span class="consejo-icono"><i class="ti ti-bulb"></i></span>
-        <p><strong>Guarda lo que te interese:</strong> desde la ficha de cualquier libro, pulsa «Añadir a favoritos» y lo
-            tendrás siempre a mano aquí, con su disponibilidad.</p>
-    </aside>
+    <th:block th:replace="~{fragments/layout :: consejo('favoritos', 'Guarda lo que te interese',
+        'Desde la ficha de cualquier libro, pulsa «Añadir a favoritos» y lo tendrás siempre a mano aquí, con su disponibilidad.')}"></th:block>
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">

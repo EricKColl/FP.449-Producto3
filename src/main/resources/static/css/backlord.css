@@ -67,6 +67,37 @@ body {
     justify-content: flex-end;
 }
 
+/* Con el menú lateral fijo, la cabecera usa las mismas columnas que la página: encima del menú va el buscador,
+   como remate de esa columna, y el título queda centrado sobre el contenido, en el mismo eje que sus botones */
+@media (min-width: 992px) {
+    body:not(.pagina-portada) .cabecera {
+        grid-template-columns: var(--ancho-menu) minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 0;
+        padding: 0;
+    }
+
+    body:not(.pagina-portada) .cabecera > .cabecera-lado:first-child {
+        align-self: stretch;
+        padding: 0 0.9rem;
+        background: linear-gradient(180deg, #121215 0%, #0f0f12 100%);
+        border-right: 1px solid var(--borde);
+    }
+
+    body:not(.pagina-portada) .cabecera .buscador {
+        width: 100%;
+    }
+
+    body:not(.pagina-portada) .cabecera-marca {
+        grid-column: 3;
+    }
+
+    /* El margen va dentro de la columna de la sesión: así el centro del título coincide al píxel con el del contenido */
+    body:not(.pagina-portada) .cabecera-sesion {
+        grid-column: 4;
+        padding-right: clamp(0.75rem, 2vw, 1.75rem);
+    }
+}
+
 .cabecera-marca {
     display: flex;
     align-items: center;
@@ -1516,70 +1547,249 @@ body::before {
     to { transform: rotateY(-360deg); }
 }
 
-/* --- Consejos: textos de ayuda que se ven bien --- */
-.consejo {
+/* --- Consejo emergente: aparece abajo a la derecha desde un rombo dorado que se abre en tarjeta,
+   con cuatro esquinas que lo enmarcan. Sin JavaScript se ve como un bloque normal. --- */
+.consejo-emergente {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
     margin-bottom: 1.25rem;
-    padding: 1rem 1.2rem;
-    overflow: hidden;
-    border-radius: 16px;
-    background: linear-gradient(100deg, rgba(212, 169, 74, 0.16), rgba(212, 169, 74, 0.04) 60%);
-    border: 1px solid rgba(212, 169, 74, 0.45);
-    box-shadow: 0 0 0 0 rgba(212, 169, 74, 0.5);
-    animation: aparece-consejo 0.8s var(--curva) both, llamada 1.6s ease-out 0.8s 2;
+    filter: drop-shadow(0 26px 40px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 30px rgba(212, 169, 74, 0.18));
 }
 
-/* Destello que cruza el consejo de vez en cuando */
-.consejo::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(105deg, transparent 35%, rgba(255, 240, 200, 0.18) 50%, transparent 65%);
-    transform: translateX(-100%);
-    animation: reflejo-boton 8s ease-in-out 1.5s infinite;
+.js .consejo-emergente {
+    position: fixed;
+    right: clamp(1rem, 2.5vw, 2rem);
+    bottom: clamp(1rem, 3vh, 2rem);
+    z-index: 1055;
+    width: min(400px, calc(100vw - 2rem));
+    margin: 0;
+    visibility: hidden;
     pointer-events: none;
 }
 
-.consejo p {
-    margin: 0;
-    color: var(--marfil);
+.js .consejo-emergente.visible {
+    visibility: visible;
+    pointer-events: auto;
 }
 
-.consejo strong {
-    color: var(--oro-claro);
+.consejo-cuerpo {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.25rem 1.2rem;
+    border-radius: 18px;
+    background:
+        radial-gradient(120% 90% at 0% 0%, rgba(212, 169, 74, 0.2), transparent 60%),
+        linear-gradient(160deg, rgba(34, 31, 26, 0.98), rgba(15, 14, 18, 0.99));
+    border: 1px solid rgba(212, 169, 74, 0.55);
+}
+
+/* Apertura geométrica: un rombo pequeño crece, desborda la tarjeta y se cuadra en sus esquinas */
+.js .consejo-emergente .consejo-cuerpo {
+    clip-path: polygon(50% 46%, 54% 50%, 50% 54%, 46% 50%);
+}
+
+.js .consejo-emergente.visible .consejo-cuerpo {
+    animation: abrir-rombo 0.9s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+
+.js .consejo-emergente.saliendo .consejo-cuerpo {
+    animation: cerrar-rombo 0.45s cubic-bezier(0.6, 0, 0.8, 0.4) forwards;
+}
+
+@keyframes abrir-rombo {
+    0% { clip-path: polygon(50% 46%, 54% 50%, 50% 54%, 46% 50%); }
+    55% { clip-path: polygon(50% -60%, 160% 50%, 50% 160%, -60% 50%); }
+    100% { clip-path: polygon(-5% -5%, 105% -5%, 105% 105%, -5% 105%); }
+}
+
+@keyframes cerrar-rombo {
+    0% { clip-path: polygon(-5% -5%, 105% -5%, 105% 105%, -5% 105%); }
+    100% { clip-path: polygon(50% 46%, 54% 50%, 50% 54%, 46% 50%); }
+}
+
+/* Esquinas doradas que se colocan cuando la tarjeta ya está abierta */
+.consejo-esquina {
+    position: absolute;
+    z-index: 1;
+    width: 22px;
+    height: 22px;
+    border-color: var(--oro-claro);
+    border-style: solid;
+    border-width: 0;
+    pointer-events: none;
+}
+
+.consejo-esquina.arriba { top: -6px; border-top-width: 2px; }
+.consejo-esquina.abajo { bottom: -6px; border-bottom-width: 2px; }
+.consejo-esquina.izquierda { left: -6px; border-left-width: 2px; border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+.consejo-esquina.derecha { right: -6px; border-right-width: 2px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+
+.js .consejo-esquina {
+    opacity: 0;
+}
+
+.js .consejo-emergente.visible .consejo-esquina {
+    animation: colocar-esquina 0.5s var(--curva) 0.65s both;
+}
+
+.js .consejo-emergente.saliendo .consejo-esquina {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.consejo-esquina.arriba.izquierda { --desde: -10px, -10px; }
+.consejo-esquina.arriba.derecha { --desde: 10px, -10px; }
+.consejo-esquina.abajo.izquierda { --desde: -10px, 10px; }
+.consejo-esquina.abajo.derecha { --desde: 10px, 10px; }
+
+@keyframes colocar-esquina {
+    from { opacity: 0; transform: translate(var(--desde)); }
+    to { opacity: 1; transform: translate(0, 0); }
 }
 
 .consejo-icono {
     display: grid;
     place-items: center;
     flex: 0 0 auto;
-    width: 46px;
-    height: 46px;
+    width: 48px;
+    height: 48px;
     border-radius: 14px;
     background: var(--degradado-oro);
     color: #1a1407;
-    font-size: 1.4rem;
-    box-shadow: 0 10px 26px -8px rgba(212, 169, 74, 0.8);
-    animation: balanceo 3.5s ease-in-out 1s infinite;
+    font-size: 1.45rem;
+    box-shadow: 0 10px 26px -8px rgba(212, 169, 74, 0.85);
 }
 
-@keyframes aparece-consejo {
-    from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+.js .consejo-emergente.visible .consejo-icono {
+    animation: encender 0.7s var(--curva) 0.55s both;
+}
+
+@keyframes encender {
+    from { opacity: 0; transform: scale(0.3) rotate(-25deg); }
+    60% { opacity: 1; transform: scale(1.15) rotate(6deg); }
+    to { transform: scale(1) rotate(0); }
+}
+
+.consejo-contenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.js .consejo-emergente.visible .consejo-contenido > * {
+    animation: subir 0.55s var(--curva) both;
+}
+
+.js .consejo-emergente.visible .consejo-contenido > :nth-child(1) { animation-delay: 0.6s; }
+.js .consejo-emergente.visible .consejo-contenido > :nth-child(2) { animation-delay: 0.68s; }
+.js .consejo-emergente.visible .consejo-contenido > :nth-child(3) { animation-delay: 0.76s; }
+.js .consejo-emergente.visible .consejo-contenido > :nth-child(4) { animation-delay: 0.84s; }
+
+@keyframes subir {
+    from { opacity: 0; transform: translateY(10px); }
+}
+
+.consejo-etiqueta {
+    margin: 0 0 0.15rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--oro);
+}
+
+.consejo-titulo {
+    margin: 0 0 0.4rem;
+    font-size: 1.15rem;
+    color: #fbf3df;
+}
+
+.consejo-texto {
+    margin: 0 0 0.9rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--marfil);
+}
+
+.js .consejo-emergente:not(.visible) .consejo-entendido,
+.consejo-entendido {
+    border-radius: 999px;
+    padding-inline: 1rem;
+}
+
+.consejo-cerrar {
+    align-self: flex-start;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin: -0.35rem -0.35rem 0 0;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--gris-texto);
+}
+
+.consejo-cerrar:hover,
+.consejo-cerrar:focus-visible {
+    background: rgba(212, 169, 74, 0.12);
+    color: var(--oro-claro);
+}
+
+/* Sin JavaScript no hay forma de cerrarlo: solo se muestra el texto */
+html:not(.js) .consejo-entendido,
+html:not(.js) .consejo-cerrar,
+html:not(.js) .consejo-esquina {
+    display: none;
+}
+
+/* Burbuja para volver a abrir el consejo */
+.consejo-abrir {
+    position: fixed;
+    right: clamp(1rem, 2.5vw, 2rem);
+    bottom: clamp(1rem, 3vh, 2rem);
+    z-index: 1054;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1rem 0.55rem 0.7rem;
+    border: 1px solid rgba(240, 212, 138, 0.6);
+    border-radius: 999px;
+    background: linear-gradient(160deg, rgba(34, 31, 26, 0.97), rgba(15, 14, 18, 0.98));
+    color: var(--oro-claro);
+    font-weight: 600;
+    font-size: 0.85rem;
+    box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.8), 0 0 0 0 rgba(212, 169, 74, 0.45);
+    animation: aparece-burbuja 0.5s var(--curva) both, llamada 1.8s ease-out 0.5s 2;
+}
+
+.consejo-abrir[hidden] {
+    display: none;
+}
+
+.consejo-abrir i {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--degradado-oro);
+    color: #1a1407;
+    font-size: 1rem;
+}
+
+.consejo-abrir:hover {
+    border-color: var(--oro-claro);
+    transform: translateY(-2px);
+}
+
+@keyframes aparece-burbuja {
+    from { opacity: 0; transform: scale(0.6); }
 }
 
 @keyframes llamada {
-    0% { box-shadow: 0 0 0 0 rgba(212, 169, 74, 0.55); }
-    100% { box-shadow: 0 0 0 14px rgba(212, 169, 74, 0); }
-}
-
-@keyframes balanceo {
-    0%, 70%, 100% { transform: rotate(0); }
-    78% { transform: rotate(-10deg); }
-    86% { transform: rotate(8deg); }
-    94% { transform: rotate(-4deg); }
+    0% { box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.8), 0 0 0 0 rgba(212, 169, 74, 0.5); }
+    100% { box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.8), 0 0 0 14px rgba(212, 169, 74, 0); }
 }
 
 /* ======================================================================
@@ -2688,9 +2898,11 @@ body::before {
     .escena-corona::before,
     .marco-dorado::before,
     .anillo-giro,
-    .consejo,
-    .consejo::after,
+    .consejo-cuerpo,
+    .consejo-esquina,
     .consejo-icono,
+    .consejo-contenido > *,
+    .consejo-abrir,
     .acceso-escena,
     .acceso-ventajas li,
     .acceso-lado,
@@ -2704,6 +2916,14 @@ body::before {
 
     .escena-texto {
         transform: none !important;
+    }
+
+    .js .consejo-emergente .consejo-cuerpo {
+        clip-path: none;
+    }
+
+    .js .consejo-esquina {
+        opacity: 1;
     }
 
 }
