@@ -1,24 +1,30 @@
-# Dependabot revisa una vez al mes si hay versiones nuevas de las dependencias (Maven, las acciones de GitHub
-# y las imágenes de Docker) y propone una sola pull request por tipo. Los avisos de seguridad llegan aparte,
-# en cuanto se publican, en la pestaña «Security» del repositorio.
+# Dependabot vigila las dependencias del proyecto (Maven, las acciones de GitHub y las imágenes de Docker).
+#
+# - Avisos de seguridad: si alguna dependencia tiene una vulnerabilidad conocida, aparece en la pestaña
+#   «Security» del repositorio. Están activados en la configuración del repositorio, no en este fichero.
+# - Versiones nuevas: no abre pull requests (open-pull-requests-limit: 0). Las actualizaciones las aplica
+#   el equipo a mano, probándolas antes, para no unir cambios de un bot cerca de una entrega.
+# - Nunca propone cambiar de versión mayor (por ejemplo, Java 21 a 24 en las imágenes de Docker).
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /
     schedule:
       interval: monthly
-    open-pull-requests-limit: 2
-    groups:
-      maven:
-        patterns: ['*']
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
-    groups:
-      acciones:
-        patterns: ['*']
+    open-pull-requests-limit: 0
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']

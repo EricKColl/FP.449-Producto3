@@ -5,6 +5,7 @@ import edu.uoc.biblioteca.repository.ReservaRepository;
 import edu.uoc.biblioteca.service.AvisoService.Aviso;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * para no retrasar la respuesta de quien hizo la operación.
  */
 @Component
-public class AvisosEnVivo {
+public class AvisosEnVivo implements SmartLifecycle {
 
     private static final Logger log = LoggerFactory.getLogger(AvisosEnVivo.class);
 
@@ -99,6 +100,40 @@ public class AvisosEnVivo {
         socios.values().forEach(lista -> lista.forEach(e -> enviar(e, SseEmitter.event().comment("latido"), () -> lista.remove(e))));
         administracion.forEach(e -> enviar(e, SseEmitter.event().comment("latido"), () -> administracion.remove(e)));
         socios.values().removeIf(List::isEmpty);
+    }
+
+    // --- Apagado: el servidor espera a que terminen las peticiones en curso antes de pararse, y una conexión de
+    // avisos puede durar media hora. Por eso se cierran todas justo antes (esta fase se para antes que el
+    // servidor web): los navegadores vuelven a conectar solos cuando la aplicación arranca de nuevo ---
+
+    private volatile boolean enMarcha;
+
+    @Override
+    public void start() {
+        enMarcha = true;
+    }
+
+    @Override
+    public void stop() {
+        enMarcha = false;
+        socios.values().forEach(lista -> lista.forEach(AvisosEnVivo::cerrar));
+        administracion.forEach(AvisosEnVivo::cerrar);
+        socios.clear();
+        administracion.clear();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return enMarcha;
+    }
+
+    private static void cerrar(SseEmitter emisor) {
+        try {
+            emisor.complete();
+        } catch (IllegalStateException e) {
+            // Ya estaba cerrada
+            log.debug("Conexión de avisos ya cerrada: {}", e.getMessage());
+        }
     }
 
     /** Conexiones abiertas ahora mismo (para los tests y para comprobar que se limpian). */

@@ -115,7 +115,7 @@ Cada subida a GitHub pasa tres controles automáticos, y sus resultados se ven e
 |---|---|---|
 | **Tests y cobertura** (JaCoCo) | Todos los tests y que cubran al menos el **90 % de las líneas**: si baja, la compilación falla | Insignia *CI*, resumen de cada ejecución y el informe descargable `informe-cobertura` |
 | **CodeQL** | Análisis de seguridad del código Java y JavaScript: inyecciones, XSS, redirecciones abiertas… | Insignia *CodeQL* y pestaña *Security* |
-| **Dependabot** | Avisos de seguridad de las dependencias y, una vez al mes, si hay versiones nuevas | Pestaña *Security* y sus pull requests |
+| **Dependabot** | Avisos de seguridad si alguna dependencia tiene una vulnerabilidad conocida (las versiones nuevas las aplica el equipo a mano, probándolas antes) | Pestaña *Security* |
 
 En local, el informe de cobertura queda en `target/site/jacoco/index.html` después de `./mvnw verify`.
 
