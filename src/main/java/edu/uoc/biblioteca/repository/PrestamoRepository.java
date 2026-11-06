@@ -20,6 +20,10 @@ public interface PrestamoRepository extends JpaRepository<Prestamo, Long> {
     @EntityGraph(attributePaths = "libro")
     List<Prestamo> findByUsuarioIdOrderByFechaPrestamoDescIdDesc(Long usuarioId);
 
+    /** Historial de préstamos de un libro, del más reciente al más antiguo, cargando el usuario. */
+    @EntityGraph(attributePaths = "usuario")
+    List<Prestamo> findByLibroIdOrderByFechaPrestamoDescIdDesc(Long libroId);
+
     /** Préstamos sin devolver de un usuario, el que vence antes primero. */
     @EntityGraph(attributePaths = "libro")
     List<Prestamo> findByUsuarioIdAndFechaDevolucionIsNullOrderByFechaDevolucionPrevistaAsc(Long usuarioId);
@@ -67,6 +71,9 @@ public interface PrestamoRepository extends JpaRepository<Prestamo, Long> {
 
     /** ¿Tiene el usuario este libro prestado ahora mismo? */
     boolean existsByUsuarioIdAndLibroIdAndFechaDevolucionIsNull(Long usuarioId, Long libroId);
+
+    /** Préstamos fuera de plazo de un usuario. */
+    long countByUsuarioIdAndFechaDevolucionIsNullAndFechaDevolucionPrevistaBefore(Long usuarioId, LocalDate fecha);
 
     /** Préstamos sin devolver de un usuario. */
     long countByUsuarioIdAndFechaDevolucionIsNull(Long usuarioId);

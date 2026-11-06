@@ -25,9 +25,93 @@
     });
 
     // --- Confirmación antes de borrar: <form data-confirmar="¿Eliminar «...»?"> ---
+    // Se abre una ventana propia (<dialog>) en lugar de window.confirm. Escucha en fase de captura para frenar el
+    // envío antes que cualquier otro manejador del formulario (por ejemplo, data-enviando). Al aceptar, el
+    // formulario se vuelve a enviar marcado como confirmado. data-confirmar-boton cambia el texto del botón.
+    let ventanaConfirmar = null;
+    const confirmar = (formulario) => {
+        if (!ventanaConfirmar) {
+            ventanaConfirmar = document.createElement('dialog');
+            ventanaConfirmar.className = 'ventana-confirmar';
+            ventanaConfirmar.setAttribute('aria-labelledby', 'ventana-confirmar-texto');
+            ventanaConfirmar.innerHTML =
+                '<form method="dialog" class="ventana-confirmar-cuerpo">' +
+                '<span class="ventana-confirmar-icono" aria-hidden="true"><i class="ti ti-alert-triangle"></i></span>' +
+                '<p class="ventana-confirmar-texto" id="ventana-confirmar-texto"></p>' +
+                '<p class="ventana-confirmar-nota">Esta acción no se puede deshacer.</p>' +
+                '<div class="ventana-confirmar-botones">' +
+                '<button type="submit" value="no" class="btn btn-sesion">No, volver</button>' +
+                '<button type="submit" value="si" class="btn btn-peligro"><i class="ti ti-trash"></i> <span></span></button>' +
+                '</div></form>';
+            document.body.appendChild(ventanaConfirmar);
+            ventanaConfirmar.addEventListener('click', (e) => {
+                if (e.target === ventanaConfirmar) ventanaConfirmar.close('no'); // clic fuera de la ventana
+            });
+        }
+        ventanaConfirmar.querySelector('.ventana-confirmar-texto').textContent = formulario.dataset.confirmar;
+        ventanaConfirmar.querySelector('.btn-peligro span').textContent = formulario.dataset.confirmarBoton || 'Sí, eliminar';
+        ventanaConfirmar.returnValue = 'no';
+        ventanaConfirmar.onclose = () => {
+            if (ventanaConfirmar.returnValue !== 'si') return;
+            formulario.dataset.confirmado = 'si';
+            formulario.requestSubmit();
+        };
+        ventanaConfirmar.showModal();
+        ventanaConfirmar.querySelector('.btn-sesion').focus();
+    };
     document.addEventListener('submit', (e) => {
-        const mensaje = e.target.dataset?.confirmar;
-        if (mensaje && !window.confirm(mensaje)) e.preventDefault();
+        const formulario = e.target;
+        if (!formulario.dataset?.confirmar) return;
+        if (formulario.dataset.confirmado === 'si') {
+            delete formulario.dataset.confirmado;
+            return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof HTMLDialogElement === 'function') confirmar(formulario);
+        else if (window.confirm(formulario.dataset.confirmar)) {
+            formulario.dataset.confirmado = 'si';
+            formulario.requestSubmit();
+        }
+    }, true);
+
+    // --- Vista previa de los formularios de libro, autor y usuario: <form data-vista-previa> con campos
+    // [data-previa="clave"] que copian lo escrito en los [data-previa-ver="clave"] del mismo panel ---
+    document.querySelectorAll('form[data-vista-previa]').forEach((formulario) => {
+        const panel = formulario.closest('.formulario-panel');
+        if (!panel) return;
+        const tipo = formulario.dataset.vistaPrevia;
+        const ver = (clave, texto, vacio) => {
+            panel.querySelectorAll(`[data-previa-ver="${clave}"]`).forEach((el) => {
+                el.textContent = texto.trim() || vacio;
+            });
+        };
+        const valor = (clave) => formulario.querySelector(`[data-previa="${clave}"]`)?.value ?? '';
+        const actualizar = () => {
+            if (tipo === 'libro') {
+                ver('titulo', valor('titulo'), 'Título del libro');
+                ver('genero', valor('genero'), 'Género');
+                const autores = [...formulario.querySelectorAll('[data-previa="autor"]:checked')].map((c) => c.dataset.nombre);
+                ver('autor', autores.join(', '), 'Autor');
+                return;
+            }
+            const nombre = valor('nombre').trim();
+            const apellidos = valor('apellidos').trim();
+            ver('nombreCompleto', `${nombre} ${apellidos}`, tipo === 'autor' ? 'Nombre del autor' : 'Nombre y apellidos');
+            ver('iniciales', (nombre.charAt(0) + apellidos.charAt(0)).toUpperCase(), '—');
+            if (tipo === 'autor') ver('nacionalidad', valor('nacionalidad'), 'Nacionalidad');
+            if (tipo === 'usuario') {
+                ver('email', valor('email'), 'email@ejemplo.com');
+                const rol = formulario.querySelector('[data-previa="rol"]');
+                const insignia = panel.querySelector('[data-previa-ver="rol"]');
+                if (rol && insignia) {
+                    insignia.textContent = rol.options[rol.selectedIndex]?.text ?? '';
+                    insignia.classList.toggle('rol-admin', rol.value === 'ADMIN');
+                }
+            }
+        };
+        formulario.addEventListener('input', actualizar);
+        formulario.addEventListener('change', actualizar);
     });
 
     // --- Consejos emergentes: se abren cada vez que se entra en la página; al cerrarlos queda una burbuja ---
@@ -96,6 +180,105 @@
     window.addEventListener('pageshow', (e) => {
         if (e.persisted) document.querySelectorAll('.btn.enviando').forEach((b) => b.classList.remove('enviando'));
     });
+
+    // --- Catálogos filtrables: <section data-catalogo> con elementos [data-item] en una o varias [data-lista].
+    // Filtra por texto (data-texto), por género (data-genero) y por disponibilidad (data-disponible), ordena por
+    // data-titulo, data-autor o data-anio y alterna entre vistas (data-vista). Los datos los pone Thymeleaf.
+    document.querySelectorAll('[data-catalogo]').forEach((catalogo) => {
+        const texto = catalogo.querySelector('[data-filtro-texto]');
+        const disponible = catalogo.querySelector('[data-filtro-disponible]');
+        const orden = catalogo.querySelector('[data-orden]');
+        const contador = catalogo.querySelector('[data-contador]');
+        const vacio = catalogo.querySelector('[data-vacio]');
+        const listas = [...catalogo.querySelectorAll('[data-lista]')];
+        const generos = [...catalogo.querySelectorAll('[data-filtro-genero]')];
+        let genero = '';
+        // Sin tildes: «garcia» encuentra a «García»
+        const normalizar = (v) => v.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+
+        const aplicar = () => {
+            const buscado = normalizar(texto?.value ?? '');
+            let visibles = 0;
+            listas.forEach((lista, indice) => {
+                lista.querySelectorAll('[data-item]').forEach((item) => {
+                    const ok = (!buscado || normalizar(item.dataset.texto ?? '').includes(buscado))
+                        && (!genero || item.dataset.genero === genero)
+                        && (!disponible?.checked || item.dataset.disponible === 'true');
+                    item.hidden = !ok;
+                    if (ok && indice === 0) visibles++;
+                });
+            });
+            if (contador) contador.textContent = visibles;
+            if (vacio) vacio.classList.toggle('d-none', visibles > 0);
+        };
+
+        const ordenar = () => {
+            if (!orden) return;
+            const [campo, sentido] = orden.value.split('-');
+            listas.forEach((lista) => {
+                const items = [...lista.querySelectorAll(':scope > [data-item]')];
+                items.sort((a, b) => {
+                    const va = a.dataset[campo] ?? '';
+                    const vb = b.dataset[campo] ?? '';
+                    const numerico = campo === 'anio' || campo === 'libros';
+                    const r = numerico ? Number(va) - Number(vb) : va.localeCompare(vb, 'es');
+                    return sentido === 'desc' ? -r : r;
+                });
+                items.forEach((item) => lista.appendChild(item));
+            });
+        };
+
+        // Vista de estante o de tabla, recordada en el navegador
+        const vistas = [...catalogo.querySelectorAll('[data-vista]')];
+        const ponerVista = (vista) => {
+            catalogo.dataset.vistaActual = vista;
+            vistas.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.vista === vista)));
+            try { localStorage.setItem('vista-catalogo', vista); } catch { /* sin almacenamiento */ }
+        };
+        if (vistas.length) {
+            let guardada = null;
+            try { guardada = localStorage.getItem('vista-catalogo'); } catch { /* sin almacenamiento */ }
+            ponerVista(guardada || catalogo.dataset.vistaInicial || 'estante');
+            vistas.forEach((b) => b.addEventListener('click', () => ponerVista(b.dataset.vista)));
+        }
+
+        texto?.addEventListener('input', aplicar);
+        disponible?.addEventListener('change', aplicar);
+        orden?.addEventListener('change', () => { ordenar(); aplicar(); });
+        generos.forEach((boton) => boton.addEventListener('click', () => {
+            genero = boton.dataset.filtroGenero;
+            generos.forEach((g) => g.classList.toggle('activo', g === boton));
+            aplicar();
+        }));
+    });
+
+    // --- Nuevo préstamo: el resumen muestra el usuario y el libro elegidos ---
+    document.querySelectorAll('form[data-prestamo]').forEach((formulario) => {
+        formulario.addEventListener('change', (e) => {
+            const opcion = e.target;
+            if (opcion.type !== 'radio') return;
+            const destino = formulario.querySelector(`[data-resumen="${opcion.name}"]`);
+            if (destino) {
+                destino.textContent = opcion.dataset.nombre;
+                destino.classList.add('elegido');
+            }
+        });
+    });
+
+    // --- Portada grande de la ficha: se inclina en 3D siguiendo al ratón ---
+    if (!reducido) {
+        document.querySelectorAll('[data-inclinar-portada]').forEach((zona) => {
+            const portada = zona.firstElementChild;
+            zona.addEventListener('pointermove', (e) => {
+                const r = zona.getBoundingClientRect();
+                const x = (e.clientX - r.left) / r.width - 0.5;
+                const y = (e.clientY - r.top) / r.height - 0.5;
+                portada.style.transform = `rotateY(${(x * 22).toFixed(1)}deg) rotateX(${(-y * 16).toFixed(1)}deg)`;
+                portada.style.setProperty('--brillo-x', `${((x + 0.5) * 100).toFixed(0)}%`);
+            });
+            zona.addEventListener('pointerleave', () => { portada.style.transform = ''; });
+        });
+    }
 
     // --- Título letra a letra: el texto se mantiene completo para lectores de pantalla ---
     document.querySelectorAll('[data-letras]').forEach((titulo) => {

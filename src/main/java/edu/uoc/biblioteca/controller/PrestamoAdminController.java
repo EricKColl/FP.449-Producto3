@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
 /** Gestión de todos los préstamos: solo para el rol ADMIN. */
 @Controller
 @RequestMapping("/admin/prestamos")
@@ -26,9 +31,16 @@ public class PrestamoAdminController {
     // Listado, con filtro opcional: /admin/prestamos?estado=VENCIDO
     @GetMapping
     public String listar(@RequestParam(required = false) EstadoPrestamo estado, Model model) {
-        model.addAttribute("prestamos", prestamoService.listar(estado));
+        List<Prestamo> todos = prestamoService.listar(null);
+        model.addAttribute("prestamos", estado == null ? todos
+                : todos.stream().filter(prestamo -> prestamo.getEstado() == estado).toList());
         model.addAttribute("estados", EstadoPrestamo.values());
         model.addAttribute("estadoSeleccionado", estado);
+        // Cuántos hay de cada estado, para las pestañas
+        Map<EstadoPrestamo, Long> cuentas = new EnumMap<>(EstadoPrestamo.class);
+        todos.forEach(prestamo -> cuentas.merge(prestamo.getEstado(), 1L, Long::sum));
+        model.addAttribute("cuentas", cuentas);
+        model.addAttribute("total", todos.size());
         return "prestamos/lista";
     }
 
@@ -38,6 +50,10 @@ public class PrestamoAdminController {
         model.addAttribute("usuarios", prestamoService.listarUsuariosPrestatarios());
         model.addAttribute("maxPrestamos", PrestamoService.MAX_PRESTAMOS_ABIERTOS);
         model.addAttribute("libros", prestamoService.listarLibrosConDisponibles());
+        // Para el resumen: el préstamo empieza hoy y se devuelve a los días de plazo
+        model.addAttribute("hoy", LocalDate.now());
+        model.addAttribute("devolucion", LocalDate.now().plusDays(Prestamo.DIAS_PRESTAMO));
+        model.addAttribute("diasPrestamo", Prestamo.DIAS_PRESTAMO);
         return "prestamos/form";
     }
 

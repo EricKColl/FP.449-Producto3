@@ -4,15 +4,35 @@
 <body>
 <nav th:replace="~{fragments/layout :: navbar('')}"></nav>
 
-<main class="container py-5 text-center">
-    <p class="display-3 fw-bold text-body-tertiary mb-2" th:text="${status}">404</p>
-    <th:block th:switch="${status}">
-        <h1 class="h4" th:case="404">Esta página no existe o todavía no está implementada</h1>
-        <h1 class="h4" th:case="403">No tienes permiso para acceder a esta página</h1>
-        <h1 class="h4" th:case="*">Se ha producido un error inesperado</h1>
-    </th:block>
-    <p class="text-body-secondary" th:text="${path}">/ruta</p>
-    <a class="btn btn-primary mt-2" th:href="@{/}"><i class="ti ti-home me-1"></i> Volver al inicio</a>
+<main class="container py-5">
+    <section class="pagina-error" th:with="codigo=${status != null ? status : 500}">
+        <!-- Un libro abierto con el código del error repartido entre sus dos páginas -->
+        <div class="error-libro" aria-hidden="true">
+            <span class="error-pagina izquierda" th:text="${#strings.substring('' + codigo, 0, 1)}">4</span>
+            <span class="error-pagina derecha" th:text="${#strings.substring('' + codigo, 1)}">04</span>
+            <span class="error-corona"><i class="ti ti-crown"></i></span>
+        </div>
+        <p class="error-codigo" th:text="'Error ' + ${codigo}">Error 404</p>
+        <th:block th:switch="${codigo}">
+            <th:block th:case="404">
+                <h1 class="error-titulo">Esta página no existe o todavía no está implementada</h1>
+                <p class="error-texto">Puede que el enlace esté mal escrito o que el libro, el autor o el usuario ya no exista.</p>
+            </th:block>
+            <th:block th:case="403">
+                <h1 class="error-titulo">No tienes permiso para acceder a esta página</h1>
+                <p class="error-texto">Esta zona es de otro tipo de cuenta. Si crees que es un error, habla con la biblioteca.</p>
+            </th:block>
+            <th:block th:case="*">
+                <h1 class="error-titulo">Se ha producido un error inesperado</h1>
+                <p class="error-texto">No es culpa tuya. Vuelve a intentarlo dentro de un momento.</p>
+            </th:block>
+        </th:block>
+        <p class="error-ruta" th:if="${path}"><i class="ti ti-link"></i> <code th:text="${path}">/ruta</code></p>
+        <div class="error-botones">
+            <a class="btn btn-primary btn-accion" th:href="@{/}"><i class="ti ti-home"></i> Volver al inicio</a>
+            <a class="btn btn-sesion" th:href="@{/libros}"><i class="ti ti-books"></i> Ver el catálogo</a>
+        </div>
+    </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

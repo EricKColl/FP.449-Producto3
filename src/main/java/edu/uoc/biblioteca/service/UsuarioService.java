@@ -31,6 +31,22 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /** Cada usuario con sus préstamos en curso y los que están fuera de plazo, para el listado. */
+    public List<UsuarioConPrestamos> listarConPrestamos() {
+        LocalDate hoy = LocalDate.now();
+        return listar().stream().map(usuario -> new UsuarioConPrestamos(usuario,
+                prestamoRepository.countByUsuarioIdAndFechaDevolucionIsNull(usuario.getId()),
+                prestamoRepository.countByUsuarioIdAndFechaDevolucionIsNullAndFechaDevolucionPrevistaBefore(usuario.getId(), hoy)))
+                .toList();
+    }
+
+    public record UsuarioConPrestamos(Usuario usuario, long enCurso, long vencidos) {
+
+        public boolean alDia() {
+            return vencidos == 0;
+        }
+    }
+
     public List<Usuario> listar() {
         return usuarioRepository.findAllByOrderByApellidosAscNombreAsc();
     }

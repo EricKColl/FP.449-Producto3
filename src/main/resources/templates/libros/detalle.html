@@ -8,124 +8,138 @@
 <main class="container py-4">
   <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
 
-  <a class="btn btn-link px-0 mb-2" th:href="@{/libros}">
-    <i class="ti ti-arrow-left"></i> Volver a libros
-  </a>
+  <a class="volver" th:href="@{/libros}"><i class="ti ti-arrow-left"></i> Volver al catálogo</a>
 
-  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-    <div>
-      <h1 class="h3 mb-1" th:text="${libro.titulo}">Título</h1>
-      <p class="text-body-secondary mb-0" th:text="${libro.autoresTexto}">Autores</p>
+  <!-- Cabecera de la ficha: la portada grande y todos los datos del libro -->
+  <section class="ficha-libro">
+    <div class="ficha-portada" data-inclinar-portada>
+      <span th:replace="~{fragments/layout :: portadaGrande(${libro})}"></span>
     </div>
-    <div class="d-flex gap-2" sec:authorize="hasRole('ADMIN')">
-      <a class="btn btn-outline-primary" th:href="@{/admin/libros/{id}/editar(id=${libro.id})}">
-        <i class="ti ti-pencil"></i> Editar
-      </a>
-      <form method="post" th:action="@{/admin/libros/{id}/eliminar(id=${libro.id})}"
-         th:data-confirmar="|¿Eliminar «${libro.titulo}»?|">
-        <button class="btn btn-outline-danger" type="submit">
-          <i class="ti ti-trash"></i> Eliminar
-        </button>
-      </form>
-    </div>
-  </div>
 
-  <div class="row g-3">
-    <div class="col-xl-5">
-      <div class="card">
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-5">ISBN</dt>
-            <dd class="col-7 text-nowrap" th:text="${libro.isbn}">ISBN</dd>
-            <dt class="col-5">Editorial</dt>
-            <dd class="col-7" th:text="${libro.editorial} ?: '—'">Editorial</dd>
-            <dt class="col-5">Año</dt>
-            <dd class="col-7" th:text="${libro.anioPublicacion} ?: '—'">Año</dd>
-            <dt class="col-5">Género</dt>
-            <dd class="col-7" th:text="${libro.genero} ?: '—'">Género</dd>
-            <dt class="col-5">Ejemplares</dt>
-            <dd class="col-7" th:text="${libro.ejemplares}">1</dd>
-            <dt class="col-5">Disponibles</dt>
-            <dd class="col-7 mb-0">
-              <span class="badge" th:text="${disponibles}"
-                 th:classappend="${disponibles > 0} ? 'text-bg-success' : 'text-bg-danger'">1</span>
-            </dd>
-          </dl>
-        </div>
+    <div class="ficha-datos">
+      <div class="ficha-etiquetas">
+        <a class="etiqueta" th:if="${libro.genero}" th:href="@{/libros(q=${libro.genero})}">
+          <i class="ti ti-category"></i> <span th:text="${libro.genero}">Novela</span></a>
+        <span class="etiqueta" th:if="${libro.anioPublicacion}"><i class="ti ti-calendar"></i>
+          <span th:text="${libro.anioPublicacion}">1967</span></span>
+        <span class="etiqueta" th:if="${libro.editorial}"><i class="ti ti-building"></i>
+          <span th:text="${libro.editorial}">Debolsillo</span></span>
       </div>
 
+      <h1 class="ficha-titulo" th:text="${libro.titulo}">Título</h1>
+      <p class="ficha-autores">
+        <span>de </span>
+        <th:block th:each="autor, vuelta : ${libro.autores}">
+          <a th:href="@{/autores/{id}(id=${autor.id})}" th:text="${autor.nombreCompleto}">Autor</a><span
+             th:unless="${vuelta.last}" th:text="${vuelta.index == vuelta.size - 2} ? ' y ' : ', '">, </span>
+        </th:block>
+      </p>
+
+      <!-- Disponibilidad: cuántos ejemplares quedan libres -->
+      <div class="disponibilidad-ficha" th:classappend="${disponibles > 0} ? 'hay' : 'agotado'">
+        <div class="disponibilidad-cabecera">
+          <span class="disponibilidad" th:classappend="${disponibles > 0} ? 'si' : 'no'"
+                th:text="${disponibles > 0} ? 'Disponible' : 'Sin ejemplares libres'">Disponible</span>
+          <span class="disponibilidad-cifra"><strong th:text="${disponibles}">2</strong> de
+            <span th:text="${libro.ejemplares}">3</span> ejemplares libres</span>
+        </div>
+        <span class="disponibilidad-pista"><span class="disponibilidad-relleno"
+              th:style="|width: ${libro.ejemplares > 0 ? disponibles * 100 / libro.ejemplares : 0}%|"></span></span>
+      </div>
+
+      <dl class="ficha-ficha">
+        <div><dt>ISBN</dt><dd th:text="${libro.isbn}">978-84-376-2405-1</dd></div>
+        <div><dt>Editorial</dt><dd th:text="${libro.editorial} ?: '—'">Cátedra</dd></div>
+        <div><dt>Año</dt><dd th:text="${libro.anioPublicacion} ?: '—'">1605</dd></div>
+        <div><dt>Ejemplares</dt><dd th:text="${libro.ejemplares}">3</dd></div>
+      </dl>
+
       <!--/* Botones del cliente: el formulario solo dice qué libro, nunca quién lo pide. El administrador no pide ni reserva */-->
-      <div class="d-grid gap-2 mt-3" sec:authorize="hasRole('USER')">
-        <a class="btn btn-outline-success w-100" th:if="${loTienePrestado}" th:href="@{/user/prestamos}">
+      <div class="ficha-acciones" sec:authorize="hasRole('USER')">
+        <a class="btn btn-outline-success" th:if="${loTienePrestado}" th:href="@{/user/prestamos}">
           <i class="ti ti-book-2"></i> Lo tienes prestado
         </a>
         <th:block th:unless="${loTienePrestado}">
-          <form method="post" th:action="@{/user/prestamos}" th:if="${disponibles > 0}">
+          <form method="post" th:action="@{/user/prestamos}" th:if="${disponibles > 0}" data-enviando>
             <input type="hidden" name="libroId" th:value="${libro.id}">
-            <button class="btn btn-primary w-100" type="submit">
+            <button class="btn btn-primary btn-accion" type="submit">
               <i class="ti ti-book-download"></i> Pedir prestado
             </button>
           </form>
-          <a class="btn btn-outline-primary w-100" th:if="${disponibles <= 0 and loTieneReservado}"
-             th:href="@{/user/reservas}">
+          <a class="btn btn-outline-primary" th:if="${disponibles <= 0 and loTieneReservado}" th:href="@{/user/reservas}">
             <i class="ti ti-bookmark"></i> Ya lo tienes reservado
           </a>
-          <form method="post" th:action="@{/user/reservas}" th:if="${disponibles <= 0 and not loTieneReservado}">
+          <form method="post" th:action="@{/user/reservas}" th:if="${disponibles <= 0 and not loTieneReservado}" data-enviando>
             <input type="hidden" name="libroId" th:value="${libro.id}">
-            <button class="btn btn-primary w-100" type="submit">
+            <button class="btn btn-primary btn-accion" type="submit">
               <i class="ti ti-bookmark"></i> Reservar
             </button>
           </form>
         </th:block>
         <form method="post" th:action="@{/user/favoritos/{id}(id=${libro.id})}" th:unless="${esFavorito}">
-          <button class="btn btn-outline-primary w-100" type="submit">
-            <i class="ti ti-heart"></i> Añadir a favoritos
-          </button>
+          <button class="btn btn-sesion" type="submit"><i class="ti ti-heart"></i> Añadir a favoritos</button>
         </form>
-        <form method="post" th:action="@{/user/favoritos/{id}/quitar(id=${libro.id})}"
-              th:if="${esFavorito}">
+        <form method="post" th:action="@{/user/favoritos/{id}/quitar(id=${libro.id})}" th:if="${esFavorito}">
           <input type="hidden" name="desdeFicha" value="true">
-          <button class="btn btn-outline-secondary w-100" type="submit">
-            <i class="ti ti-heart-off"></i> Quitar de favoritos
-          </button>
+          <button class="btn btn-sesion activo-favorito" type="submit"><i class="ti ti-heart-off"></i> Quitar de favoritos</button>
         </form>
       </div>
-    </div>
 
-    <div class="col-xl-7" sec:authorize="hasRole('ADMIN')">
-      <div class="card">
-        <div class="card-header fw-semibold">Historial de préstamos</div>
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead class="table-light">
-            <tr>
-              <th>Usuario</th>
-              <th>Prestado</th>
-              <th>Devolución prevista</th>
-              <th>Estado</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="prestamo : ${libro.prestamos}">
-              <td>
-                <a th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}"
-                 th:text="${prestamo.usuario.nombreCompleto}">Usuario</a>
-              </td>
-              <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
-              <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/10/2026</td>
-              <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(libro.prestamos)}">
-              <td colspan="4" class="text-center text-body-secondary py-4">
-                Este libro todavía no se ha prestado.
-              </td>
-            </tr>
-            </tbody>
-          </table>
+      <div class="ficha-acciones" sec:authorize="hasRole('ADMIN')">
+        <a class="btn btn-sesion" th:href="@{/admin/libros/{id}/editar(id=${libro.id})}">
+          <i class="ti ti-pencil"></i> Editar
+        </a>
+        <form method="post" th:action="@{/admin/libros/{id}/eliminar(id=${libro.id})}"
+              th:data-confirmar="|¿Eliminar «${libro.titulo}»?|">
+          <button class="btn btn-outline-danger btn-redondo" type="submit"><i class="ti ti-trash"></i> Eliminar</button>
+        </form>
+      </div>
+
+      <a class="enlace-sesion" sec:authorize="!isAuthenticated()" th:href="@{/login}">
+        <i class="ti ti-login-2"></i> Inicia sesión para pedirlo, reservarlo o guardarlo en favoritos
+      </a>
+    </div>
+  </section>
+
+  <!-- Historial del libro como línea de tiempo (solo el administrador) -->
+  <section class="bloque historial" sec:authorize="hasRole('ADMIN')">
+    <header class="bloque-cabecera">
+      <h2><i class="ti ti-history"></i> Historial de préstamos</h2>
+      <span class="text-body-secondary small" th:text="${#lists.size(historial)} + (${#lists.size(historial) == 1} ? ' préstamo' : ' préstamos')">3 préstamos</span>
+    </header>
+    <ol class="linea-tiempo">
+      <li th:each="prestamo : ${historial}" th:classappend="|hito-${#strings.toLowerCase(prestamo.estado.name())}|">
+        <span class="hito-punto" aria-hidden="true"></span>
+        <div class="hito-cuerpo">
+          <a class="hito-titulo" th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}"
+             th:text="${prestamo.usuario.nombreCompleto}">Laura Martínez</a>
+          <span class="hito-fechas">
+            <span th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</span>
+            <i class="ti ti-arrow-right"></i>
+            <span th:text="${prestamo.devuelto} ? ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')}
+                  : ('prevista ' + ${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')})">15/10/2026</span>
+          </span>
         </div>
+        <span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span>
+      </li>
+      <li class="vacio" th:if="${#lists.isEmpty(historial)}">Este libro todavía no se ha prestado.</li>
+    </ol>
+  </section>
+
+  <!-- Libros relacionados: del mismo autor o del mismo género -->
+  <section class="seccion-tablero" th:unless="${#lists.isEmpty(relacionados)}">
+    <div class="seccion-cabecera">
+      <div>
+        <p class="seccion-etiqueta">Si te gusta este libro</p>
+        <h2 class="seccion-titulo">Del mismo autor o género</h2>
       </div>
     </div>
-  </div>
+    <div class="rejilla-catalogo">
+      <th:block th:each="item : ${relacionados}">
+        <a th:replace="~{fragments/layout :: cubierta(${item.libro}, ${item.disponibles})}"></a>
+      </th:block>
+    </div>
+  </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

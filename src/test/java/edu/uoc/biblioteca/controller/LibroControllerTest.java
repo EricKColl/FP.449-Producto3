@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -158,15 +159,16 @@ class LibroControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("libros/formulario"))
                 .andExpect(model().attributeExists("todosLosAutores"))
-                .andExpect(content().string(containsString("multiple")));
+                // Los autores se eligen con casillas: se pueden marcar varios
+                .andExpect(content().string(matchesPattern("(?s).*<input type=\"checkbox\"[^>]*name=\"autores\".*")));
     }
 
     @Test
     void edicionPreseleccionaLosDosAutores() throws Exception {
         mockMvc.perform(get("/admin/libros/8/editar"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("value=\"8\" selected=\"selected\"")))
-                .andExpect(content().string(containsString("value=\"9\" selected=\"selected\"")));
+                .andExpect(content().string(matchesPattern("(?s).*<input type=\"checkbox\"[^>]*value=\"8\"[^>]*checked=\"checked\".*")))
+                .andExpect(content().string(matchesPattern("(?s).*<input type=\"checkbox\"[^>]*value=\"9\"[^>]*checked=\"checked\".*")));
     }
 
     @Test

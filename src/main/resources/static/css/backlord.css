@@ -2494,9 +2494,13 @@ html:not(.js) .consejo-cerrar {
     background: rgba(214, 90, 90, 0.06);
 }
 
-.lomo {
+/* Color por defecto sin prioridad (:where): así manda el tono-N de cada libro */
+:where(.lomo) {
     --tono-1: #3b0f1c;
     --tono-2: #170609;
+}
+
+.lomo {
     display: grid;
     place-items: end center;
     flex: 0 0 auto;
@@ -2864,8 +2868,1561 @@ html:not(.js) .consejo-cerrar {
     color: var(--gris-tenue);
 }
 
+/* ======================================================================
+   Catálogo de libros: barra de filtros, estante de portadas o tabla
+   ====================================================================== */
+.barra-catalogo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.buscador-catalogo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 320px;
+}
+
+.buscador-catalogo i {
+    position: absolute;
+    left: 1rem;
+    color: var(--oro);
+    font-size: 1.15rem;
+    pointer-events: none;
+}
+
+.buscador-catalogo input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 169, 74, 0.28);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--marfil);
+    outline: 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.buscador-catalogo input:focus {
+    border-color: var(--oro-claro);
+    background: rgba(212, 169, 74, 0.05);
+    box-shadow: 0 0 0 4px rgba(212, 169, 74, 0.14);
+}
+
+.controles-catalogo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Interruptor «Solo disponibles» */
+.interruptor {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0;
+    color: var(--marfil);
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.interruptor input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.interruptor-pista {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 169, 74, 0.3);
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.interruptor-pista::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--gris-texto);
+    transition: transform 0.3s var(--curva), background 0.25s ease;
+}
+
+.interruptor input:checked + .interruptor-pista {
+    background: rgba(79, 191, 134, 0.25);
+    border-color: #4fbf86;
+}
+
+.interruptor input:checked + .interruptor-pista::after {
+    transform: translateX(18px);
+    background: #6fd6a1;
+}
+
+.interruptor input:focus-visible + .interruptor-pista {
+    box-shadow: 0 0 0 3px rgba(212, 169, 74, 0.35);
+}
+
+.orden-catalogo {
+    width: auto;
+    border-radius: 999px;
+    padding-left: 0.9rem;
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.selector-vista {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 169, 74, 0.28);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.selector-vista .btn {
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    border: 0;
+    color: var(--gris-texto);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.selector-vista .btn[aria-pressed="true"] {
+    background: var(--degradado-oro);
+    color: #1a1407;
+}
+
+/* Etiquetas de género */
+.filtros-genero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.chip-genero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.5rem 0.35rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 169, 74, 0.22);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--gris-texto);
+    font-size: 0.85rem;
+    transition: all 0.25s var(--curva);
+}
+
+.chip-genero:hover {
+    border-color: rgba(212, 169, 74, 0.55);
+    color: var(--marfil);
+}
+
+.chip-genero.activo {
+    background: var(--degradado-oro);
+    border-color: transparent;
+    color: #1a1407;
+    box-shadow: 0 8px 20px -10px rgba(212, 169, 74, 0.9);
+}
+
+.chip-cuenta {
+    display: grid;
+    place-items: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: rgba(212, 169, 74, 0.14);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.chip-genero.activo .chip-cuenta {
+    background: rgba(26, 20, 7, 0.18);
+}
+
+.contador-catalogo {
+    margin: 0 0 1rem;
+    color: var(--gris-texto);
+    font-size: 0.9rem;
+}
+
+.contador-catalogo strong {
+    color: var(--oro-claro);
+    font-size: 1.05rem;
+}
+
+/* Solo se ve la vista elegida */
+[data-vista-actual="estante"] .vista-tabla,
+[data-vista-actual="tabla"] .vista-estante {
+    display: none;
+}
+
+.rejilla-catalogo {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.75rem 1.25rem;
+    perspective: 1200px;
+}
+
+.libro-tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    animation: aparece-tarjeta 0.6s var(--curva) both;
+}
+
+.tarjeta-acciones {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.btn-icono-sutil {
+    --bs-btn-color: var(--oro-claro);
+    --bs-btn-border-color: rgba(212, 169, 74, 0.3);
+    --bs-btn-hover-color: #1a1407;
+    --bs-btn-hover-bg: var(--oro);
+    --bs-btn-hover-border-color: var(--oro);
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 10px;
+}
+
+.btn-icono-sutil.peligro {
+    --bs-btn-color: #f08a8a;
+    --bs-btn-border-color: rgba(214, 90, 90, 0.4);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #c94b4b;
+    --bs-btn-hover-border-color: #c94b4b;
+}
+
+.celda-libro {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.celda-libro .lomo-mini {
+    width: 22px;
+    height: 32px;
+    padding: 0;
+}
+
+/* ======================================================================
+   Ficha del libro
+   ====================================================================== */
+.volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+    color: var(--gris-texto);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease, gap 0.25s var(--curva);
+}
+
+.volver:hover {
+    color: var(--oro-claro);
+    gap: 0.6rem;
+}
+
+.ficha-libro {
+    display: grid;
+    grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: start;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 767.98px) {
+    .ficha-libro {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ficha-portada {
+        max-width: 240px;
+        margin: 0 auto;
+    }
+}
+
+.ficha-portada {
+    perspective: 1100px;
+    animation: aparece-tarjeta 0.8s var(--curva) both;
+}
+
+.cubierta-grande {
+    display: flex;
+    width: 100%;
+    padding: 1.4rem 1.3rem 1.3rem 1.6rem;
+    transform-style: preserve-3d;
+    transition: transform 0.25s ease-out;
+    box-shadow:
+        inset 8px 0 14px -6px rgba(0, 0, 0, 0.6),
+        inset 12px 0 0 -8px rgba(240, 212, 138, 0.4),
+        24px 36px 60px -24px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(212, 169, 74, 0.3),
+        0 0 70px -20px rgba(212, 169, 74, 0.35);
+}
+
+/* Reflejo que sigue al ratón por la portada */
+.cubierta-grande::after {
+    transform: none;
+    inset: 0;
+    background: radial-gradient(60% 50% at var(--brillo-x, 30%) 20%, rgba(255, 240, 200, 0.16), transparent 70%);
+    transition: none;
+}
+
+.cubierta-grande .cubierta-genero {
+    font-size: 0.72rem;
+}
+
+.cubierta-grande .cubierta-corona {
+    font-size: 1.6rem;
+}
+
+.cubierta-grande .cubierta-titulo {
+    font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+}
+
+.cubierta-grande .cubierta-autor {
+    font-size: 0.85rem;
+    white-space: normal;
+}
+
+.ficha-datos {
+    min-width: 0;
+    animation: aparece-escena 0.8s var(--curva) 0.1s both;
+}
+
+.ficha-etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+}
+
+.etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 169, 74, 0.25);
+    background: rgba(212, 169, 74, 0.06);
+    color: var(--marfil);
+    font-size: 0.82rem;
+    text-decoration: none;
+}
+
+a.etiqueta:hover {
+    border-color: var(--oro-claro);
+    color: #fff4d6;
+}
+
+.etiqueta i {
+    color: var(--oro);
+}
+
+.ficha-titulo {
+    margin: 0 0 0.4rem;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.08;
+    background: linear-gradient(100deg, #fbf3df 0%, #f0d48a 55%, #d4a94a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.ficha-autores {
+    margin: 0 0 1.4rem;
+    font-size: 1.1rem;
+    color: var(--gris-texto);
+}
+
+.ficha-autores a {
+    color: var(--oro-claro);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.ficha-autores a:hover {
+    text-decoration: underline;
+}
+
+.disponibilidad-ficha {
+    max-width: 30rem;
+    margin-bottom: 1.4rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 16px;
+    background: rgba(79, 191, 134, 0.07);
+    border: 1px solid rgba(79, 191, 134, 0.35);
+}
+
+.disponibilidad-ficha.agotado {
+    background: rgba(214, 90, 90, 0.07);
+    border-color: rgba(214, 90, 90, 0.35);
+}
+
+.disponibilidad-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.disponibilidad-cifra {
+    color: var(--gris-texto);
+    font-size: 0.88rem;
+}
+
+.disponibilidad-cifra strong {
+    color: #fbf3df;
+}
+
+.disponibilidad-pista {
+    display: block;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    overflow: hidden;
+}
+
+.disponibilidad-relleno {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #4fbf86, #9be0b9);
+    box-shadow: 0 0 12px rgba(79, 191, 134, 0.6);
+}
+
+.ficha-ficha {
+    display: grid;
+    /* El ISBN es el dato más largo: su recuadro es algo más ancho para que no se parta */
+    grid-template-columns: minmax(11rem, 1.6fr) repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    max-width: 44rem;
+    margin: 0 0 1.5rem;
+}
+
+/* Junto a la portada la columna es estrecha hasta 1200 px: dos datos por fila, con el ISBN arriba */
+@media (max-width: 1199.98px) {
+    .ficha-ficha {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ficha-ficha > div:first-child {
+        grid-column: 1 / -1;
+    }
+}
+
+.ficha-ficha > div {
+    padding: 0.7rem 0.9rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(212, 169, 74, 0.1);
+}
+
+.ficha-ficha dt {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gris-tenue);
+}
+
+.ficha-ficha dd {
+    margin: 0.15rem 0 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.ficha-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.ficha-acciones .btn {
+    border-radius: 999px;
+    padding-inline: 1.2rem;
+}
+
+.btn-redondo {
+    border-radius: 999px;
+}
+
+.activo-favorito {
+    --bs-btn-color: #f29bab;
+    --bs-btn-border-color: rgba(242, 155, 171, 0.5);
+}
+
+.enlace-sesion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 14px;
+    border: 1px dashed rgba(212, 169, 74, 0.45);
+    color: var(--oro-claro);
+    text-decoration: none;
+}
+
+.enlace-sesion:hover {
+    background: rgba(212, 169, 74, 0.08);
+    color: #fff4d6;
+}
+
+/* Línea de tiempo del historial */
+.historial {
+    margin-bottom: 1rem;
+}
+
+.linea-tiempo {
+    position: relative;
+    margin: 0;
+    padding: 0 0 0 1.4rem;
+    list-style: none;
+}
+
+.linea-tiempo::before {
+    content: "";
+    position: absolute;
+    top: 0.4rem;
+    bottom: 0.4rem;
+    left: 0.42rem;
+    width: 2px;
+    background: linear-gradient(180deg, var(--oro), rgba(212, 169, 74, 0.1));
+}
+
+.linea-tiempo > li:not(.vacio) {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 0.5rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(212, 169, 74, 0.1);
+}
+
+.hito-punto {
+    position: absolute;
+    left: -1.32rem;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    border-radius: 50%;
+    background: #121215;
+    border: 3px solid var(--oro);
+    box-shadow: 0 0 10px rgba(212, 169, 74, 0.5);
+}
+
+.hito-vencido .hito-punto { border-color: #d65a5a; box-shadow: 0 0 10px rgba(214, 90, 90, 0.6); }
+.hito-devuelto .hito-punto { border-color: #4fbf86; box-shadow: 0 0 10px rgba(79, 191, 134, 0.5); }
+
+.hito-cuerpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.hito-titulo {
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.hito-fechas {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    color: var(--gris-texto);
+}
+
+.linea-tiempo .vacio {
+    padding: 1rem 0;
+    text-align: left;
+}
+
+/* ======================================================================
+   Autores: tarjetas con monograma y ficha con su bibliografía
+   ====================================================================== */
+.rejilla-autores {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1rem;
+}
+
+.autor-tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.3rem 1.1rem 1rem;
+    border-radius: 20px;
+    background: linear-gradient(160deg, rgba(30, 28, 34, 0.92), rgba(15, 14, 18, 0.95));
+    border: 1px solid var(--cristal-borde);
+    box-shadow: var(--sombra-profunda);
+    transition: transform 0.35s var(--curva), border-color 0.35s ease;
+    animation: aparece-tarjeta 0.6s var(--curva) both;
+}
+
+.autor-tarjeta:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 169, 74, 0.45);
+}
+
+.autor-enlace {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    color: inherit;
+    text-align: center;
+    text-decoration: none;
+}
+
+/* Monograma: las iniciales del autor en un sello dorado */
+.monograma {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 0.3rem;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 30% 25%, rgba(240, 212, 138, 0.25), transparent 60%),
+        radial-gradient(circle at 50% 50%, #2a2216, #120f0a);
+    color: var(--oro-claro);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    box-shadow:
+        0 0 0 2px rgba(212, 169, 74, 0.75),
+        0 0 0 6px rgba(212, 169, 74, 0.1),
+        0 12px 30px -10px rgba(212, 169, 74, 0.6);
+    transition: transform 0.4s var(--curva);
+}
+
+.autor-tarjeta:hover .monograma {
+    transform: rotate(-6deg) scale(1.05);
+}
+
+.autor-tarjeta-nombre {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fbf3df;
+}
+
+.autor-tarjeta-datos {
+    font-size: 0.85rem;
+    color: var(--gris-texto);
+}
+
+.autor-lomos {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    min-height: 32px;
+    margin-top: 0.3rem;
+}
+
+.autor-lomos .lomo-mini {
+    width: 20px;
+    height: 32px;
+    padding: 0;
+}
+
+.chip-libros {
+    margin-top: auto;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(212, 169, 74, 0.12);
+    color: var(--oro-claro);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.ficha-autor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+    margin-bottom: 1rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border-radius: 24px;
+    background:
+        radial-gradient(60% 120% at 0% 50%, rgba(212, 169, 74, 0.14), transparent 70%),
+        linear-gradient(160deg, rgba(30, 28, 34, 0.9), rgba(14, 13, 17, 0.95));
+    border: 1px solid var(--cristal-borde);
+    box-shadow: var(--sombra-profunda);
+    animation: aparece-escena 0.8s var(--curva) both;
+}
+
+.monograma-grande {
+    width: 132px;
+    height: 132px;
+    margin: 0;
+    font-size: 3rem;
+}
+
+.ficha-autor-datos {
+    flex: 1;
+    min-width: 240px;
+}
+
+.ficha-autor .ficha-titulo {
+    margin-bottom: 0.9rem;
+}
+
+.ficha-autor .ficha-etiquetas {
+    margin-bottom: 1.1rem;
+}
+
+/* ======================================================================
+   Gestión de préstamos
+   ====================================================================== */
+.pestanas-estado {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.pestana-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem 0.5rem 0.95rem;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 169, 74, 0.22);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--gris-texto);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.25s var(--curva);
+}
+
+.pestana-estado:hover {
+    border-color: rgba(212, 169, 74, 0.55);
+    color: var(--marfil);
+}
+
+.pestana-estado.activa {
+    background: var(--degradado-oro);
+    border-color: transparent;
+    color: #1a1407;
+    box-shadow: 0 10px 24px -12px rgba(212, 169, 74, 0.9);
+}
+
+.pestana-estado.estado-vencido:not(.activa) .chip-cuenta {
+    background: rgba(214, 90, 90, 0.2);
+    color: #f09595;
+}
+
+.pestana-estado.activa .chip-cuenta {
+    background: rgba(26, 20, 7, 0.18);
+    color: #1a1407;
+}
+
+.barra-catalogo .contador-catalogo {
+    flex: 0 0 auto;
+}
+
+.fila-vencida > td:first-child {
+    box-shadow: inset 3px 0 0 #d65a5a;
+}
+
+.celda-plazo {
+    min-width: 11rem;
+}
+
+.celda-plazo .plazo {
+    margin: 0 0 0.25rem;
+}
+
+.celda-plazo small {
+    color: var(--gris-texto);
+    white-space: nowrap;
+}
+
+.fila-vencida .plazo-relleno {
+    background: linear-gradient(90deg, #d4a94a, #d65a5a);
+}
+
+.texto-vencido {
+    color: #f09595 !important;
+}
+
+.texto-devuelto {
+    color: #86cfa6 !important;
+}
+
+/* --- Nuevo préstamo: dos pasos con tarjetas de opción y un resumen fijo a la derecha --- */
+.nuevo-prestamo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@media (max-width: 1199.98px) {
+    .nuevo-prestamo {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.pasos-prestamo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+@media (max-width: 991.98px) {
+    .pasos-prestamo {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.paso-prestamo {
+    margin: 0;
+    min-width: 0;
+}
+
+.paso-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    float: none;
+    margin-bottom: 0.4rem;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.3rem;
+    color: #fbf3df;
+}
+
+.paso-numero {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--degradado-oro);
+    color: #1a1407;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.paso-prestamo .buscador-catalogo {
+    flex: none;
+}
+
+.paso-ayuda {
+    margin: 0 0 1rem;
+    font-size: 0.86rem;
+    color: var(--gris-texto);
+}
+
+.opciones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: 420px;
+    padding-right: 0.25rem;
+    overflow-y: auto;
+}
+
+.opcion {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 169, 74, 0.14);
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.25s var(--curva);
+}
+
+.opcion input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.opcion:hover {
+    border-color: rgba(212, 169, 74, 0.45);
+    transform: translateX(3px);
+}
+
+.opcion:has(input:checked) {
+    border-color: var(--oro-claro);
+    background: linear-gradient(90deg, rgba(212, 169, 74, 0.16), rgba(212, 169, 74, 0.04));
+    box-shadow: inset 3px 0 0 var(--oro), 0 0 24px -10px rgba(212, 169, 74, 0.6);
+}
+
+.opcion:has(input:focus-visible) {
+    box-shadow: 0 0 0 3px rgba(212, 169, 74, 0.4);
+}
+
+.opcion.bloqueada {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.opcion.bloqueada:hover {
+    transform: none;
+    border-color: rgba(212, 169, 74, 0.14);
+}
+
+.opcion .lomo-mini {
+    width: 24px;
+    height: 34px;
+    padding: 0;
+}
+
+.opcion-datos {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.opcion-nombre {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.opcion-detalle {
+    font-size: 0.8rem;
+    color: var(--gris-tenue);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.opcion-estado {
+    flex: 0 0 auto;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.opcion-estado.ok {
+    background: rgba(79, 191, 134, 0.14);
+    color: #86cfa6;
+}
+
+.opcion-estado.no {
+    background: rgba(214, 90, 90, 0.14);
+    color: #f09595;
+}
+
+.resumen-prestamo {
+    position: sticky;
+    top: calc(var(--alto-cabecera) + 1rem);
+}
+
+.resumen-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+    font-size: 1.3rem;
+}
+
+.resumen-titulo i {
+    color: var(--oro);
+}
+
+.resumen-datos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 0 0 1.25rem;
+}
+
+.resumen-datos > div {
+    padding: 0.7rem 0.9rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(212, 169, 74, 0.1);
+}
+
+.resumen-datos dt {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gris-tenue);
+}
+
+.resumen-datos dd {
+    margin: 0.15rem 0 0;
+    color: var(--gris-texto);
+}
+
+.resumen-datos dd.elegido {
+    color: var(--oro-claro);
+    font-weight: 600;
+    animation: subir 0.4s var(--curva);
+}
+
+.resumen-datos strong {
+    color: #fbf3df;
+}
+
+/* ======================================================================
+   Usuarios (administración)
+   ====================================================================== */
+.celda-usuario {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.celda-usuario small {
+    color: var(--gris-tenue);
+}
+
+.tabla-panel .insignia-rol {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.7rem;
+}
+
+.chip-prestamos {
+    display: inline-block;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(91, 141, 239, 0.12);
+    color: #a9c4f5;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.chip-prestamos.vencidos {
+    background: rgba(214, 90, 90, 0.16);
+    color: #f09595;
+}
+
+.estado-cuenta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.9rem 0 0;
+    padding: 0.4rem 0.85rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.estado-cuenta.al-dia {
+    background: rgba(79, 191, 134, 0.12);
+    color: #86cfa6;
+}
+
+.estado-cuenta.bloqueada {
+    background: rgba(214, 90, 90, 0.14);
+    color: #f09595;
+}
+
+.favoritos-mini {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+/* --- Formularios de libro, autor y usuario: campos con icono y vista previa al lado --- */
+.formulario-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (min-width: 1200px) {
+    .formulario-panel {
+        grid-template-columns: minmax(0, 1fr) 260px;
+    }
+
+    .vista-previa {
+        position: sticky;
+        top: calc(var(--alto-cabecera) + 1.5rem);
+    }
+}
+
+.formulario-cuerpo {
+    padding: 1.6rem 1.6rem 1.4rem;
+}
+
+.formulario-titulo {
+    margin: 0;
+    font-size: clamp(1.5rem, 2.2vw, 1.9rem);
+}
+
+.formulario-ayuda {
+    margin: 0.25rem 0 1.3rem;
+    font-size: 0.85rem;
+    color: var(--gris-tenue);
+}
+
+.formulario-botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(212, 169, 74, 0.12);
+}
+
+.campo-control .form-select {
+    padding: 0.75rem 2.4rem 0.75rem 2.6rem;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.035);
+}
+
+.campo-control .form-select:focus {
+    box-shadow: 0 0 0 4px rgba(212, 169, 74, 0.16);
+}
+
+/* El margen y el relleno los pone la fila de Bootstrap (.row > *), como en el resto de campos */
+fieldset.campo {
+    min-width: 0;
+    border: 0;
+}
+
+fieldset.campo > legend {
+    float: none;
+    width: auto;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Autores como casillas que se marcan con un clic, en lugar de una lista de selección múltiple */
+.casillas-autores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-height: 15rem;
+    padding: 0.75rem;
+    overflow-y: auto;
+    border-radius: 14px;
+    border: 1px solid var(--bs-border-color);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.casillas-autores.con-error {
+    border-color: var(--bs-form-invalid-border-color);
+}
+
+.casilla-autor {
+    position: relative;
+    cursor: pointer;
+}
+
+.casilla-autor input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.casilla-autor > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 169, 74, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--gris-texto);
+    font-size: 0.88rem;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.casilla-autor > span i {
+    width: 0;
+    overflow: hidden;
+    transition: width 0.2s ease;
+}
+
+.casilla-autor:hover > span {
+    border-color: rgba(212, 169, 74, 0.45);
+    color: var(--marfil);
+}
+
+.casilla-autor input:checked + span {
+    border-color: var(--oro);
+    background: rgba(212, 169, 74, 0.16);
+    color: var(--oro-claro);
+}
+
+.casilla-autor input:checked + span i {
+    width: 1em;
+}
+
+.casilla-autor input:focus-visible + span {
+    box-shadow: 0 0 0 3px rgba(212, 169, 74, 0.35);
+}
+
+.vista-previa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.vista-previa .cubierta-grande {
+    width: 100%;
+    max-width: 230px;
+}
+
+.tarjeta-previa {
+    position: relative;
+    top: auto;
+    width: 100%;
+    max-width: 260px;
+    pointer-events: none;
+}
+
+/* Botón con texto en tono de aviso (cancelar una reserva) */
+.btn-texto-peligro {
+    --bs-btn-color: #f08a8a;
+    --bs-btn-border-color: rgba(214, 90, 90, 0.4);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #c94b4b;
+    --bs-btn-hover-border-color: #c94b4b;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 10px;
+}
+
+@media (max-width: 1199.98px) {
+    .vista-previa {
+        display: none;
+    }
+}
+
+/* --- Mis reservas: una tarjeta por reserva activa --- */
+.tarjetas-reserva {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+    gap: 0.8rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tarjetas-reserva > .vacio-grande {
+    grid-column: 1 / -1;
+}
+
+.tarjeta-reserva {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(212, 169, 74, 0.12);
+}
+
+.tarjeta-reserva.lista {
+    border-color: rgba(110, 200, 150, 0.45);
+    background: rgba(110, 200, 150, 0.06);
+}
+
+.reserva-datos {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.reserva-fecha {
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    color: var(--gris-texto);
+}
+
+.reserva-estado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.reserva-acciones {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.estado-listo {
+    color: #86cfa6;
+    background: #10201a;
+    border-color: #245a41;
+}
+
+.estado-neutro {
+    color: var(--gris-texto);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.lista-historial .lista-datos small {
+    color: var(--gris-tenue);
+}
+
+@media (max-width: 575.98px) {
+    .tarjeta-reserva {
+        flex-wrap: wrap;
+    }
+
+    .reserva-estado {
+        flex-direction: row;
+        flex-basis: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+/* --- Mis favoritos: estante de portadas con sus acciones debajo --- */
+.estante-libro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.estante-acciones {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.estante-acciones .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding-inline: 0.75rem;
+}
+
+/* --- Página de error: un libro abierto con el código --- */
+.pagina-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 560px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.error-libro {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: min(320px, 100%);
+    margin-bottom: 1.4rem;
+    perspective: 900px;
+}
+
+.error-pagina {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 3 / 4;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(3.4rem, 12vw, 5.5rem);
+    font-weight: 700;
+    background: linear-gradient(160deg, #24202a, #121015);
+    border: 1px solid rgba(212, 169, 74, 0.3);
+    color: var(--oro);
+    text-shadow: 0 0 30px rgba(212, 169, 74, 0.35);
+}
+
+.error-pagina.izquierda {
+    border-radius: 14px 4px 4px 14px;
+    transform: rotateY(14deg);
+    transform-origin: right center;
+}
+
+.error-pagina.derecha {
+    border-radius: 4px 14px 14px 4px;
+    transform: rotateY(-14deg);
+    transform-origin: left center;
+}
+
+.error-corona {
+    position: absolute;
+    top: -0.9rem;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: var(--negro);
+    border: 1px solid var(--oro);
+    color: var(--oro-claro);
+    transform: translateX(-50%);
+    animation: flotar 4s ease-in-out infinite;
+}
+
+.error-codigo {
+    margin: 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--oro);
+}
+
+.error-titulo {
+    margin: 0.4rem 0 0.6rem;
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+}
+
+.error-texto {
+    color: var(--gris-texto);
+}
+
+.error-ruta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 100%;
+    color: var(--gris-tenue);
+    font-size: 0.85rem;
+}
+
+.error-ruta code {
+    overflow-wrap: anywhere;
+    color: var(--gris-texto);
+}
+
+.error-botones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+}
+
+/* --- Ventana propia para confirmar un borrado o una cancelación (js/app.js) --- */
+.ventana-confirmar {
+    width: min(420px, calc(100vw - 2rem));
+    padding: 0;
+    border: 1px solid rgba(212, 169, 74, 0.3);
+    border-radius: 22px;
+    background: linear-gradient(160deg, rgba(30, 28, 34, 0.98), rgba(14, 13, 17, 0.98));
+    color: var(--marfil);
+    box-shadow: var(--sombra-profunda), 0 0 60px -20px rgba(212, 169, 74, 0.35);
+}
+
+.ventana-confirmar[open] {
+    animation: ventana-entra 0.25s var(--curva);
+}
+
+.ventana-confirmar::backdrop {
+    background: rgba(5, 5, 7, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+@keyframes ventana-entra {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+}
+
+.ventana-confirmar-cuerpo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.6rem 1.5rem 1.4rem;
+    text-align: center;
+}
+
+.ventana-confirmar-icono {
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    margin-bottom: 0.9rem;
+    border-radius: 50%;
+    background: rgba(214, 90, 90, 0.12);
+    border: 1px solid rgba(214, 90, 90, 0.45);
+    color: #f08a8a;
+    font-size: 1.5rem;
+}
+
+.ventana-confirmar-texto {
+    margin: 0;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.2rem;
+    overflow-wrap: anywhere;
+}
+
+.ventana-confirmar-nota {
+    margin: 0.4rem 0 1.3rem;
+    font-size: 0.85rem;
+    color: var(--gris-tenue);
+}
+
+.ventana-confirmar-botones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.btn-peligro {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(214, 90, 90, 0.6);
+    background: linear-gradient(160deg, #a83a3a, #6e1f22);
+    color: #fff;
+}
+
+.btn-peligro:hover,
+.btn-peligro:focus-visible {
+    background: linear-gradient(160deg, #c04545, #84272a);
+    color: #fff;
+}
+
 /* Sin animaciones para quien las tenga desactivadas en el sistema */
 @media (prefers-reduced-motion: reduce) {
+    .ventana-confirmar[open],
+    .error-corona {
+        animation: none !important;
+    }
+
     .cabecera-nombre,
     .cabecera-bienvenida,
     .pie-texto,
@@ -2881,6 +4438,11 @@ html:not(.js) .consejo-cerrar {
     .acceso-ventajas li,
     .acceso-lado,
     .acceso-icono,
+    .libro-tarjeta,
+    .autor-tarjeta,
+    .ficha-autor,
+    .ficha-portada,
+    .ficha-datos,
     .escena-fondo,
     .escena-fondo::after,
     .escena-bajar,

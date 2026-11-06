@@ -3,6 +3,7 @@ package edu.uoc.biblioteca.service;
 import edu.uoc.biblioteca.model.EstadoPrestamo;
 import edu.uoc.biblioteca.model.Libro;
 import edu.uoc.biblioteca.model.Prestamo;
+import edu.uoc.biblioteca.model.Rol;
 import edu.uoc.biblioteca.model.Usuario;
 import edu.uoc.biblioteca.repository.LibroRepository;
 import edu.uoc.biblioteca.repository.PrestamoRepository;
@@ -51,6 +52,11 @@ public class PrestamoService {
         return prestamoRepository.findByUsuarioIdOrderByFechaPrestamoDescIdDesc(usuarioId);
     }
 
+    /** Historial de un libro, del préstamo más reciente al más antiguo. */
+    public List<Prestamo> historialDeLibro(Long libroId) {
+        return prestamoRepository.findByLibroIdOrderByFechaPrestamoDescIdDesc(libroId);
+    }
+
     public boolean tieneSinDevolver(Long usuarioId, Long libroId) {
         return prestamoRepository.existsByUsuarioIdAndLibroIdAndFechaDevolucionIsNull(usuarioId, libroId);
     }
@@ -64,6 +70,7 @@ public class PrestamoService {
     /** Usuarios para el formulario de préstamo, indicando quién no puede llevarse otro libro y por qué. */
     public List<UsuarioPrestatario> listarUsuariosPrestatarios() {
         return usuarioRepository.findAllByOrderByApellidosAscNombreAsc().stream()
+                .filter(usuario -> usuario.getRol() == Rol.USER)
                 .map(this::comprobarUsuario)
                 .toList();
     }
@@ -83,6 +90,9 @@ public class PrestamoService {
         Libro libro = libroRepository.findById(libroId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No existe el libro " + libroId));
+        if (usuario.getRol() != Rol.USER) {
+            throw new IllegalStateException("Las cuentas de administración no piden préstamos");
+        }
         UsuarioPrestatario prestatario = comprobarUsuario(usuario);
         if (!prestatario.puedePedir()) {
             throw new IllegalStateException(usuario.getNombreCompleto() + " no puede llevarse otro libro: "

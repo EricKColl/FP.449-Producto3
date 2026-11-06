@@ -101,7 +101,9 @@ public class Libro {
 
     /** Nombres de los autores separados por comas, para mostrarlos en listados. */
     public String getAutoresTexto() {
-        return autores.stream()
+        // Sin fallar si el formulario llega con un autor que no existe (queda como null hasta validar)
+        return autores == null ? "" : autores.stream()
+                .filter(java.util.Objects::nonNull)
                 .map(Autor::getNombreCompleto)
                 .collect(Collectors.joining(", "));
     }

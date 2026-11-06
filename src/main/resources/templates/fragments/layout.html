@@ -243,6 +243,15 @@
 </a>
 
 <!-- Pie: una franja de lado a lado de la pantalla, por debajo del menú y del contenido -->
+<!-- Portada grande de la ficha de un libro (sin enlace):
+     <span th:replace="~{fragments/layout :: portadaGrande(${libro})}"></span> -->
+<span th:fragment="portadaGrande(libro)" class="cubierta-libro cubierta-grande" th:classappend="|tono-${libro.id % 6}|">
+    <span class="cubierta-genero" th:text="${libro.genero} ?: 'Catálogo'">Novela</span>
+    <span class="cubierta-corona"><i class="ti ti-crown"></i></span>
+    <span class="cubierta-titulo" th:text="${libro.titulo}">Título</span>
+    <span class="cubierta-autor" th:text="${libro.autoresTexto}">Autor</span>
+</span>
+
 <!-- Anillo 3D de portadas del catálogo que gira junto a los formularios de login y registro (solo CSS):
      <div th:replace="~{fragments/layout :: anilloLibros}"></div> -->
 <div th:fragment="anilloLibros" class="anillo-libros" aria-hidden="true">

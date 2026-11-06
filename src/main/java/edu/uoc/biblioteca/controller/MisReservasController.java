@@ -2,6 +2,7 @@ package edu.uoc.biblioteca.controller;
 
 import edu.uoc.biblioteca.model.Reserva;
 import edu.uoc.biblioteca.security.CuentaUsuario;
+import edu.uoc.biblioteca.service.LibroService;
 import edu.uoc.biblioteca.service.ReservaService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -13,20 +14,31 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /** Las reservas del usuario de la sesión: reservar un libro sin ejemplares y cancelar las propias. */
 @Controller
 @RequestMapping("/user/reservas")
 public class MisReservasController {
 
     private final ReservaService reservaService;
+    private final LibroService libroService;
 
-    public MisReservasController(ReservaService reservaService) {
+    public MisReservasController(ReservaService reservaService, LibroService libroService) {
         this.reservaService = reservaService;
+        this.libroService = libroService;
     }
 
     @GetMapping
     public String listar(@AuthenticationPrincipal CuentaUsuario cuenta, Model model) {
-        model.addAttribute("reservas", reservaService.listarDeUsuario(cuenta.getId()));
+        List<Reserva> reservas = reservaService.listarDeUsuario(cuenta.getId());
+        model.addAttribute("reservas", reservas);
+        // Ejemplares libres de cada libro reservado: si ya hay alguno, la reserva ofrece «Pedir»
+        Map<Long, Long> disponibles = reservas.stream().filter(Reserva::isActiva).map(Reserva::getLibro).distinct()
+                .collect(Collectors.toMap(libro -> libro.getId(), libroService::ejemplaresDisponibles));
+        model.addAttribute("disponibles", disponibles);
         return "user/reservas";
     }
 

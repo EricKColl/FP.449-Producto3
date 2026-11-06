@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -51,6 +53,32 @@ public class LibroService {
 
     public List<Autor> listarAutores() {
         return autorRepository.findAllByOrderByApellidosAscNombreAsc();
+    }
+
+    /** Libros con los ejemplares que se pueden prestar ahora mismo, para el catálogo. */
+    public List<LibroDisponible> conDisponibles(List<Libro> libros) {
+        return libros.stream().map(libro -> new LibroDisponible(libro, ejemplaresDisponibles(libro))).toList();
+    }
+
+    /** Géneros del catálogo, para los filtros. */
+    public List<Cifra> generos() {
+        return libroRepository.contarPorGenero();
+    }
+
+    /**
+     * Libros relacionados con uno: primero los de sus mismos autores y después los de su género,
+     * sin repetir y sin el propio libro.
+     */
+    public List<LibroDisponible> relacionados(Libro libro, int cuantos) {
+        Set<Libro> elegidos = new LinkedHashSet<>();
+        libro.getAutores().forEach(autor -> elegidos.addAll(autor.getLibros()));
+        if (libro.getGenero() != null) {
+            libroRepository.findAllByOrderByTituloAsc().stream()
+                    .filter(otro -> libro.getGenero().equals(otro.getGenero()))
+                    .forEach(elegidos::add);
+        }
+        elegidos.remove(libro);
+        return conDisponibles(elegidos.stream().limit(cuantos).toList());
     }
 
     public long ejemplaresDisponibles(Libro libro) {

@@ -3,7 +3,6 @@
 <head th:replace="~{fragments/layout :: head('Préstamos')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('prestamos')}"></nav>
-
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
     <div class="cabecera-pestana">
@@ -12,64 +11,98 @@
             <i class="ti ti-plus"></i> Nuevo préstamo
         </a>
     </div>
-    <!-- Filtro por estado -->
-    <div class="btn-group flex-wrap mb-3" role="group" aria-label="Filtrar por estado">
-        <a class="btn btn-outline-primary" th:href="@{/admin/prestamos}"
-           th:classappend="${estadoSeleccionado == null} ? 'active'">Todos</a>
-        <a class="btn btn-outline-primary" th:each="estado : ${estados}"
-           th:href="@{/admin/prestamos(estado=${estado})}"
-           th:classappend="${estado == estadoSeleccionado} ? 'active'"
-           th:text="${estado.etiqueta} + 's'">Activos</a>
-    </div>
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>Libro</th>
-                    <th>Usuario</th>
-                    <th>Prestado</th>
-                    <th>Devolución prevista</th>
-                    <th class="d-none d-xl-table-cell">Devuelto</th>
-                    <th>Estado</th>
-                    <th class="text-end">Acción</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="prestamo : ${prestamos}">
-                    <td>
-                        <a th:href="@{/libros/{id}(id=${prestamo.libro.id})}"
-                           th:text="${prestamo.libro.titulo}">Libro</a>
-                    </td>
-                    <td>
-                        <a th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}"
-                           th:text="${prestamo.usuario.nombreCompleto}">Usuario</a>
-                    </td>
-                    <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
-                    <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/10/2026</td>
-                    <td class="d-none d-xl-table-cell" th:text="${prestamo.devuelto}
-                        ? ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')} : '—'">—</td>
-                    <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
-                    <td class="text-end">
-                        <form th:unless="${prestamo.devuelto}" method="post"
-                              th:action="@{/admin/prestamos/{id}/devolver(id=${prestamo.id})}">
-                            <button class="btn btn-sm btn-outline-success text-nowrap" type="submit">
-                                <i class="ti ti-arrow-back-up"></i> <span class="d-xl-none">Devolver</span><span class="d-none d-xl-inline">Registrar devolución</span>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(prestamos)}">
-                    <td colspan="7" class="text-center text-body-secondary py-4">
-                        No hay préstamos con este estado.
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</main>
 
+    <section class="catalogo" data-catalogo>
+        <!-- Pestañas por estado con su número de préstamos (filtran en el servidor) -->
+        <nav class="pestanas-estado" aria-label="Filtrar por estado">
+            <a class="pestana-estado" th:href="@{/admin/prestamos}" th:classappend="${estadoSeleccionado == null} ? 'activa'"
+               th:aria-current="${estadoSeleccionado == null} ? 'page'">
+                <i class="ti ti-list"></i> Todos <span class="chip-cuenta" th:text="${total}">11</span></a>
+            <a class="pestana-estado" th:each="estado : ${estados}" th:href="@{/admin/prestamos(estado=${estado})}"
+               th:classappend="|${estado == estadoSeleccionado ? 'activa' : ''} estado-${#strings.toLowerCase(estado.name())}|"
+               th:aria-current="${estado == estadoSeleccionado} ? 'page'">
+                <i class="ti" th:classappend="${estado.name() == 'ACTIVO'} ? 'ti-clock' : (${estado.name() == 'VENCIDO'} ? 'ti-alarm' : 'ti-circle-check')"></i>
+                <span th:text="${estado.etiqueta} + 's'">Activos</span>
+                <span class="chip-cuenta" th:text="${cuentas.get(estado)} ?: 0">5</span></a>
+        </nav>
+
+        <div class="barra-catalogo">
+            <div class="buscador-catalogo">
+                <i class="ti ti-search" aria-hidden="true"></i>
+                <input type="search" placeholder="Buscar por libro o por usuario" aria-label="Buscar préstamos" data-filtro-texto>
+            </div>
+            <p class="contador-catalogo mb-0" aria-live="polite"><strong data-contador th:text="${#lists.size(prestamos)}">11</strong> préstamos</p>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 tabla-panel">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Libro</th>
+                        <th>Usuario</th>
+                        <th class="d-none d-xl-table-cell">Prestado</th>
+                        <th>Plazo</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody data-lista>
+                    <tr th:each="prestamo : ${prestamos}" data-item
+                        th:attr="data-texto=${#strings.toLowerCase(prestamo.libro.titulo + ' ' + prestamo.usuario.nombreCompleto)}"
+                        th:classappend="${prestamo.diasRetraso > 0} ? 'fila-vencida'">
+                        <td>
+                            <span class="celda-libro">
+                                <span class="lomo lomo-mini" th:classappend="|tono-${prestamo.libro.id % 6}|" aria-hidden="true"></span>
+                                <a th:href="@{/libros/{id}(id=${prestamo.libro.id})}" th:text="${prestamo.libro.titulo}">Libro</a>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="celda-libro">
+                                <span class="avatar avatar-mini" aria-hidden="true"
+                                      th:text="${#strings.substring(prestamo.usuario.nombre, 0, 1)} + ${#strings.substring(prestamo.usuario.apellidos, 0, 1)}">LM</span>
+                                <a th:href="@{/admin/usuarios/{id}(id=${prestamo.usuario.id})}"
+                                   th:text="${prestamo.usuario.nombreCompleto}">Usuario</a>
+                            </span>
+                        </td>
+                        <td class="d-none d-xl-table-cell text-nowrap" th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
+                        <td class="celda-plazo">
+                            <th:block th:unless="${prestamo.devuelto}">
+                                <span class="plazo">
+                                    <span class="plazo-pista"><span class="plazo-relleno" th:style="|width: ${prestamo.porcentajePlazo}%|"></span></span>
+                                </span>
+                                <small th:if="${prestamo.diasRetraso > 0}" class="texto-vencido"
+                                       th:text="${prestamo.diasRetraso} + (${prestamo.diasRetraso == 1} ? ' día de retraso' : ' días de retraso')">5 días de retraso</small>
+                                <small th:if="${prestamo.diasRetraso == 0}"
+                                       th:text="${prestamo.diasRestantes == 0} ? 'Vence hoy' : ('Quedan ' + ${prestamo.diasRestantes} + (${prestamo.diasRestantes == 1} ? ' día' : ' días') + ' · ' + ${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM')})">Quedan 10 días</small>
+                            </th:block>
+                            <small th:if="${prestamo.devuelto}" class="texto-devuelto"
+                                   th:text="'Devuelto el ' + ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')}">Devuelto el</small>
+                        </td>
+                        <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
+                        <td class="text-end">
+                            <form th:unless="${prestamo.devuelto}" method="post"
+                                  th:action="@{/admin/prestamos/{id}/devolver(id=${prestamo.id})}">
+                                <button class="btn btn-sm btn-outline-success text-nowrap btn-redondo" type="submit"
+                                        th:aria-label="|Registrar la devolución de ${prestamo.libro.titulo}|">
+                                    <i class="ti ti-arrow-back-up"></i> Devolver
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(prestamos)}">
+                        <td colspan="6" class="vacio">No hay préstamos con este estado.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="vacio-grande d-none" data-vacio>
+            <i class="ti ti-search-off"></i>
+            <span>Ningún préstamo coincide con la búsqueda.</span>
+        </div>
+    </section>
+</main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

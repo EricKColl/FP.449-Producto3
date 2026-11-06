@@ -15,47 +15,61 @@
     </a>
   </div>
 
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-        <tr>
-          <th>Autor</th>
-          <th>Nacionalidad</th>
-          <th>Fecha de nacimiento</th>
-          <th class="text-end">Libros</th>
-          <th class="text-end" sec:authorize="hasRole('ADMIN')">Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="autor : ${autores}">
-          <td>
-            <a th:href="@{/autores/{id}(id=${autor.id})}" th:text="${autor.nombreCompleto}">Autor</a>
-          </td>
-          <td th:text="${autor.nacionalidad} ?: '—'">Nacionalidad</td>
-          <td th:text="${autor.fechaNacimiento != null}
-                ? ${#temporals.format(autor.fechaNacimiento, 'dd/MM/yyyy')} : '—'">01/01/1900</td>
-          <td class="text-end">
-            <span class="badge text-bg-secondary" th:text="${#sets.size(autor.libros)}">1</span>
-          </td>
-          <td class="text-end text-nowrap" sec:authorize="hasRole('ADMIN')">
-            <a class="btn btn-sm btn-outline-primary" title="Editar"
-             th:href="@{/admin/autores/{id}/editar(id=${autor.id})}">
-              <i class="ti ti-pencil"></i>
-            </a>
-            <form class="d-inline" method="post"
-               th:action="@{/admin/autores/{id}/eliminar(id=${autor.id})}"
-               th:data-confirmar="|¿Eliminar a «${autor.nombreCompleto}»?|">
-              <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">
-                <i class="ti ti-trash"></i>
-              </button>
-            </form>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+  <section class="catalogo" data-catalogo>
+    <div class="barra-catalogo">
+      <div class="buscador-catalogo">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="search" placeholder="Nombre o nacionalidad" aria-label="Buscar autores" data-filtro-texto>
+      </div>
+      <div class="controles-catalogo">
+        <select class="form-select form-select-sm orden-catalogo" aria-label="Ordenar" data-orden>
+          <option value="nombre">Apellidos (A-Z)</option>
+          <option value="libros-desc">Con más libros</option>
+          <option value="anio">Nacimiento (más antiguos)</option>
+          <option value="anio-desc">Nacimiento (más recientes)</option>
+        </select>
+      </div>
     </div>
-  </div>
+
+    <p class="contador-catalogo" aria-live="polite">
+      <strong data-contador th:text="${#lists.size(autores)}">11</strong> autores
+    </p>
+
+    <div class="rejilla-autores" data-lista>
+      <article class="autor-tarjeta" th:each="autor : ${autores}" data-item
+               th:attr="data-texto=${#strings.toLowerCase(autor.nombreCompleto + ' ' + (autor.nacionalidad ?: ''))},
+                        data-nombre=${#strings.toLowerCase(autor.apellidos + ' ' + autor.nombre)},
+                        data-libros=${#sets.size(autor.libros)},
+                        data-anio=${autor.fechaNacimiento != null ? autor.fechaNacimiento.year : 9999}">
+        <a class="autor-enlace" th:href="@{/autores/{id}(id=${autor.id})}">
+          <span class="monograma" th:text="${#strings.substring(autor.nombre, 0, 1)} + ${#strings.substring(autor.apellidos, 0, 1)}">GM</span>
+          <span class="autor-tarjeta-nombre" th:text="${autor.nombreCompleto}">Gabriel García Márquez</span>
+          <span class="autor-tarjeta-datos">
+            <span th:text="${autor.nacionalidad} ?: 'Nacionalidad sin indicar'">Colombiana</span>
+            <span th:if="${autor.fechaNacimiento != null}" th:text="'· ' + ${autor.fechaNacimiento.year}">· 1927</span>
+          </span>
+          <span class="autor-lomos" aria-hidden="true">
+            <span class="lomo lomo-mini" th:each="libro : ${autor.libros}" th:classappend="|tono-${libro.id % 6}|"></span>
+          </span>
+          <span class="chip-libros" th:text="${#sets.size(autor.libros)} + (${#sets.size(autor.libros) == 1} ? ' libro' : ' libros')">2 libros</span>
+        </a>
+        <div class="tarjeta-acciones" sec:authorize="hasRole('ADMIN')" role="group" aria-label="Acciones">
+          <a class="btn btn-sm btn-icono-sutil" th:href="@{/admin/autores/{id}/editar(id=${autor.id})}"
+             th:aria-label="|Editar a ${autor.nombreCompleto}|" title="Editar"><i class="ti ti-pencil"></i></a>
+          <form method="post" th:action="@{/admin/autores/{id}/eliminar(id=${autor.id})}"
+                th:data-confirmar="|¿Eliminar a «${autor.nombreCompleto}»?|">
+            <button class="btn btn-sm btn-icono-sutil peligro" type="submit" title="Eliminar"
+                    th:aria-label="|Eliminar a ${autor.nombreCompleto}|"><i class="ti ti-trash"></i></button>
+          </form>
+        </div>
+      </article>
+    </div>
+
+    <div class="vacio-grande d-none" data-vacio>
+      <i class="ti ti-feather"></i>
+      <span>Ningún autor coincide con la búsqueda.</span>
+    </div>
+  </section>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

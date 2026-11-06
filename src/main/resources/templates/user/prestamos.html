@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head('Mis préstamos')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar('mis-prestamos')}"></nav>
-<main class="container py-4">
+<main class="container py-4" th:with="enCurso=${prestamos.?[!devuelto]}, devueltos=${prestamos.?[devuelto]}">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
     <th:block th:replace="~{fragments/layout :: consejo('prestamos', 'calendar-time', 'Así funcionan los préstamos',
         'Puedes tener hasta 3 libros a la vez, durante 15 días cada uno. Si alguno se pasa de plazo, no podrás pedir otro hasta devolverlo.')}"></th:block>
@@ -13,34 +13,60 @@
             <i class="ti ti-books"></i> Ver el catálogo
         </a>
     </div>
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>Libro</th>
-                    <th>Prestado</th>
-                    <th>Devolución prevista</th>
-                    <th>Devuelto</th>
-                    <th>Estado</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="prestamo : ${prestamos}">
-                    <td><a th:href="@{/libros/{id}(id=${prestamo.libro.id})}"
-                           th:text="${prestamo.libro.titulo}">Libro</a></td>
-                    <td th:text="${#temporals.format(prestamo.fechaPrestamo, 'dd/MM/yyyy')}">01/10/2026</td>
-                    <td th:text="${#temporals.format(prestamo.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/10/2026</td>
-                    <td th:text="${prestamo.devuelto} ? ${#temporals.format(prestamo.fechaDevolucion, 'dd/MM/yyyy')} : '—'">—</td>
-                    <td><span th:replace="~{fragments/layout :: estadoPrestamo(${prestamo})}"></span></td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(prestamos)}">
-                    <td colspan="5" class="text-center text-body-secondary py-4">Todavía no has pedido ningún libro.</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+
+    <!-- En casa ahora: cada préstamo con la barra de su plazo -->
+    <article class="bloque" data-aparecer>
+        <header class="bloque-cabecera">
+            <h2><i class="ti ti-book-2"></i> En casa ahora</h2>
+            <span class="chip-cuenta" th:text="${#lists.size(enCurso)} + ' de 3'">1 de 3</span>
+        </header>
+        <ul class="prestamos-curso">
+            <li th:each="p : ${enCurso}" th:classappend="${p.diasRetraso > 0} ? 'vencido'">
+                <span class="lomo" th:classappend="|tono-${p.libro.id % 6}|"><i class="ti ti-crown"></i></span>
+                <div class="prestamo-datos">
+                    <a class="prestamo-titulo" th:href="@{/libros/{id}(id=${p.libro.id})}" th:text="${p.libro.titulo}">Cien años de soledad</a>
+                    <span class="prestamo-autor" th:text="${p.libro.autoresTexto}">Gabriel García Márquez</span>
+                    <div class="plazo">
+                        <span class="plazo-pista"><span class="plazo-relleno" th:style="|width: ${p.porcentajePlazo}%|"></span></span>
+                        <span class="plazo-texto" th:if="${p.diasRetraso > 0}"
+                              th:text="'Venció hace ' + ${p.diasRetraso} + (${p.diasRetraso == 1} ? ' día' : ' días')">Venció</span>
+                        <span class="plazo-texto" th:if="${p.diasRetraso == 0}"
+                              th:text="${p.diasRestantes == 0} ? 'Vence hoy' : ('Quedan ' + ${p.diasRestantes} + (${p.diasRestantes == 1} ? ' día' : ' días'))">Quedan 10 días</span>
+                    </div>
+                </div>
+                <span class="prestamo-fecha">
+                    <small th:text="'Desde el ' + ${#temporals.format(p.fechaPrestamo, 'dd/MM')}">Desde el 01/11</small>
+                    <strong th:text="${#temporals.format(p.fechaDevolucionPrevista, 'dd/MM/yyyy')}">15/11/2026</strong>
+                </span>
+            </li>
+            <li th:if="${#lists.isEmpty(prestamos)}" class="vacio-grande">
+                <i class="ti ti-books"></i>
+                <span>Todavía no has pedido ningún libro. <a th:href="@{/libros}">Explora el catálogo</a> y llévate el primero.</span>
+            </li>
+            <li th:if="${#lists.isEmpty(enCurso) and !#lists.isEmpty(prestamos)}" class="vacio-grande">
+                <i class="ti ti-mood-smile"></i>
+                <span>No tienes ningún libro en casa. <a th:href="@{/libros}">¿Te llevas otro?</a></span>
+            </li>
+        </ul>
+    </article>
+
+    <!-- Historial: lo que ya devolvió -->
+    <article class="bloque mt-4" th:unless="${#lists.isEmpty(devueltos)}" data-aparecer>
+        <header class="bloque-cabecera">
+            <h2><i class="ti ti-history"></i> Ya devueltos</h2>
+            <span class="chip-cuenta" th:text="${#lists.size(devueltos)}">2</span>
+        </header>
+        <ul class="lista-panel lista-historial">
+            <li th:each="p : ${devueltos}">
+                <span class="lomo lomo-mini" th:classappend="|tono-${p.libro.id % 6}|" aria-hidden="true"></span>
+                <span class="lista-datos">
+                    <a th:href="@{/libros/{id}(id=${p.libro.id})}" th:text="${p.libro.titulo}">1984</a>
+                    <small th:text="${#temporals.format(p.fechaPrestamo, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(p.fechaDevolucion, 'dd/MM/yyyy')}">01/10/2026 – 12/10/2026</small>
+                </span>
+                <span th:replace="~{fragments/layout :: estadoPrestamo(${p})}"></span>
+            </li>
+        </ul>
+    </article>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
