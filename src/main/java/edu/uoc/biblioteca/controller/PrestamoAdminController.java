@@ -59,7 +59,8 @@ public class PrestamoAdminController {
 
     // Registrar la devolución de un préstamo
     @PostMapping("/{id}/devolver")
-    public String devolver(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String devolver(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean desdePanel,
+                           RedirectAttributes redirectAttributes) {
         try {
             Prestamo prestamo = prestamoService.registrarDevolucion(id);
             redirectAttributes.addFlashAttribute("mensajeExito",
@@ -67,6 +68,7 @@ public class PrestamoAdminController {
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("mensajeError", e.getMessage());
         }
-        return "redirect:/admin/prestamos";
+        // Desde el panel se vuelve al panel, para ver al momento cómo cambian las cifras
+        return desdePanel ? "redirect:/admin/panel" : "redirect:/admin/prestamos";
     }
 }

@@ -152,6 +152,7 @@
                         <td><span class="estado estado-vencido" th:text="${prestamo.diasRetraso} + (${prestamo.diasRetraso == 1} ? ' día' : ' días')">5 días</span></td>
                         <td class="text-end">
                             <form method="post" th:action="@{/admin/prestamos/{id}/devolver(id=${prestamo.id})}">
+                                <input type="hidden" name="desdePanel" value="true">
                                 <button class="btn btn-sm btn-outline-success text-nowrap" type="submit"><i class="ti ti-arrow-back-up"></i> Devolver</button>
                             </form>
                         </td>

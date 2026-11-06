@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
@@ -38,7 +39,13 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filtroDeSeguridad(HttpSecurity http) throws Exception {
+        // El token CSRF se genera al empezar cada petición y no al pintar el formulario: en una página larga,
+        // como el login con su escaparate, la respuesta ya se está enviando cuando Thymeleaf llega al formulario
+        // y entonces no se podría crear la sesión que guarda el token. Se mantiene la protección contra BREACH.
+        XorCsrfTokenRequestAttributeHandler tokenCsrf = new XorCsrfTokenRequestAttributeHandler();
+        tokenCsrf.setCsrfRequestAttributeName(null);
         http
+                .csrf(csrf -> csrf.csrfTokenRequestHandler(tokenCsrf))
                 .authorizeHttpRequests(rutas -> rutas
                         .requestMatchers("/css/**", "/img/**", "/js/**", "/webjars/**", "/error", "/actuator/health").permitAll()
                         // formLogin().permitAll() solo abre /login exacto, no /login?registrado

@@ -6,7 +6,11 @@
 <main class="container py-4">
     <th:block th:replace="~{fragments/layout :: alertas}"></th:block>
     <h1 class="visually-hidden">Mis reservas</h1>
-    <p class="text-body-secondary">Se reserva desde la ficha de un libro que no tiene ejemplares disponibles.</p>
+    <aside class="consejo" role="note">
+        <span class="consejo-icono"><i class="ti ti-bulb"></i></span>
+        <p><strong>¿Cómo se reserva?</strong> Desde la ficha de un libro que no tenga ejemplares disponibles, con el
+            botón «Reservar». En cuanto vuelva un ejemplar lo verás en tu inicio, listo para pedirlo.</p>
+    </aside>
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">

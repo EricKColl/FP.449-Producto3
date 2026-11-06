@@ -1,5 +1,6 @@
 package edu.uoc.biblioteca.service;
 
+import edu.uoc.biblioteca.model.Libro;
 import edu.uoc.biblioteca.repository.AutorRepository;
 import edu.uoc.biblioteca.repository.LibroRepository;
 import edu.uoc.biblioteca.repository.PrestamoRepository;
@@ -39,6 +40,11 @@ public class PortadaService {
                 novedades,
                 libroRepository.contarPorGenero(),
                 autorRepository.listarConLibros().stream().limit(6).toList());
+    }
+
+    /** Libros para el anillo de portadas que gira junto al login y al registro. */
+    public List<Libro> escaparate() {
+        return libroRepository.findTop8ByOrderByTituloAsc();
     }
 
     public record Portada(long libros, long autores, long ejemplares, long disponibles,

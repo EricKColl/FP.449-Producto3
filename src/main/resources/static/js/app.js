@@ -30,6 +30,44 @@
         if (mensaje && !window.confirm(mensaje)) e.preventDefault();
     });
 
+    // --- Ver u ocultar la contraseña: <button data-ver-clave="id-del-campo"> ---
+    document.querySelectorAll('[data-ver-clave]').forEach((boton) => {
+        const campo = document.getElementById(boton.dataset.verClave);
+        if (!campo) return;
+        boton.addEventListener('click', () => {
+            const ver = campo.type === 'password';
+            campo.type = ver ? 'text' : 'password';
+            boton.setAttribute('aria-label', ver ? 'Ocultar la contraseña' : 'Mostrar la contraseña');
+            boton.querySelector('i').className = ver ? 'ti ti-eye-off' : 'ti ti-eye';
+            campo.focus();
+        });
+    });
+
+    // --- Aviso de mayúsculas activadas al escribir una contraseña ---
+    document.querySelectorAll('[data-aviso-mayusculas]').forEach((campo) => {
+        const aviso = campo.closest('form')?.querySelector('.aviso-mayusculas');
+        if (!aviso) return;
+        const comprobar = (e) => { aviso.hidden = !e.getModifierState?.('CapsLock'); };
+        campo.addEventListener('keydown', comprobar);
+        campo.addEventListener('keyup', comprobar);
+        campo.addEventListener('blur', () => { aviso.hidden = true; });
+    });
+
+    // --- Formularios <form data-enviando>: el botón muestra que se está enviando y no admite un segundo clic ---
+    document.querySelectorAll('form[data-enviando]').forEach((formulario) => {
+        formulario.addEventListener('submit', () => {
+            const boton = formulario.querySelector('button[type=submit]');
+            if (!boton) return;
+            boton.classList.add('enviando');
+            const icono = boton.querySelector('i');
+            if (icono) icono.className = 'ti ti-loader-2';
+        });
+    });
+    // Si se vuelve atrás con el botón del navegador, el botón queda como al principio
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted) document.querySelectorAll('.btn.enviando').forEach((b) => b.classList.remove('enviando'));
+    });
+
     // --- Título letra a letra: el texto se mantiene completo para lectores de pantalla ---
     document.querySelectorAll('[data-letras]').forEach((titulo) => {
         const texto = titulo.textContent.trim();
@@ -77,13 +115,18 @@
     // Solo opacidad: un transform en <main> movería los avisos flotantes, que son position: fixed
     gsap.from('body > main', { opacity: 0, duration: 0.45, ease: 'power2.out', clearProps: 'opacity' });
 
+    // Solo se anima lo que existe en la página: así la consola no se llena de avisos
+    const hay = (selector) => document.querySelector(selector) !== null;
+
     // Entrada del título de la portada
-    gsap.from('.titulo-3d .letra', {
-        yPercent: 110, rotateX: -80, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: 0.06, delay: 0.25
-    });
-    gsap.from('.titulo-grupo, .escena-lema, .buscador-portada, .escena-acciones', {
-        y: 24, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.12, delay: 0.7
-    });
+    if (hay('.titulo-3d .letra')) {
+        gsap.from('.titulo-3d .letra', {
+            yPercent: 110, rotateX: -80, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: 0.06, delay: 0.25
+        });
+        gsap.from('.titulo-grupo, .escena-lema, .buscador-portada, .escena-acciones', {
+            y: 24, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.12, delay: 0.7
+        });
+    }
 
     // Bloques que aparecen al llegar a ellos
     document.querySelectorAll('[data-aparecer]').forEach((bloque) => {
@@ -92,9 +135,11 @@
             scrollTrigger: window.ScrollTrigger ? { trigger: bloque, start: 'top 88%', once: true } : undefined
         });
     });
-    gsap.from('.estante .cubierta, .rejilla-libros .cubierta', {
-        y: 40, opacity: 0, rotateY: -18, duration: 0.8, ease: 'power3.out', stagger: 0.07,
-        scrollTrigger: window.ScrollTrigger ? { trigger: '.estante, .rejilla-libros', start: 'top 85%', once: true } : undefined
+    document.querySelectorAll('.estante, .rejilla-libros').forEach((estante) => {
+        gsap.from(estante.querySelectorAll('.cubierta'), {
+            y: 40, opacity: 0, rotateY: -18, duration: 0.8, ease: 'power3.out', stagger: 0.07,
+            scrollTrigger: window.ScrollTrigger ? { trigger: estante, start: 'top 85%', once: true } : undefined
+        });
     });
 
     document.querySelectorAll('[data-contar]').forEach((cifra) => {

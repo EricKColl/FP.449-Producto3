@@ -15,6 +15,10 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
     @EntityGraph(attributePaths = "autores")
     List<Libro> findAllByOrderByTituloAsc();
 
+    /** Una muestra del catálogo para el escaparate del login y del registro. */
+    @EntityGraph(attributePaths = "autores")
+    List<Libro> findTop8ByOrderByTituloAsc();
+
     /** Las últimas incorporaciones al catálogo, para la portada. */
     @EntityGraph(attributePaths = "autores")
     List<Libro> findTop6ByOrderByIdDesc();

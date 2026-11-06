@@ -61,7 +61,6 @@
         <!-- En la portada, la cabecera da la bienvenida; en el resto, el logo lleva a la portada -->
         <p class="cabecera-bienvenida" th:if="${seccion == 'portada'}">Bienvenidos</p>
         <a class="cabecera-marca" th:unless="${seccion == 'portada'}" th:href="@{/}" aria-label="Biblioteca BackLord, ir a la portada">
-            <img class="cabecera-corona" th:src="@{/img/corona-backlord.webp}" alt="" width="46" height="46">
             <span class="cabecera-texto">
                 <span class="cabecera-nombre">Biblioteca</span>
                 <span class="cabecera-grupo">BackLord</span>
@@ -218,6 +217,25 @@
 </a>
 
 <!-- Pie: una franja de lado a lado de la pantalla, por debajo del menú y del contenido -->
+<!-- Anillo 3D de portadas del catálogo que gira junto a los formularios de login y registro (solo CSS):
+     <div th:replace="~{fragments/layout :: anilloLibros}"></div> -->
+<div th:fragment="anilloLibros" class="anillo-libros" aria-hidden="true">
+    <div class="anillo-inclinado">
+        <div class="anillo-giro">
+            <span class="anillo-cara" th:each="libro, vuelta : ${escaparate}" th:classappend="|tono-${libro.id % 6}|"
+                  th:style="|--i: ${vuelta.index}; --n: ${vuelta.size}|">
+                <span class="cubierta-libro" th:classappend="|tono-${libro.id % 6}|">
+                    <span class="cubierta-genero" th:text="${libro.genero} ?: 'Catálogo'">Novela</span>
+                    <span class="cubierta-corona"><i class="ti ti-crown"></i></span>
+                    <span class="cubierta-titulo" th:text="${libro.titulo}">Título</span>
+                    <span class="cubierta-autor" th:text="${libro.autoresTexto}">Autor</span>
+                </span>
+            </span>
+        </div>
+    </div>
+    <div class="anillo-suelo"></div>
+</div>
+
 <footer th:fragment="footer" class="pie">
     <p class="pie-texto">FP065 · UOC · Proyecto Biblioteca</p>
     <script th:src="@{/webjars/bootstrap/dist/js/bootstrap.bundle.min.js}"></script>
