@@ -99,10 +99,10 @@ Erick abre el vídeo justo después de la portada animada (2:30) y lo cierra (0:
 | Orden | Quién | Duración | Pantallas | Qué enseña |
 |---|---|---|---|---|
 | 1 | Erick | 2:30 | Cartelas, IntelliJ, Docker, Adminer, login | Presentación del equipo y del producto. Tecnologías nuevas (Spring Security 7, BCrypt, Thymeleaf Extras Security) y el recorrido de una petición por la cadena de seguridad. En IntelliJ IDEA: las dependencias del `pom.xml` y `SecurityConfig` con las reglas por rol. `docker compose up -d --build` y `docker compose ps` con los contenedores `biblioteca-p3-*`. Adminer: la tabla `usuario` con las contraseñas cifradas y el rol. En la aplicación: el catálogo sin sesión, un login con la contraseña mal (sale el error), el login de `admin@example.com` con su menú, el cierre de sesión y la página 403 al abrir `/admin/usuarios` con `laura.martinez@example.com`. |
-| 2 | Jacobo | 2:00 | Diagramas, Adminer, registro | Diagrama E/R y modelo relacional: la relación con atributos `Reserva` y la N:M `usuario_favorito`. Las dos tablas en Adminer. Registro en «Crear cuenta»: primero con errores (DNI repetido `12345678Z`, email repetido `laura.martinez@example.com` y una contraseña corta) y después bien: *Sara Ortega Gil*, DNI `11223344B`, `sara.ortega@example.com`. Iniciar sesión con la cuenta nueva: menú de usuario y rol `USER` en Adminer, aunque nadie lo eligió en el formulario. |
-| 3 | Carles | 2:00 | Libros, autores, rutas | Con `admin@example.com`: el catálogo con «Nuevo libro» y la columna de acciones. Crear en `/admin/libros/nuevo` primero con errores y después bien: *Eva Luna*, ISBN `978-84-9759-243-7`, de Isabel Allende. Editarlo y eliminarlo; *Don Quijote de la Mancha* no se deja borrar porque tiene préstamos. Alta y baja de un autor. Las mismas pantallas con Laura, sin botones. Las rutas antiguas (`/libros/nuevo`) dan 404 y `/admin/libros/nuevo` con Laura da 403. |
-| 4 | Antonio | 2:00 | Mis préstamos, reservas, favoritos, préstamos | Con `laura.martinez@example.com`: «Mis préstamos» y pedir *1984*. Reservar *El señor de los anillos*, que no tiene ejemplares libres, y cancelar la reserva en «Mis reservas». Marcar y desmarcar un favorito desde la ficha y verlo en «Mis favoritos». Intentar abrir una reserva de otro usuario: no se puede. Con `admin@example.com`: la gestión de todos los préstamos en `/admin/prestamos` y registrar una devolución. |
-| 5 | Erick | 0:30 | Móvil, tests, GitHub | Cierre: la aplicación en el móvil con el menú plegado, `./mvnw verify` con los tests en verde y las comprobaciones automáticas de GitHub. |
+| 2 | Jacobo | 2:00 | Diagramas, Adminer, registro | Diagrama E/R y modelo relacional: la relación con atributos `Reserva` y la N:M `usuario_favorito`. Las dos tablas en Adminer. Registro en «Crear cuenta»: primero con errores (DNI repetido `12345678Z`, email repetido `laura.martinez@example.com` y una contraseña corta) y después bien, con el medidor de fuerza: *Sara Ortega Gil*, DNI `11223344B`, `sara.ortega@example.com`, contraseña `Lectora-2026!`. Iniciar sesión con la cuenta nueva: menú de usuaria y rol `USER` en Adminer, aunque nadie lo eligió en el formulario. |
+| 3 | Carles | 2:00 | Libros, autores, rutas | Con `admin@example.com`: el catálogo con «Nuevo libro» y, en la vista de lista, las acciones de cada fila. Crear en `/admin/libros/nuevo` primero con errores y después bien: *Eva Luna*, ISBN `978-84-9759-243-7`, de Isabel Allende, con la vista previa de la portada. Editarlo y eliminarlo; *Don Quijote de la Mancha* no se deja borrar porque tiene préstamos. Alta y baja de un autor. Las mismas pantallas con Laura, sin botones. La ruta antigua `/libros/nuevo` da 404 y `/admin/libros/nuevo` con Laura da 403. |
+| 4 | Antonio | 2:00 | Mis préstamos, reservas, favoritos, préstamos | Con `laura.martinez@example.com`: «Mis préstamos» y renovar *Cien años de soledad*; pedir *1984*. Reservar *El señor de los anillos*, que no tiene ejemplares libres, ver su puesto en la cola y cancelar la reserva. Marcar y quitar un favorito. `/admin/prestamos` con Laura da 403. Con `admin@example.com`: la gestión de todos los préstamos por estado y registrar una devolución. |
+| 5 | Erick | 0:30 | Avisos, móvil, tests, GitHub | Cierre: un aviso en tiempo real, la aplicación en el móvil con el menú plegado, `./mvnw verify` con los tests en verde y las comprobaciones automáticas de GitHub. |
 
 Cada parte empieza en la pantalla donde acaba la anterior, así los cortes se unen sin saltos. Si alguien se pasa de
 2:15, que lo regrabe: el total no debe superar los 9 minutos.
@@ -110,13 +110,27 @@ Cada parte empieza en la pantalla donde acaba la anterior, así los cortes se un
 **Cómo grabar tu parte**
 
 1. Después de la congelación (jueves 19), ponte al día: `git switch develop` y `git pull`.
-2. Para la aplicación de IntelliJ (■) y arranca todo como en la entrega, con los datos de prueba limpios:
-   `docker compose down -v` y `docker compose up -d --build`.
-3. Graba la **pantalla completa con micrófono** en formato mp4. Recomendado: **OBS Studio** (Windows y Mac).
+2. Si tienes arrancado el Producto 2, páralo (`docker compose stop` en su carpeta), y para la aplicación de IntelliJ (■).
+3. Arranca todo como en la entrega, con los datos de prueba limpios: `docker compose down -v` y `docker compose up -d --build`.
+   Espera a que `docker compose ps` diga *healthy* en `biblioteca-p3-app`. Repítelo antes de cada toma si has cambiado datos.
+4. Prepara Chrome: ventana maximizada, zoom al 100 % (`Ctrl`+`0`), barra de marcadores oculta (`Ctrl`+`Mayús`+`B`) y
+   notificaciones del sistema desactivadas («No molestar» o «Concentración»). Que no se vea nada personal.
+5. Graba la **pantalla completa con micrófono** en formato mp4, a 1920×1080. Recomendado: **OBS Studio** (Windows y Mac).
    Sin instalar nada: `Cmd`+`Mayús`+`5` en Mac; en Windows, `Win`+`Alt`+`R` graba solo la ventana activa (sirve si solo enseñas el navegador).
-4. Habla como si se lo explicaras al profesor: qué haces y por qué funciona así. Ensáyalo una vez antes de grabar.
-5. Llama al fichero `video-<orden>-<nombre>.mp4` (por ejemplo `video-3-carles.mp4`) y envíaselo a Erick
+6. Habla como si se lo explicaras al profesor: qué haces y por qué funciona así. Mueve el ratón despacio y ensáyalo una vez antes de grabar.
+7. Llama al fichero `video-<orden>-<nombre>.mp4` (por ejemplo `video-3-carles.mp4`) y envíaselo a Erick
    (Google Drive o WeTransfer) **el sábado 21**.
+
+**Detalles de la aplicación que conviene saber antes de grabar**
+
+- Cuentas: `admin@example.com` / `Admin1234` y `laura.martinez@example.com` / `Usuario1234`. Adminer en
+  http://localhost:8081 (servidor `db`, usuario `biblioteca`, contraseña `biblioteca`, base de datos `biblioteca`).
+- Cinco contraseñas mal seguidas con el mismo email bloquean ese email cinco minutos: si pasa, espera o usa otra cuenta.
+- En «Mis préstamos», «Mis reservas» y «Mis favoritos» se abre un consejo abajo a la derecha: ciérralo con «Entendido»
+  o la X antes de explicar.
+- Borrar o cancelar abre una ventana propia de confirmación: hay que pulsar «Sí, eliminar» o «Sí, cancelarla».
+- Si Docker Desktop no arranca en Windows con un error de `engine.sock` o `dockerInference`, **no** pulses
+  «Reset to factory defaults»: avisa a Erick.
 
 **Montaje (Erick)**: une los cortes en orden con la presentación y el cierre, sube el vídeo a YouTube como **Oculto** y
 pasa el enlace al grupo el **domingo 22**: va en la memoria y en el ZIP de la entrega.
